@@ -17,15 +17,23 @@ class ChatBubble extends StatelessWidget {
         child: Container(
           padding: const EdgeInsets.all(10.0),
           constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.8,
+            maxWidth: isSentFromUser
+                ? MediaQuery.of(context).size.width * 0.8
+                : double.infinity,
           ),
           decoration: BoxDecoration(
-            color: bubbleColor,
+            color: isSentFromUser
+                ? Theme.of(context).colorScheme.primaryContainer
+                : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(10.0),
           ),
           child: SelectableText(
             message.content,
-            style: TextStyle(color: bubbleTextColor),
+            style: TextStyle(
+              color: isSentFromUser
+                  ? Theme.of(context).colorScheme.onPrimaryContainer
+                  : Theme.of(context).colorScheme.onSurface,
+            ),
           ),
         ),
       ),
@@ -33,6 +41,11 @@ class ChatBubble extends StatelessWidget {
         alignment: bubbleAlignment,
         child: Text(
           TimeOfDay.fromDateTime(message.createdAt.toLocal()).format(context),
+          style: TextStyle(
+            color: isSentFromUser
+                ? Theme.of(context).colorScheme.onSurfaceVariant
+                : Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
       ),
     );
@@ -47,11 +60,4 @@ class ChatBubble extends StatelessWidget {
   /// Otherwise, the alignment is [Alignment.centerLeft].
   Alignment get bubbleAlignment =>
       isSentFromUser ? Alignment.centerRight : Alignment.centerLeft;
-
-  /// Returns the color of the bubble.
-  Color? get bubbleColor =>
-      isSentFromUser ? Colors.blueAccent : Colors.grey[300];
-
-  /// Returns the color of the bubble text.
-  Color get bubbleTextColor => isSentFromUser ? Colors.white : Colors.black;
 }
