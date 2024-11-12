@@ -3,7 +3,10 @@ import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final service = OllamaService(model: "llama3.2-vision:latest");
+  final service = OllamaService(
+    model: "llama3.2-vision:latest",
+    // baseUrl: "https://ollama.loca.lt",
+  );
 
   test("Test Ollama generate endpoint", () async {
     final message =
