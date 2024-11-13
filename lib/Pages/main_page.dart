@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:ollama_chat/Pages/chat_page.dart';
+import 'package:ollama_chat/Widgets/chat_app_bar.dart';
+import 'package:ollama_chat/Widgets/chat_drawer.dart';
 
 class OllamaChatMainPage extends StatelessWidget {
   const OllamaChatMainPage({super.key, required this.title});
@@ -10,14 +11,9 @@ class OllamaChatMainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(
-          title,
-          style: GoogleFonts.ubuntu(),
-        ),
-      ),
+      appBar: ChatAppBar(title: title),
       body: const SafeArea(child: ChatPage()),
+      drawer: const ChatDrawer(),
     );
   }
 }

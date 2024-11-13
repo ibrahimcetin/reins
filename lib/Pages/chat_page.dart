@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:ollama_chat/Models/ollama_message.dart';
-import 'package:ollama_chat/Services/ollama_service.dart';
+import 'package:ollama_chat/Providers/chat_provider.dart';
 import 'package:ollama_chat/Widgets/chat_bubble.dart';
+import 'package:provider/provider.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -11,94 +12,205 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  final List<OllamaMessage> _messages = [];
-  final _textFieldController = TextEditingController();
-  final _scrollController = ScrollController();
-
-  final service = OllamaService(model: "llama3.2-vision:latest");
-
-  @override
-  void dispose() {
-    _textFieldController.dispose();
-    _scrollController.dispose();
-    super.dispose();
-  }
+  String? _llmModel;
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Expanded(
-          child: ListView.builder(
-            controller: _scrollController,
-            itemCount: _messages.length,
-            itemBuilder: (context, index) {
-              final message = _messages[index];
+    return Consumer<ChatProvider>(
+      builder: (BuildContext context, ChatProvider chatProvider, _) {
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Expanded(
+              child: chatProvider.messages.isEmpty
+                  ? _ollamaChatLogo(context)
+                  : ListView.builder(
+                      controller: chatProvider.scrollController,
+                      itemCount: chatProvider.messages.length,
+                      itemBuilder: (context, index) {
+                        final message = chatProvider.messages[index];
 
-              return ChatBubble(message: message);
-            },
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: _textFieldController,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30.0),
-              ),
-              labelText: 'Prompt',
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.arrow_upward),
-                onPressed: _sendPrompt,
+                        return ChatBubble(message: message);
+                      },
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: TextField(
+                controller: chatProvider.textFieldController,
+                onChanged: (value) => setState(() {}),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(30.0),
+                  ),
+                  labelText: 'Prompt',
+                  suffixIcon:
+                      chatProvider.textFieldController.text.trim().isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.arrow_upward),
+                              onPressed: () async {
+                                if (_llmModel == null) {
+                                  _showChatLLMBottomSheet(context);
+                                } else if (chatProvider.chat == null) {
+                                  await chatProvider.createChat(_llmModel!);
+                                  chatProvider.sendPrompt();
+                                } else {
+                                  chatProvider.sendPrompt();
+                                }
+                              },
+                              color: Theme.of(context).colorScheme.onSurface,
+                            ),
+                ),
+                maxLines: null,
               ),
             ),
-            maxLines: null,
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _ollamaChatLogo(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        SvgPicture.asset(
+          "assets/images/ollama.svg",
+          height: 48,
+          colorFilter: ColorFilter.mode(
+            Theme.of(context).colorScheme.onSurface,
+            BlendMode.srcIn,
           ),
+        ),
+        TextButton.icon(
+          icon: const Icon(Icons.auto_awesome_outlined),
+          label: Text(_llmModel ?? 'Select a model to start'),
+          iconAlignment: IconAlignment.end,
+          onPressed: () {
+            _showChatLLMBottomSheet(context);
+          },
         ),
       ],
     );
   }
 
-  Future<void> _sendPrompt() async {
-    final userMessage = OllamaMessage(
-      _textFieldController.text.trim(),
-      role: OllamaMessageRole.user,
+  Future<dynamic> _showChatLLMBottomSheet(BuildContext context) {
+    return showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return ChatModelBottomSheet(
+          onSelection: (selectedModel) {
+            setState(() {
+              _llmModel = selectedModel;
+            });
+          },
+        );
+      },
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(28.0),
+          topRight: Radius.circular(28.0),
+        ),
+      ),
+      clipBehavior: Clip.antiAliasWithSaveLayer,
     );
-
-    setState(() {
-      _textFieldController.clear();
-      _messages.add(userMessage);
-    });
-
-    _scrollToBottom();
-
-    final ollamaMessage = await service.chat(_messages);
-
-    setState(() {
-      _messages.add(ollamaMessage);
-    });
-
-    _scrollToBottom();
   }
+}
 
-  void _scrollToBottom() {
-    // If the scroll position is not at the bottom, do not scroll.
-    // This is to prevent the scroll position from changing when the user
-    // is reading previous messages.
-    if (_scrollController.position.pixels !=
-            _scrollController.position.maxScrollExtent &&
-        _messages.last.role != OllamaMessageRole.user) {
-      return;
-    }
+class ChatModelBottomSheet extends StatefulWidget {
+  final Function(String) onSelection;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeOut,
-      );
-    });
+  const ChatModelBottomSheet({super.key, required this.onSelection});
+
+  @override
+  State<ChatModelBottomSheet> createState() => _ChatModelBottomSheetState();
+}
+
+class _ChatModelBottomSheetState extends State<ChatModelBottomSheet> {
+  String? _llmModel;
+
+  final List<String> _llmModels = [
+    "llama3.2:latest",
+    "llama3.2-vision:latest",
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Theme.of(context).colorScheme.surface,
+      padding: const EdgeInsets.all(16.0),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8.0),
+                    child: Image.asset(
+                      "assets/images/ollama.png",
+                      height: 48,
+                    ),
+                  ),
+                ),
+                const Text(
+                  'Select a LLM Model',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const Divider(),
+            Expanded(
+              child: ListView(
+                children: [
+                  ..._llmModels.map((model) {
+                    return RadioListTile(
+                      title: Text(model),
+                      value: model,
+                      groupValue: _llmModel,
+                      onChanged: (value) {
+                        setState(() {
+                          _llmModel = value;
+                        });
+                      },
+                      secondary: IconButton(
+                        onPressed: () {},
+                        icon: const Icon(Icons.info_outline),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    if (_llmModel != null) {
+                      widget.onSelection(_llmModel!);
+                      Navigator.of(context).pop();
+                    } else {
+                      // Do nothing
+                    }
+                  },
+                  child: const Text('Select'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

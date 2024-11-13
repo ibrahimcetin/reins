@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:ollama_chat/Pages/main_page.dart';
+import 'package:ollama_chat/Providers/chat_provider.dart';
+import 'package:provider/provider.dart';
 
 void main() {
-  runApp(const OllamaChatApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (_) => ChatProvider(),
+      child: const OllamaChatApp(),
+    ),
+  );
 }
 
 class OllamaChatApp extends StatelessWidget {
