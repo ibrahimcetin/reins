@@ -26,7 +26,7 @@ class _ChatPageState extends State<ChatPage> {
           children: <Widget>[
             Expanded(
               child: chatProvider.messages.isEmpty
-                  ? _ollamaChatLogo(context)
+                  ? _buildEmptyChatState(context)
                   : ListView.builder(
                       reverse: true,
                       itemCount: chatProvider.messages.length,
@@ -80,7 +80,7 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Widget _ollamaChatLogo(BuildContext context) {
+  Widget _buildEmptyChatState(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
