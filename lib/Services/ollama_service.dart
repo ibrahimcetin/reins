@@ -42,14 +42,42 @@ class OllamaService {
       body: json.encode({
         "model": model,
         "prompt": prompt,
-        "stream": false, // TODO: Implement streaming
         "options": options,
+        "stream": false,
       }),
     );
 
     if (response.statusCode == 200) {
       final jsonBody = json.decode(response.body);
       return OllamaMessage.fromJson(jsonBody);
+    } else {
+      throw Exception("Failed to generate message");
+    }
+  }
+
+  Stream<OllamaMessage> generateStream(
+    String prompt, {
+    required String model,
+    Map<String, dynamic> options = const {},
+  }) async* {
+    final url = Uri.parse("$baseUrl/api/generate");
+
+    final request = http.Request("POST", url);
+    request.headers.addAll(headers);
+    request.body = json.encode({
+      "model": model,
+      "prompt": prompt,
+      "options": options,
+      "stream": true,
+    });
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      await for (var chunk in response.stream.transform(utf8.decoder)) {
+        final jsonBody = json.decode(chunk);
+        yield OllamaMessage.fromJson(jsonBody);
+      }
     } else {
       throw Exception("Failed to generate message");
     }
@@ -78,14 +106,42 @@ class OllamaService {
       body: json.encode({
         "model": model,
         "messages": messages.map((m) => m.toChatJson()).toList(),
-        "stream": false, // TODO: Implement streaming
         "options": options,
+        "stream": false,
       }),
     );
 
     if (response.statusCode == 200) {
       final jsonBody = json.decode(response.body);
       return OllamaMessage.fromJson(jsonBody);
+    } else {
+      throw Exception("Failed to chat");
+    }
+  }
+
+  Stream<OllamaMessage> chatStream(
+    List<OllamaMessage> messages, {
+    required String model,
+    Map<String, dynamic> options = const {},
+  }) async* {
+    final url = Uri.parse("$baseUrl/api/chat");
+
+    final request = http.Request("POST", url);
+    request.headers.addAll(headers);
+    request.body = json.encode({
+      "model": model,
+      "messages": messages.map((m) => m.toChatJson()).toList(),
+      "options": options,
+      "stream": true,
+    });
+
+    http.StreamedResponse response = await request.send();
+
+    if (response.statusCode == 200) {
+      await for (var chunk in response.stream.transform(utf8.decoder)) {
+        final jsonBody = json.decode(chunk);
+        yield OllamaMessage.fromJson(jsonBody);
+      }
     } else {
       throw Exception("Failed to chat");
     }
