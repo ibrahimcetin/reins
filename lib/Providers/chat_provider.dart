@@ -16,7 +16,7 @@ class ChatProvider extends ChangeNotifier {
 
   final _ollamaService = OllamaService(
     model: "llama3.2-vision:latest",
-    baseUrl: "https://ollama.loca.lt",
+    // baseUrl: "https://ollama.loca.lt",
   );
   final _databaseService = DatabaseService();
 
