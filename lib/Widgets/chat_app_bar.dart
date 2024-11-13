@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ollama_chat/Widgets/chat_bottom_sheet.dart';
+import 'package:ollama_chat/Widgets/chat_configure_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 
@@ -38,7 +38,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             showModalBottomSheet(
               context: context,
               builder: (BuildContext context) {
-                return const ChatBottomSheet();
+                return const ChatConfigureBottomSheet();
               },
             );
           },

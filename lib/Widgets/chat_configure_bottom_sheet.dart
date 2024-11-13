@@ -2,14 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 import 'package:provider/provider.dart';
 
-class ChatBottomSheet extends StatefulWidget {
-  const ChatBottomSheet({super.key});
+class ChatConfigureBottomSheet extends StatefulWidget {
+  const ChatConfigureBottomSheet({super.key});
 
   @override
-  State<ChatBottomSheet> createState() => _ChatBottomSheetState();
+  State<ChatConfigureBottomSheet> createState() =>
+      _ChatConfigureBottomSheetState();
 }
 
-class _ChatBottomSheetState extends State<ChatBottomSheet> {
+class _ChatConfigureBottomSheetState extends State<ChatConfigureBottomSheet> {
   double _sliderValue = 0.5;
 
   @override
