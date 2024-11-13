@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:ollama_chat/Models/ollama_model.dart';
 
 // TODO: Make this generic
 
 class ChatModelSelectionBottomSheet extends StatefulWidget {
   final String title;
 
-  final List<String> values;
-  final String? currentSelection;
+  final List<OllamaModel> availableChatModels;
+  final OllamaModel? currentSelection;
 
-  final Function(String) onSelection;
+  final Function(OllamaModel) onSelection;
 
   const ChatModelSelectionBottomSheet({
     super.key,
     required this.title,
-    required this.values,
+    required this.availableChatModels,
     required this.currentSelection,
     required this.onSelection,
   });
@@ -25,7 +26,7 @@ class ChatModelSelectionBottomSheet extends StatefulWidget {
 
 class _ChatModelSelectionBottomSheetState
     extends State<ChatModelSelectionBottomSheet> {
-  String? _selectedLlmModel;
+  OllamaModel? _selectedLlmModel;
 
   @override
   void initState() {
@@ -66,9 +67,9 @@ class _ChatModelSelectionBottomSheetState
             Expanded(
               child: ListView(
                 children: [
-                  ...widget.values.map((model) {
+                  ...widget.availableChatModels.map((model) {
                     return RadioListTile(
-                      title: Text(model),
+                      title: Text(model.name),
                       value: model,
                       groupValue: _selectedLlmModel,
                       onChanged: (value) {

@@ -1,5 +1,6 @@
 import 'package:ollama_chat/Models/ollama_chat.dart';
 import 'package:ollama_chat/Models/ollama_message.dart';
+import 'package:ollama_chat/Models/ollama_model.dart';
 import 'package:ollama_chat/Services/database_service.dart';
 import 'package:ollama_chat/Services/ollama_service.dart';
 import 'package:flutter/material.dart';
@@ -22,6 +23,9 @@ class ChatProvider extends ChangeNotifier {
 
   int _selectedChatIndex = 0;
   int get selectedChatIndex => _selectedChatIndex;
+
+  List<OllamaModel> _availableModels = [];
+  List<OllamaModel> get availableModels => _availableModels;
 
   ChatProvider() {
     _initialize();
@@ -64,8 +68,8 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> createChat(String model) async {
-    _chat = await _databaseService.createChat(model);
+  Future<void> createChat(OllamaModel model) async {
+    _chat = await _databaseService.createChat(model.model);
 
     _chats.insert(0, _chat!);
 
@@ -127,5 +131,10 @@ class ChatProvider extends ChangeNotifier {
     }
 
     return ollamaMessage!;
+  }
+
+  Future<void> fetchAvailableModels() async {
+    _availableModels = await _ollamaService.listModels();
+    notifyListeners();
   }
 }

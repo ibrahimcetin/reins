@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ollama_chat/Models/ollama_model.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 import 'package:ollama_chat/Widgets/chat_bubble.dart';
 import 'package:ollama_chat/Widgets/chat_model_selection_bottom_sheet.dart';
@@ -13,7 +14,8 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  String? _llmModel;
+  // This is for empty chat state to select a model
+  OllamaModel? _selectedModel;
 
   @override
   Widget build(BuildContext context) {
@@ -46,27 +48,28 @@ class _ChatPageState extends State<ChatPage> {
                     borderRadius: BorderRadius.circular(30.0),
                   ),
                   labelText: 'Prompt',
-                  suffixIcon:
-                      chatProvider.textFieldController.text.trim().isEmpty
-                          ? null
-                          : IconButton(
-                              icon: const Icon(Icons.arrow_upward),
-                              onPressed: () async {
-                                if (chatProvider.chat == null) {
-                                  if (_llmModel == null) {
-                                    await _showChatLLMBottomSheet(context);
-                                  }
+                  suffixIcon: chatProvider.textFieldController.text
+                          .trim()
+                          .isEmpty
+                      ? null
+                      : IconButton(
+                          icon: const Icon(Icons.arrow_upward),
+                          onPressed: () async {
+                            if (chatProvider.chat == null) {
+                              if (_selectedModel == null) {
+                                await _showChatLLMBottomSheet(context);
+                              }
 
-                                  if (_llmModel != null) {
-                                    await chatProvider.createChat(_llmModel!);
-                                    chatProvider.sendUserPrompt();
-                                  }
-                                } else {
-                                  chatProvider.sendUserPrompt();
-                                }
-                              },
-                              color: Theme.of(context).colorScheme.onSurface,
-                            ),
+                              if (_selectedModel != null) {
+                                await chatProvider.createChat(_selectedModel!);
+                                chatProvider.sendUserPrompt();
+                              }
+                            } else {
+                              chatProvider.sendUserPrompt();
+                            }
+                          },
+                          color: Theme.of(context).colorScheme.onSurface,
+                        ),
                 ),
                 maxLines: null,
               ),
@@ -91,7 +94,7 @@ class _ChatPageState extends State<ChatPage> {
         ),
         TextButton.icon(
           icon: const Icon(Icons.auto_awesome_outlined),
-          label: Text(_llmModel ?? 'Select a model to start'),
+          label: Text(_selectedModel?.name ?? 'Select a model to start'),
           iconAlignment: IconAlignment.end,
           onPressed: () {
             _showChatLLMBottomSheet(context);
@@ -102,19 +105,20 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future _showChatLLMBottomSheet(BuildContext context) async {
+    Provider.of<ChatProvider>(context, listen: false).fetchAvailableModels();
+
     await showModalBottomSheet(
       context: context,
       builder: (context) {
+        final chatProvider = Provider.of<ChatProvider>(context);
+
         return ChatModelSelectionBottomSheet(
           title: "Select a LLM Model",
-          values: const [
-            "llama3.2:latest",
-            "llama3.2-vision:latest",
-          ],
-          currentSelection: _llmModel,
+          availableChatModels: chatProvider.availableModels,
+          currentSelection: _selectedModel,
           onSelection: (selectedModel) {
             setState(() {
-              _llmModel = selectedModel;
+              _selectedModel = selectedModel;
             });
           },
         );
