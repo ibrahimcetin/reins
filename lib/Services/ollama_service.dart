@@ -76,8 +76,16 @@ class OllamaService {
 
     if (response.statusCode == 200) {
       await for (var chunk in response.stream.transform(utf8.decoder)) {
-        final jsonBody = json.decode(chunk);
-        yield OllamaMessage.fromJson(jsonBody);
+        // Split the chunk into lines and parse each line as JSON. This is
+        // necessary because the Ollama service may sends multiple JSON objects
+        // in a single response.
+        final lines = LineSplitter.split(chunk);
+        for (var line in lines) {
+          if (line.trim().isNotEmpty) {
+            final jsonBody = json.decode(line);
+            yield OllamaMessage.fromJson(jsonBody);
+          }
+        }
       }
     } else {
       throw Exception("Failed to generate message");
@@ -140,8 +148,16 @@ class OllamaService {
 
     if (response.statusCode == 200) {
       await for (var chunk in response.stream.transform(utf8.decoder)) {
-        final jsonBody = json.decode(chunk);
-        yield OllamaMessage.fromJson(jsonBody);
+        // Split the chunk into lines and parse each line as JSON. This is
+        // necessary because the Ollama service may sends multiple JSON objects
+        // in a single response.
+        final lines = LineSplitter.split(chunk);
+        for (var line in lines) {
+          if (line.trim().isNotEmpty) {
+            final jsonBody = json.decode(line);
+            yield OllamaMessage.fromJson(jsonBody);
+          }
+        }
       }
     } else {
       throw Exception("Failed to chat");
