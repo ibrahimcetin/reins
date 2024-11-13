@@ -90,7 +90,7 @@ class OllamaMessage {
       };
 
   Map<String, dynamic> toChatJson() => {
-        "role": role.toString(),
+        "role": role.toString().split('.').last,
         "content": content,
         "images": images,
       };
