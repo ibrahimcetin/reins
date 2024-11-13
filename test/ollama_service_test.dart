@@ -98,4 +98,15 @@ void main() {
 
     expect(ollamaMessage, isNotEmpty);
   });
+
+  test("Test Ollama tags endpoint", () async {
+    final models = await service.listModels();
+
+    print("Test Ollama tags endpoint models:");
+    models.forEach((model) {
+      print(model.name);
+    });
+
+    expect(models, isNotEmpty);
+  });
 }

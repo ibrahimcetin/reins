@@ -1,6 +1,7 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:ollama_chat/Models/ollama_message.dart';
+import 'package:ollama_chat/Models/ollama_model.dart';
 
 class OllamaService {
   /// The base URL for the Ollama service API.
@@ -144,6 +145,21 @@ class OllamaService {
       }
     } else {
       throw Exception("Failed to chat");
+    }
+  }
+
+  Future<List<OllamaModel>> listModels() async {
+    final url = Uri.parse("$baseUrl/api/tags");
+
+    final response = await http.get(url, headers: headers);
+
+    if (response.statusCode == 200) {
+      final jsonBody = json.decode(response.body);
+      return List<OllamaModel>.from(
+        jsonBody["models"].map((m) => OllamaModel.fromJson(m)),
+      );
+    } else {
+      throw Exception("Failed to list models");
     }
   }
 }
