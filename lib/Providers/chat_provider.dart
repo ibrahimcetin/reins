@@ -11,9 +11,6 @@ class ChatProvider extends ChangeNotifier {
   final _textFieldController = TextEditingController();
   TextEditingController get textFieldController => _textFieldController;
 
-  final _scrollController = ScrollController();
-  ScrollController get scrollController => _scrollController;
-
   final _ollamaService = OllamaService();
   final _databaseService = DatabaseService();
 
@@ -65,11 +62,6 @@ class ChatProvider extends ChangeNotifier {
     _textFieldController.clear();
 
     notifyListeners();
-
-    // Jump to the bottom of the chat.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      scrollController.jumpTo(scrollController.position.maxScrollExtent);
-    });
   }
 
   Future<void> createChat(String model) async {
@@ -94,27 +86,17 @@ class ChatProvider extends ChangeNotifier {
     destinationChatSelected(0);
   }
 
-  Future<void> sendPrompt() async {
-    final prompt = _getPrompt();
-
-    _messages.add(prompt);
-    notifyListeners();
+  Future<void> sendUserPrompt() async {
+    final prompt = _getUserPrompt();
 
     await _databaseService.addMessage(prompt, _chat!.id);
 
-    _scrollToBottom();
-
-    final ollamaMessage =
-        await _ollamaService.chat(_messages, model: _chat!.model);
-    _messages.add(ollamaMessage);
-    notifyListeners();
+    final ollamaMessage = await _streamOllamaMessages();
 
     await _databaseService.addMessage(ollamaMessage, _chat!.id);
-
-    _scrollToBottom();
   }
 
-  OllamaMessage _getPrompt() {
+  OllamaMessage _getUserPrompt() {
     final message = OllamaMessage(
       _textFieldController.text.trim(),
       role: OllamaMessageRole.user,
@@ -122,26 +104,28 @@ class ChatProvider extends ChangeNotifier {
 
     _textFieldController.clear();
 
+    _messages.add(message);
+    notifyListeners();
+
     return message;
   }
 
-  void _scrollToBottom() {
-    // If the scroll position is not at the bottom, do not scroll.
-    // This is to prevent the scroll position from changing when the user
-    // is reading previous messages.
-    // if (_scrollController.hasClients &&
-    //     _scrollController.position.pixels !=
-    //         _scrollController.position.maxScrollExtent &&
-    //     _messages.last.role != OllamaMessageRole.user) {
-    //   return;
-    // }
+  Future<OllamaMessage> _streamOllamaMessages() async {
+    final stream = _ollamaService.chatStream(_messages, model: _chat!.model);
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 100),
-        curve: Curves.easeOut,
-      );
-    });
+    OllamaMessage? ollamaMessage;
+
+    await for (final message in stream) {
+      if (ollamaMessage == null) {
+        _messages.add(message);
+        ollamaMessage = message;
+      } else {
+        ollamaMessage.content += message.content;
+      }
+
+      notifyListeners();
+    }
+
+    return ollamaMessage!;
   }
 }

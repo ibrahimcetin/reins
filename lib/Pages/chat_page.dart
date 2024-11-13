@@ -25,10 +25,11 @@ class _ChatPageState extends State<ChatPage> {
               child: chatProvider.messages.isEmpty
                   ? _ollamaChatLogo(context)
                   : ListView.builder(
-                      controller: chatProvider.scrollController,
+                      reverse: true,
                       itemCount: chatProvider.messages.length,
                       itemBuilder: (context, index) {
-                        final message = chatProvider.messages[index];
+                        final message = chatProvider
+                            .messages[chatProvider.messages.length - index - 1];
 
                         return ChatBubble(message: message);
                       },
@@ -54,9 +55,9 @@ class _ChatPageState extends State<ChatPage> {
                                   _showChatLLMBottomSheet(context);
                                 } else if (chatProvider.chat == null) {
                                   await chatProvider.createChat(_llmModel!);
-                                  chatProvider.sendPrompt();
+                                  chatProvider.sendUserPrompt();
                                 } else {
-                                  chatProvider.sendPrompt();
+                                  chatProvider.sendUserPrompt();
                                 }
                               },
                               color: Theme.of(context).colorScheme.onSurface,
