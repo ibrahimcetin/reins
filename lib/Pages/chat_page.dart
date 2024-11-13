@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 import 'package:ollama_chat/Widgets/chat_bubble.dart';
+import 'package:ollama_chat/Widgets/chat_model_selection_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
@@ -104,7 +105,13 @@ class _ChatPageState extends State<ChatPage> {
     await showModalBottomSheet(
       context: context,
       builder: (context) {
-        return ChatModelBottomSheet(
+        return ChatModelSelectionBottomSheet(
+          title: "Select a LLM Model",
+          values: const [
+            "llama3.2:latest",
+            "llama3.2-vision:latest",
+          ],
+          currentSelection: _llmModel,
           onSelection: (selectedModel) {
             setState(() {
               _llmModel = selectedModel;
@@ -119,103 +126,7 @@ class _ChatPageState extends State<ChatPage> {
         ),
       ),
       clipBehavior: Clip.antiAliasWithSaveLayer,
-    );
-  }
-}
-
-class ChatModelBottomSheet extends StatefulWidget {
-  final Function(String) onSelection;
-
-  const ChatModelBottomSheet({super.key, required this.onSelection});
-
-  @override
-  State<ChatModelBottomSheet> createState() => _ChatModelBottomSheetState();
-}
-
-class _ChatModelBottomSheetState extends State<ChatModelBottomSheet> {
-  String? _llmModel;
-
-  final List<String> _llmModels = [
-    "llama3.2:latest",
-    "llama3.2-vision:latest",
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      color: Theme.of(context).colorScheme.surface,
-      padding: const EdgeInsets.all(16.0),
-      child: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(8.0),
-                    child: Image.asset(
-                      "assets/images/ollama.png",
-                      height: 48,
-                    ),
-                  ),
-                ),
-                const Text(
-                  'Select a LLM Model',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
-            ),
-            const Divider(),
-            Expanded(
-              child: ListView(
-                children: [
-                  ..._llmModels.map((model) {
-                    return RadioListTile(
-                      title: Text(model),
-                      value: model,
-                      groupValue: _llmModel,
-                      onChanged: (value) {
-                        setState(() {
-                          _llmModel = value;
-                        });
-                      },
-                      secondary: IconButton(
-                        onPressed: () {},
-                        icon: const Icon(Icons.info_outline),
-                      ),
-                    );
-                  }),
-                ],
-              ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop();
-                  },
-                  child: const Text('Cancel'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    if (_llmModel != null) {
-                      widget.onSelection(_llmModel!);
-                      Navigator.of(context).pop();
-                    } else {
-                      // Do nothing
-                    }
-                  },
-                  child: const Text('Select'),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+      isDismissible: false,
     );
   }
 }
