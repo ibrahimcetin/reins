@@ -51,11 +51,15 @@ class _ChatPageState extends State<ChatPage> {
                           : IconButton(
                               icon: const Icon(Icons.arrow_upward),
                               onPressed: () async {
-                                if (_llmModel == null) {
-                                  _showChatLLMBottomSheet(context);
-                                } else if (chatProvider.chat == null) {
-                                  await chatProvider.createChat(_llmModel!);
-                                  chatProvider.sendUserPrompt();
+                                if (chatProvider.chat == null) {
+                                  if (_llmModel == null) {
+                                    await _showChatLLMBottomSheet(context);
+                                  }
+
+                                  if (_llmModel != null) {
+                                    await chatProvider.createChat(_llmModel!);
+                                    chatProvider.sendUserPrompt();
+                                  }
                                 } else {
                                   chatProvider.sendUserPrompt();
                                 }
@@ -96,8 +100,8 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Future<dynamic> _showChatLLMBottomSheet(BuildContext context) {
-    return showModalBottomSheet(
+  Future _showChatLLMBottomSheet(BuildContext context) async {
+    await showModalBottomSheet(
       context: context,
       builder: (context) {
         return ChatModelBottomSheet(
