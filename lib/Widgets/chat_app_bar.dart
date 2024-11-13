@@ -30,6 +30,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
         ],
       ),
+      centerTitle: true,
       actions: [
         IconButton(
           icon: const Icon(Icons.tune),
