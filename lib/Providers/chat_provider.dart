@@ -14,10 +14,7 @@ class ChatProvider extends ChangeNotifier {
   final _scrollController = ScrollController();
   ScrollController get scrollController => _scrollController;
 
-  final _ollamaService = OllamaService(
-    model: "llama3.2-vision:latest",
-    // baseUrl: "https://ollama.loca.lt",
-  );
+  final _ollamaService = OllamaService();
   final _databaseService = DatabaseService();
 
   OllamaChat? _chat;
@@ -107,7 +104,8 @@ class ChatProvider extends ChangeNotifier {
 
     _scrollToBottom();
 
-    final ollamaMessage = await _ollamaService.chat(_messages);
+    final ollamaMessage =
+        await _ollamaService.chat(_messages, model: _chat!.model);
     _messages.add(ollamaMessage);
     notifyListeners();
 

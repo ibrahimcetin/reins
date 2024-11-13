@@ -3,14 +3,15 @@ import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final service = OllamaService(
-    model: "llama3.2-vision:latest",
-    // baseUrl: "https://ollama.loca.lt",
-  );
+  final service = OllamaService();
+  const model = "llama3.2-vision:latest";
 
   test("Test Ollama generate endpoint", () async {
-    final message =
-        await service.generate("Hello", options: {"temperature": 0});
+    final message = await service.generate(
+      "Hello",
+      model: model,
+      options: {"temperature": 0},
+    );
 
     expect(message.content, "How can I assist you today?");
   });
@@ -35,6 +36,7 @@ void main() {
           role: OllamaMessageRole.user,
         ),
       ],
+      model: model,
       options: {"temperature": 0},
     );
 

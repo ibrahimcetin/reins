@@ -12,16 +12,11 @@ class OllamaService {
   /// The default value is "http://localhost:11434".
   final String baseUrl;
 
-  /// The model used to generate messages.
-  ///
-  /// Example: "llama3.2-vision:latest"
-  final String model;
-
   /// The headers to include in all network requests.
   final headers = {'Content-Type': 'application/json'};
 
   /// Creates a new instance of the Ollama service.
-  OllamaService({required this.model, String? baseUrl})
+  OllamaService({String? baseUrl})
       : baseUrl = baseUrl ?? "http://localhost:11434";
 
   /// Generates an OllamaMessage.
@@ -36,6 +31,7 @@ class OllamaService {
   /// Returns a [Future] that completes with an [OllamaMessage].
   Future<OllamaMessage> generate(
     String prompt, {
+    required String model,
     Map<String, dynamic> options = const {},
   }) async {
     final url = Uri.parse("$baseUrl/api/generate");
@@ -71,6 +67,7 @@ class OllamaService {
   /// the Ollama service.
   Future<OllamaMessage> chat(
     List<OllamaMessage> messages, {
+    required String model,
     Map<String, dynamic> options = const {},
   }) async {
     final url = Uri.parse("$baseUrl/api/chat");
