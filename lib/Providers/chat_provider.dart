@@ -4,6 +4,7 @@ import 'package:ollama_chat/Models/ollama_model.dart';
 import 'package:ollama_chat/Services/database_service.dart';
 import 'package:ollama_chat/Services/ollama_service.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class ChatProvider extends ChangeNotifier {
   List<OllamaMessage> _messages = [];
@@ -32,8 +33,9 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> _initialize() async {
-    await _databaseService.open("ollama_chat.db");
+    updateOllamaServiceAddress();
 
+    await _databaseService.open("ollama_chat.db");
     _chats = await _databaseService.getAllChats();
   }
 
@@ -63,7 +65,9 @@ class ChatProvider extends ChangeNotifier {
     _chat = chat;
 
     _messages = await _databaseService.getMessages(chat.id);
+
     _textFieldController.clear();
+    FocusManager.instance.primaryFocus?.unfocus();
 
     notifyListeners();
   }
@@ -135,6 +139,15 @@ class ChatProvider extends ChangeNotifier {
 
   Future<void> fetchAvailableModels() async {
     _availableModels = await _ollamaService.listModels();
+    notifyListeners();
+  }
+
+  Future<void> updateOllamaServiceAddress() async {
+    final prefs = await SharedPreferences.getInstance();
+    final serverAddress = prefs.getString('serverAddress');
+
+    _ollamaService.baseUrl = serverAddress;
+
     notifyListeners();
   }
 }

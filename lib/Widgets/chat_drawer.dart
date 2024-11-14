@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ollama_chat/Pages/settings_page.dart';
 import 'package:provider/provider.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 
@@ -16,21 +17,14 @@ class ChatDrawer extends StatelessWidget {
               alignment: Alignment.centerLeft,
               padding: const EdgeInsets.fromLTRB(28, 16, 28, 10),
               child: IconButton(
+                icon: const Icon(Icons.settings_outlined),
                 onPressed: () {
                   Navigator.pop(context);
 
                   Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return Scaffold(
-                      appBar: AppBar(
-                        title: const Text('Settings'),
-                      ),
-                      body: const Center(
-                        child: Text('Settings'),
-                      ),
-                    );
+                    return const SettingsPage();
                   }));
                 },
-                icon: const Icon(Icons.settings_outlined),
               ),
             ),
           ],

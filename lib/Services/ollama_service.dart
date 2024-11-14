@@ -11,14 +11,16 @@ class OllamaService {
   /// of the API server.
   ///
   /// The default value is "http://localhost:11434".
-  final String baseUrl;
+  String _baseUrl;
+  get baseUrl => _baseUrl;
+  set baseUrl(value) => _baseUrl = value ?? "http://localhost:11434";
 
   /// The headers to include in all network requests.
   final headers = {'Content-Type': 'application/json'};
 
   /// Creates a new instance of the Ollama service.
   OllamaService({String? baseUrl})
-      : baseUrl = baseUrl ?? "http://localhost:11434";
+      : _baseUrl = baseUrl ?? "http://localhost:11434";
 
   /// Generates an OllamaMessage.
   ///
