@@ -28,6 +28,7 @@ class _ChatPageState extends State<ChatPage> {
               child: chatProvider.messages.isEmpty
                   ? _buildEmptyChatState(context)
                   : ListView.builder(
+                      key: ObjectKey(chatProvider.chat?.id),
                       reverse: true,
                       itemCount: chatProvider.messages.length,
                       itemBuilder: (context, index) {
