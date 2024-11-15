@@ -28,7 +28,7 @@ class _ChatPageState extends State<ChatPage> {
               child: chatProvider.messages.isEmpty
                   ? _buildEmptyChatState(context)
                   : ListView.builder(
-                      key: ObjectKey(chatProvider.chat?.id),
+                      key: ObjectKey(chatProvider.currentChat?.id),
                       reverse: true,
                       itemCount: chatProvider.messages.length,
                       itemBuilder: (context, index) {
@@ -56,7 +56,7 @@ class _ChatPageState extends State<ChatPage> {
                       : IconButton(
                           icon: const Icon(Icons.arrow_upward),
                           onPressed: () async {
-                            if (chatProvider.chat == null) {
+                            if (chatProvider.currentChat == null) {
                               if (_selectedModel == null) {
                                 await _showChatLLMBottomSheet(context);
                               }

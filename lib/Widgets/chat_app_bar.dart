@@ -21,9 +21,9 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             title,
             style: GoogleFonts.pacifico(), // kodeMono,
           ),
-          if (chatProvider.chat != null)
+          if (chatProvider.currentChat != null)
             Text(
-              chatProvider.chat!.model,
+              chatProvider.currentChat!.model,
               style: GoogleFonts.kodeMono(
                 textStyle: Theme.of(context).textTheme.labelSmall,
               ),

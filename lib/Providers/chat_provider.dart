@@ -16,8 +16,8 @@ class ChatProvider extends ChangeNotifier {
   final _ollamaService = OllamaService();
   final _databaseService = DatabaseService();
 
-  OllamaChat? _chat;
-  OllamaChat? get chat => _chat;
+  OllamaChat? _currentChat;
+  OllamaChat? get currentChat => _currentChat;
 
   List<OllamaChat> _chats = [];
   List<OllamaChat> get chats => _chats;
@@ -53,7 +53,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   void emptyChat() {
-    _chat = null;
+    _currentChat = null;
 
     _messages.clear();
     _textFieldController.clear();
@@ -62,7 +62,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future selectChat(OllamaChat chat) async {
-    _chat = chat;
+    _currentChat = chat;
 
     _messages = await _databaseService.getMessages(chat.id);
 
@@ -73,35 +73,42 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> createChat(OllamaModel model) async {
-    _chat = await _databaseService.createChat(model.model);
+    _currentChat = await _databaseService.createChat(model.model);
 
-    _chats.insert(0, _chat!);
+    _chats.insert(0, _currentChat!);
 
     _selectedChatIndex = 1;
     notifyListeners();
   }
 
   Future deleteChat() async {
-    if (_chat == null) {
+    if (_currentChat == null) {
       return;
     }
 
-    await _databaseService.deleteChat(_chat!.id);
+    await _databaseService.deleteChat(_currentChat!.id);
 
-    _chats.remove(_chat!);
+    _chats.remove(_currentChat!);
     notifyListeners();
 
     destinationChatSelected(0);
   }
 
   Future<void> sendUserPrompt() async {
+    // Save the chat where the prompt was sent
+    final associatedChat = _currentChat!;
+
+    // Get the user prompt and clear the text field
     final prompt = _getUserPrompt();
 
-    await _databaseService.addMessage(prompt, _chat!.id);
+    // Save the user prompt to the database
+    await _databaseService.addMessage(prompt, associatedChat.id);
 
-    final ollamaMessage = await _streamOllamaMessages();
+    // Stream the Ollama message
+    final ollamaMessage = await _streamOllamaMessage(associatedChat);
 
-    await _databaseService.addMessage(ollamaMessage, _chat!.id);
+    // Save the Ollama message to the database
+    await _databaseService.addMessage(ollamaMessage, associatedChat.id);
   }
 
   OllamaMessage _getUserPrompt() {
@@ -118,17 +125,33 @@ class ChatProvider extends ChangeNotifier {
     return message;
   }
 
-  Future<OllamaMessage> _streamOllamaMessages() async {
-    final stream = _ollamaService.chatStream(_messages, model: _chat!.model);
+  Future<OllamaMessage> _streamOllamaMessage(OllamaChat associatedChat) async {
+    final stream = _ollamaService.chatStream(
+      _messages,
+      model: associatedChat.model,
+    );
 
     OllamaMessage? ollamaMessage;
 
     await for (final message in stream) {
       if (ollamaMessage == null) {
-        _messages.add(message);
         ollamaMessage = message;
+
+        if (associatedChat.id == _currentChat?.id) {
+          _messages.add(ollamaMessage);
+        }
       } else {
         ollamaMessage.content += message.content;
+      }
+
+      // If the chat changed previously by user, and come back to the same chat later,
+      // the latest message will be user's message. So, we need to readd the ollamaMessage
+      // to be able to show stream in the chat.
+      //
+      // createdAt property is used like a unique identifier for messages.
+      if (associatedChat.id == _currentChat?.id &&
+          _messages.last.createdAt != ollamaMessage.createdAt) {
+        _messages.add(ollamaMessage);
       }
 
       notifyListeners();
