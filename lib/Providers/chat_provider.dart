@@ -25,9 +25,6 @@ class ChatProvider extends ChangeNotifier {
   int _selectedChatIndex = 0;
   int get selectedChatIndex => _selectedChatIndex;
 
-  List<OllamaModel> _availableModels = [];
-  List<OllamaModel> get availableModels => _availableModels;
-
   ChatProvider() {
     _initialize();
   }
