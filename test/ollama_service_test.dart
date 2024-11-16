@@ -103,9 +103,9 @@ void main() {
     final models = await service.listModels();
 
     print("Test Ollama tags endpoint models:");
-    models.forEach((model) {
+    for (var model in models) {
       print(model.name);
-    });
+    }
 
     expect(models, isNotEmpty);
   });
