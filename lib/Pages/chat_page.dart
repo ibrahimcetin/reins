@@ -124,14 +124,8 @@ class _ChatPageState extends State<ChatPage> {
           },
         );
       },
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(28.0),
-          topRight: Radius.circular(28.0),
-        ),
-      ),
-      clipBehavior: Clip.antiAliasWithSaveLayer,
       isDismissible: false,
+      enableDrag: false,
     );
   }
 }
