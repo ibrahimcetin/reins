@@ -55,7 +55,7 @@ dev_dependencies:
     sdk: flutter
 
   # Linting rules for Flutter
-  flutter_lints: ^4.0.0
+  flutter_lints: ^5.0.0
 
   # Testing framework
   test: ^1.25.7
