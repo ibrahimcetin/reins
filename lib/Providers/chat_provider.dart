@@ -101,6 +101,12 @@ class ChatProvider extends ChangeNotifier {
     // Save the user prompt to the database
     await _databaseService.addMessage(prompt, associatedChat.id);
 
+    // Update the chat list to show the latest chat at the top
+    // ? Should we extract this to a separate method?
+    _chats = await _databaseService.getAllChats();
+    _selectedChatIndex = 1;
+    notifyListeners();
+
     // Stream the Ollama message
     final ollamaMessage = await _streamOllamaMessage(associatedChat);
 
