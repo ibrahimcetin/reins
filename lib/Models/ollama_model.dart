@@ -34,6 +34,11 @@ class OllamaModel {
       };
 
   @override
+  String toString() {
+    return name;
+  }
+
+  @override
   int get hashCode => digest.hashCode;
 
   @override

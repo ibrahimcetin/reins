@@ -160,9 +160,8 @@ class ChatProvider extends ChangeNotifier {
     return ollamaMessage!;
   }
 
-  Future<void> fetchAvailableModels() async {
-    _availableModels = await _ollamaService.listModels();
-    notifyListeners();
+  Future<List<OllamaModel>> fetchAvailableModels() async {
+    return await _ollamaService.listModels();
   }
 
   Future<void> updateOllamaServiceAddress() async {
