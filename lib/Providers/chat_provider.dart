@@ -34,6 +34,7 @@ class ChatProvider extends ChangeNotifier {
 
     await _databaseService.open("ollama_chat.db");
     _chats = await _databaseService.getAllChats();
+    notifyListeners();
   }
 
   void destinationChatSelected(int destination) {
@@ -60,7 +61,6 @@ class ChatProvider extends ChangeNotifier {
 
   Future selectChat(OllamaChat chat) async {
     _currentChat = chat;
-
     _messages = await _databaseService.getMessages(chat.id);
 
     _textFieldController.clear();
