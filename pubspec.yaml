@@ -60,7 +60,8 @@ dev_dependencies:
 
   sqflite_common_ffi: ^2.3.4
 
-  shared_preferences: ^2.3.3
+  hive: ^2.2.3
+  hive_flutter: ^1.1.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

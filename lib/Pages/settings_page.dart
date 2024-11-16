@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:ollama_chat/Providers/chat_provider.dart';
-import 'package:provider/provider.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:hive/hive.dart';
 import 'package:ollama_chat/Models/ollama_request_state.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -13,6 +11,8 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  final _settingsBox = Hive.box('settings');
+
   OllamaRequestState _requestState = OllamaRequestState.uninitialized;
 
   final _serverAddressController = TextEditingController();
@@ -24,13 +24,12 @@ class _SettingsPageState extends State<SettingsPage> {
     _initialize();
   }
 
-  _initialize() async {
-    final prefs = await SharedPreferences.getInstance();
-    final serverAddress = prefs.getString('serverAddress');
+  _initialize() {
+    final serverAddress = _settingsBox.get('serverAddress');
 
     if (serverAddress != null) {
       _serverAddressController.text = serverAddress;
-      _handleConnect();
+      _handleConnectButton();
     }
   }
 
@@ -78,9 +77,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 ElevatedButton(
                   onPressed: _requestState == OllamaRequestState.loading
                       ? null
-                      : () {
-                          _handleConnect(context: context);
-                        },
+                      : _handleConnectButton,
                   child: Row(
                     children: [
                       const Text('Connect'),
@@ -104,7 +101,7 @@ class _SettingsPageState extends State<SettingsPage> {
     );
   }
 
-  _handleConnect({BuildContext? context}) async {
+  _handleConnectButton() async {
     final serverAddress = _serverAddressController.text;
 
     setState(() {
@@ -118,14 +115,7 @@ class _SettingsPageState extends State<SettingsPage> {
     });
 
     if (state == OllamaRequestState.success) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('serverAddress', serverAddress);
-
-      if (context != null) {
-        // TODO: Do not use context here
-        Provider.of<ChatProvider>(context, listen: false)
-            .updateOllamaServiceAddress();
-      }
+      _settingsBox.put('serverAddress', serverAddress);
     }
   }
 
