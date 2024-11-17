@@ -16,14 +16,16 @@ class ChatProvider extends ChangeNotifier {
   final _ollamaService = OllamaService();
   final _databaseService = DatabaseService();
 
+  // ? Instead of storing current chat in a separate variable, can we use the selectedChatIndex
+  // ? to get the current chat from the chats list?
   OllamaChat? _currentChat;
   OllamaChat? get currentChat => _currentChat;
 
   List<OllamaChat> _chats = [];
   List<OllamaChat> get chats => _chats;
 
-  int _selectedChatIndex = 0;
-  int get selectedChatIndex => _selectedChatIndex;
+  int _currentChatIndex = 0;
+  int get selectedDestination => _currentChatIndex;
 
   final Set<int> _activeChatStreams = {};
   bool get isCurrentChatStreaming =>
@@ -33,7 +35,7 @@ class ChatProvider extends ChangeNotifier {
     _initialize();
   }
 
-  Future<void> _initialize() async {
+  _initialize() async {
     _updateOllamaServiceAddress();
 
     await _databaseService.open("ollama_chat.db");
@@ -41,20 +43,20 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void destinationChatSelected(int destination) {
-    _selectedChatIndex = destination;
+  destinationChatSelected(int destination) {
+    _currentChatIndex = destination;
 
     if (destination == 0) {
-      emptyChat();
+      _resetChat();
     } else {
       final chat = _chats[destination - 1];
-      selectChat(chat);
+      _loadChat(chat);
     }
 
     notifyListeners();
   }
 
-  void emptyChat() {
+  _resetChat() {
     _currentChat = null;
 
     _messages.clear();
@@ -63,7 +65,7 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future selectChat(OllamaChat chat) async {
+  _loadChat(OllamaChat chat) async {
     _currentChat = chat;
     _messages = await _databaseService.getMessages(chat.id);
 
@@ -73,29 +75,31 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> createChat(OllamaModel model) async {
+  createNewChat(OllamaModel model) async {
     _currentChat = await _databaseService.createChat(model.model);
 
     _chats.insert(0, _currentChat!);
 
-    _selectedChatIndex = 1;
+    _currentChatIndex = 1;
     notifyListeners();
   }
 
-  Future deleteChat() async {
-    if (_currentChat == null) {
+  deleteCurrentChat() async {
+    final chat = _currentChat;
+
+    if (chat == null) {
       return;
     }
 
-    await _databaseService.deleteChat(_currentChat!.id);
+    _chats.removeWhere((element) => element.id == chat.id);
+    _activeChatStreams.remove(chat.id);
 
-    _chats.remove(_currentChat!);
-    notifyListeners();
+    await _databaseService.deleteChat(chat.id);
 
     destinationChatSelected(0);
   }
 
-  Future<void> sendUserPrompt() async {
+  sendUserPrompt() async {
     // Save the chat where the prompt was sent
     final associatedChat = _currentChat!;
 
@@ -106,10 +110,7 @@ class ChatProvider extends ChangeNotifier {
     await _databaseService.addMessage(prompt, associatedChat.id);
 
     // Update the chat list to show the latest chat at the top
-    // ? Should we extract this to a separate method?
-    _chats = await _databaseService.getAllChats();
-    _selectedChatIndex = 1;
-    notifyListeners();
+    await _moveCurrentChatToTop();
 
     // Stream the Ollama message
     OllamaMessage? ollamaMessage;
@@ -126,13 +127,8 @@ class ChatProvider extends ChangeNotifier {
 
     // Save the Ollama message to the database
     if (ollamaMessage != null) {
-    await _databaseService.addMessage(ollamaMessage, associatedChat.id);
+      await _databaseService.addMessage(ollamaMessage, associatedChat.id);
     }
-  }
-
-  cancelCurrentStreaming() {
-    _activeChatStreams.remove(_currentChat?.id);
-    notifyListeners();
   }
 
   OllamaMessage _getUserPrompt() {
@@ -189,6 +185,17 @@ class ChatProvider extends ChangeNotifier {
     }
 
     return ollamaMessage;
+  }
+
+  cancelCurrentStreaming() {
+    _activeChatStreams.remove(_currentChat?.id);
+    notifyListeners();
+  }
+
+  _moveCurrentChatToTop() async {
+    _chats = await _databaseService.getAllChats();
+    _currentChatIndex = 1;
+    notifyListeners();
   }
 
   Future<List<OllamaModel>> fetchAvailableModels() async {

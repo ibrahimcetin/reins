@@ -82,7 +82,7 @@ class _ChatPageState extends State<ChatPage> {
             }
 
             if (_selectedModel != null) {
-              await chatProvider.createChat(_selectedModel!);
+              await chatProvider.createNewChat(_selectedModel!);
               chatProvider.sendUserPrompt();
             }
           } else {

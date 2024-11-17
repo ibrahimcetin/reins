@@ -69,7 +69,7 @@ class _ChatConfigureBottomSheetState extends State<ChatConfigureBottomSheet> {
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                 onPressed: () async {
                   Provider.of<ChatProvider>(context, listen: false)
-                      .deleteChat();
+                      .deleteCurrentChat();
 
                   Navigator.pop(context);
                 },

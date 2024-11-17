@@ -42,7 +42,7 @@ class ChatNavigationDrawer extends StatelessWidget {
     return Consumer<ChatProvider>(
       builder: (context, chatProvider, _) {
         return NavigationDrawer(
-          selectedIndex: chatProvider.selectedChatIndex,
+          selectedIndex: chatProvider.selectedDestination,
           onDestinationSelected: (destination) {
             chatProvider.destinationChatSelected(destination);
 
