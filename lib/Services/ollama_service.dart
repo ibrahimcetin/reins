@@ -77,17 +77,8 @@ class OllamaService {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      await for (var chunk in response.stream.transform(utf8.decoder)) {
-        // Split the chunk into lines and parse each line as JSON. This is
-        // necessary because the Ollama service may sends multiple JSON objects
-        // in a single response.
-        final lines = LineSplitter.split(chunk);
-        for (var line in lines) {
-          if (line.trim().isNotEmpty) {
-            final jsonBody = json.decode(line);
-            yield OllamaMessage.fromJson(jsonBody);
-          }
-        }
+      await for (final message in _processStream(response.stream)) {
+        yield message;
       }
     } else {
       throw Exception("Failed to generate message");
@@ -149,20 +140,38 @@ class OllamaService {
     http.StreamedResponse response = await request.send();
 
     if (response.statusCode == 200) {
-      await for (var chunk in response.stream.transform(utf8.decoder)) {
-        // Split the chunk into lines and parse each line as JSON. This is
-        // necessary because the Ollama service may sends multiple JSON objects
-        // in a single response.
-        final lines = LineSplitter.split(chunk);
-        for (var line in lines) {
-          if (line.trim().isNotEmpty) {
-            final jsonBody = json.decode(line);
-            yield OllamaMessage.fromJson(jsonBody);
-          }
-        }
+      await for (final message in _processStream(response.stream)) {
+        yield message;
       }
     } else {
       throw Exception("Failed to chat");
+    }
+  }
+
+  Stream<OllamaMessage> _processStream(Stream stream) async* {
+    // Buffer to store the incomplete JSON object. This is necessary because
+    // the Ollama service may send partial JSON objects in a single response.
+    // We need to buffer the partial JSON objects and combine them to form
+    // complete JSON objects.
+    String buffer = '';
+
+    await for (var chunk in stream.transform(utf8.decoder)) {
+      chunk = buffer + chunk;
+      buffer = '';
+
+      // Split the chunk into lines and parse each line as JSON. This is
+      // necessary because the Ollama service may send multiple JSON objects
+      // in a single response.
+      final lines = LineSplitter.split(chunk);
+
+      for (var line in lines) {
+        try {
+          final jsonBody = json.decode(line);
+          yield OllamaMessage.fromJson(jsonBody);
+        } catch (_) {
+          buffer = line;
+        }
+      }
     }
   }
 
