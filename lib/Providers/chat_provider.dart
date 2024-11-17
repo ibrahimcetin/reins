@@ -25,6 +25,10 @@ class ChatProvider extends ChangeNotifier {
   int _selectedChatIndex = 0;
   int get selectedChatIndex => _selectedChatIndex;
 
+  final Set<int> _activeChatStreams = {};
+  bool get isCurrentChatStreaming =>
+      _activeChatStreams.contains(_currentChat?.id);
+
   ChatProvider() {
     _initialize();
   }
@@ -108,10 +112,27 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     // Stream the Ollama message
-    final ollamaMessage = await _streamOllamaMessage(associatedChat);
+    OllamaMessage? ollamaMessage;
+
+    try {
+      _activeChatStreams.add(associatedChat.id);
+      ollamaMessage = await _streamOllamaMessage(associatedChat);
+    } catch (_) {
+      // TODO: Handle the error, show an error occured
+    } finally {
+      _activeChatStreams.remove(associatedChat.id);
+      notifyListeners();
+    }
 
     // Save the Ollama message to the database
+    if (ollamaMessage != null) {
     await _databaseService.addMessage(ollamaMessage, associatedChat.id);
+    }
+  }
+
+  cancelCurrentStreaming() {
+    _activeChatStreams.remove(_currentChat?.id);
+    notifyListeners();
   }
 
   OllamaMessage _getUserPrompt() {
@@ -128,7 +149,7 @@ class ChatProvider extends ChangeNotifier {
     return message;
   }
 
-  Future<OllamaMessage> _streamOllamaMessage(OllamaChat associatedChat) async {
+  Future<OllamaMessage?> _streamOllamaMessage(OllamaChat associatedChat) async {
     final stream = _ollamaService.chatStream(
       _messages,
       model: associatedChat.model,
@@ -137,6 +158,12 @@ class ChatProvider extends ChangeNotifier {
     OllamaMessage? ollamaMessage;
 
     await for (final message in stream) {
+      // If the chat id is not in the active chat streams, it means the stream
+      // is cancelled by the user. So, we need to break the loop.
+      if (_activeChatStreams.contains(associatedChat.id) == false) {
+        break;
+      }
+
       if (ollamaMessage == null) {
         ollamaMessage = message;
 
@@ -153,6 +180,7 @@ class ChatProvider extends ChangeNotifier {
       //
       // createdAt property is used like a unique identifier for messages.
       if (associatedChat.id == _currentChat?.id &&
+          _messages.isNotEmpty &&
           _messages.last.createdAt != ollamaMessage.createdAt) {
         _messages.add(ollamaMessage);
       }
@@ -160,7 +188,7 @@ class ChatProvider extends ChangeNotifier {
       notifyListeners();
     }
 
-    return ollamaMessage!;
+    return ollamaMessage;
   }
 
   Future<List<OllamaModel>> fetchAvailableModels() async {

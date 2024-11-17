@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:ollama_chat/Models/ollama_model.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 import 'package:ollama_chat/Widgets/chat_bubble.dart';
@@ -21,19 +22,20 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Consumer<ChatProvider>(
       builder: (BuildContext context, ChatProvider chatProvider, _) {
+        final messages = _getMessages(chatProvider);
+
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Expanded(
-              child: chatProvider.messages.isEmpty
+              child: messages.isEmpty
                   ? _buildEmptyChatState(context)
                   : ListView.builder(
                       key: ObjectKey(chatProvider.currentChat?.id),
                       reverse: true,
-                      itemCount: chatProvider.messages.length,
+                      itemCount: messages.length,
                       itemBuilder: (context, index) {
-                        final message = chatProvider
-                            .messages[chatProvider.messages.length - index - 1];
+                        final message = messages[messages.length - index - 1];
 
                         return ChatBubble(message: message);
                       },
@@ -49,28 +51,7 @@ class _ChatPageState extends State<ChatPage> {
                     borderRadius: BorderRadius.circular(30.0),
                   ),
                   labelText: 'Prompt',
-                  suffixIcon: chatProvider.textFieldController.text
-                          .trim()
-                          .isEmpty
-                      ? null
-                      : IconButton(
-                          icon: const Icon(Icons.arrow_upward),
-                          onPressed: () async {
-                            if (chatProvider.currentChat == null) {
-                              if (_selectedModel == null) {
-                                await _showChatLLMBottomSheet(context);
-                              }
-
-                              if (_selectedModel != null) {
-                                await chatProvider.createChat(_selectedModel!);
-                                chatProvider.sendUserPrompt();
-                              }
-                            } else {
-                              chatProvider.sendUserPrompt();
-                            }
-                          },
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                  suffixIcon: _buildTextFieldSuffixIcon(chatProvider),
                 ),
                 maxLines: null,
                 textCapitalization: TextCapitalization.sentences,
@@ -80,6 +61,60 @@ class _ChatPageState extends State<ChatPage> {
         );
       },
     );
+  }
+
+  Widget? _buildTextFieldSuffixIcon(ChatProvider chatProvider) {
+    if (chatProvider.isCurrentChatStreaming) {
+      return IconButton(
+        icon: const Icon(Icons.stop_rounded),
+        onPressed: () {
+          chatProvider.cancelCurrentStreaming();
+        },
+        color: Theme.of(context).colorScheme.onSurface,
+      );
+    } else if (chatProvider.textFieldController.text.trim().isNotEmpty) {
+      return IconButton(
+        icon: const Icon(Icons.arrow_upward_rounded),
+        onPressed: () async {
+          if (chatProvider.currentChat == null) {
+            if (_selectedModel == null) {
+              await _showChatLLMBottomSheet(context);
+            }
+
+            if (_selectedModel != null) {
+              await chatProvider.createChat(_selectedModel!);
+              chatProvider.sendUserPrompt();
+            }
+          } else {
+            chatProvider.sendUserPrompt();
+          }
+        },
+        color: Theme.of(context).colorScheme.onSurface,
+      );
+    } else {
+      return null;
+    }
+  }
+
+  // ? Is this a good solution to show Thinking... message?
+  bool _isOllamaThinking(ChatProvider chatProvider) {
+    return chatProvider.isCurrentChatStreaming &&
+        chatProvider.messages.isNotEmpty &&
+        chatProvider.messages.last.role != OllamaMessageRole.assistant;
+  }
+
+  List<OllamaMessage> _getMessages(ChatProvider chatProvider) {
+    if (_isOllamaThinking(chatProvider)) {
+      var messages = [...chatProvider.messages];
+
+      messages.add(
+        OllamaMessage("Thinking...", role: OllamaMessageRole.assistant),
+      );
+
+      return messages;
+    } else {
+      return chatProvider.messages;
+    }
   }
 
   Widget _buildEmptyChatState(BuildContext context) {
