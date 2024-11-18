@@ -3,6 +3,7 @@ import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:ollama_chat/Models/ollama_model.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 import 'package:ollama_chat/Widgets/chat_bubble.dart';
+import 'package:ollama_chat/Widgets/ollama_bottom_sheet_header.dart';
 import 'package:ollama_chat/Widgets/selection_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -148,21 +149,7 @@ class _ChatPageState extends State<ChatPage> {
         final chatProvider = Provider.of<ChatProvider>(context, listen: false);
 
         return SelectionBottomSheet(
-          title: Row(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(8.0),
-                  child: Image.asset("assets/images/ollama.png", height: 48),
-                ),
-              ),
-              const Text(
-                "Select a LLM Model",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
+          header: OllamaBottomSheetHeader(title: "Select a LLM Model"),
           fetchItems: chatProvider.fetchAvailableModels,
           currentSelection: _selectedModel,
           onSelection: (selectedModel) {
