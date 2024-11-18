@@ -25,10 +25,11 @@ class OllamaChatApp extends StatelessWidget {
       title: 'Ollama Chat',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(
-          seedColor: Colors.grey,
+          seedColor: Colors.red,
           brightness: View.of(context).platformDispatcher.platformBrightness,
           dynamicSchemeVariant: DynamicSchemeVariant.neutral,
         ),
+        appBarTheme: const AppBarTheme(centerTitle: true),
         useMaterial3: true,
       ),
       home: const OllamaChatMainPage(title: 'Ollama Chat'),
