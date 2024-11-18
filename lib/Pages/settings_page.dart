@@ -2,15 +2,39 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
 import 'package:ollama_chat/Models/ollama_request_state.dart';
+import 'package:google_fonts/google_fonts.dart';
 
-class SettingsPage extends StatefulWidget {
+class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
-  State<SettingsPage> createState() => _SettingsPageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Settings', style: GoogleFonts.pacifico()),
+      ),
+      body: const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              ServerSettings(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
-class _SettingsPageState extends State<SettingsPage> {
+class ServerSettings extends StatefulWidget {
+  const ServerSettings({super.key});
+
+  @override
+  State<ServerSettings> createState() => _ServerSettingsState();
+}
+
+class _ServerSettingsState extends State<ServerSettings> {
   final _settingsBox = Hive.box('settings');
 
   OllamaRequestState _requestState = OllamaRequestState.uninitialized;
@@ -42,62 +66,55 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Server',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-            const SizedBox(height: 20),
-            TextField(
-              controller: _serverAddressController,
-              onChanged: (_) {
-                setState(() {
-                  _requestState = OllamaRequestState.uninitialized;
-                });
-              },
-              decoration: const InputDecoration(
-                border: OutlineInputBorder(),
-                labelText: 'Ollama Server Address',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Server',
+          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
               ),
-            ),
-            const SizedBox(height: 20),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                ElevatedButton(
-                  onPressed: _requestState == OllamaRequestState.loading
-                      ? null
-                      : _handleConnectButton,
-                  child: Row(
-                    children: [
-                      const Text('Connect'),
-                      const SizedBox(width: 10),
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _connectionStatusColor,
-                        ),
-                      ),
-                    ],
+        ),
+        const SizedBox(height: 20),
+        TextField(
+          controller: _serverAddressController,
+          keyboardType: TextInputType.url,
+          onChanged: (_) {
+            setState(() {
+              _requestState = OllamaRequestState.uninitialized;
+            });
+          },
+          decoration: const InputDecoration(
+            border: OutlineInputBorder(),
+            labelText: 'Ollama Server Address',
+          ),
+        ),
+        const SizedBox(height: 20),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.end,
+          children: [
+            ElevatedButton(
+              onPressed: _requestState == OllamaRequestState.loading
+                  ? null
+                  : _handleConnectButton,
+              child: Row(
+                children: [
+                  const Text('Connect'),
+                  const SizedBox(width: 10),
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _connectionStatusColor,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 
@@ -109,6 +126,10 @@ class _SettingsPageState extends State<SettingsPage> {
     });
 
     final state = await _establishServerConnection(Uri.parse(serverAddress));
+
+    if (this.mounted == false) {
+      return;
+    }
 
     setState(() {
       _requestState = state;
