@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:ollama_chat/Models/ollama_request_state.dart';
 
 class SelectionBottomSheet<T> extends StatefulWidget {
-  final Widget title;
+  final Widget header;
   final Future<List<T>> Function() fetchItems;
   final T? currentSelection;
   final void Function(T) onSelection;
 
   const SelectionBottomSheet({
     super.key,
-    required this.title,
+    required this.header,
     required this.fetchItems,
     required this.currentSelection,
     required this.onSelection,
@@ -48,7 +48,7 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
       minimum: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          widget.title,
+          widget.header,
           const Divider(),
           Expanded(
             // TODO: Add error case
