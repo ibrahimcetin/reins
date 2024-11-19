@@ -76,7 +76,7 @@ class _ChatPageState extends State<ChatPage> {
         onPressed: () async {
           if (chatProvider.currentChat == null) {
             if (_selectedModel == null) {
-              await _showChatLLMBottomSheet(context);
+              await _shoModelSelectionBottomSheet(context);
             }
 
             if (_selectedModel != null) {
@@ -132,14 +132,14 @@ class _ChatPageState extends State<ChatPage> {
           label: Text(_selectedModel?.name ?? 'Select a model to start'),
           iconAlignment: IconAlignment.end,
           onPressed: () {
-            _showChatLLMBottomSheet(context);
+            _shoModelSelectionBottomSheet(context);
           },
         ),
       ],
     );
   }
 
-  Future _showChatLLMBottomSheet(BuildContext context) async {
+  Future _shoModelSelectionBottomSheet(BuildContext context) async {
     await showModalBottomSheet(
       context: context,
       builder: (context) {
