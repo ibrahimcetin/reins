@@ -50,6 +50,9 @@ class _ChatPageState extends State<ChatPage> {
                 ),
                 maxLines: null,
                 textCapitalization: TextCapitalization.sentences,
+                onTapOutside: (PointerDownEvent event) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
               ),
             ),
           ],
