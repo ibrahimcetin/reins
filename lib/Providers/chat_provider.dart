@@ -16,26 +16,24 @@ class ChatProvider extends ChangeNotifier {
   final _ollamaService = OllamaService();
   final _databaseService = DatabaseService();
 
-  // ? Instead of storing current chat in a separate variable, can we use the selectedChatIndex
-  // ? to get the current chat from the chats list?
-  OllamaChat? _currentChat;
-  OllamaChat? get currentChat => _currentChat;
-
   List<OllamaChat> _chats = [];
   List<OllamaChat> get chats => _chats;
 
-  int _currentChatIndex = 0;
-  int get selectedDestination => _currentChatIndex;
+  int _currentChatIndex = -1;
+  int get selectedDestination => _currentChatIndex + 1;
+
+  OllamaChat? get currentChat =>
+      _currentChatIndex == -1 ? null : _chats[_currentChatIndex];
 
   final Set<int> _activeChatStreams = {};
   bool get isCurrentChatStreaming =>
-      _activeChatStreams.contains(_currentChat?.id);
+      _activeChatStreams.contains(currentChat?.id);
 
   ChatProvider() {
     _initialize();
   }
 
-  _initialize() async {
+  Future<void> _initialize() async {
     _updateOllamaServiceAddress();
 
     await _databaseService.open("ollama_chat.db");
@@ -43,21 +41,20 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  destinationChatSelected(int destination) {
-    _currentChatIndex = destination;
+  void destinationChatSelected(int destination) {
+    _currentChatIndex = destination - 1;
 
     if (destination == 0) {
       _resetChat();
     } else {
-      final chat = _chats[destination - 1];
-      _loadChat(chat);
+      _loadCurrentChat();
     }
 
     notifyListeners();
   }
 
-  _resetChat() {
-    _currentChat = null;
+  void _resetChat() {
+    _currentChatIndex = -1;
 
     _messages.clear();
     _textFieldController.clear();
@@ -65,9 +62,8 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  _loadChat(OllamaChat chat) async {
-    _currentChat = chat;
-    _messages = await _databaseService.getMessages(chat.id);
+  Future<void> _loadCurrentChat() async {
+    _messages = await _databaseService.getMessages(currentChat!.id);
 
     _textFieldController.clear();
     FocusManager.instance.primaryFocus?.unfocus();
@@ -75,33 +71,32 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  createNewChat(OllamaModel model) async {
-    _currentChat = await _databaseService.createChat(model.model);
+  Future<void> createNewChat(OllamaModel model) async {
+    final chat = await _databaseService.createChat(model.model);
 
-    _chats.insert(0, _currentChat!);
+    _chats.insert(0, chat);
+    _currentChatIndex = 0;
 
-    _currentChatIndex = 1;
     notifyListeners();
   }
 
-  deleteCurrentChat() async {
-    final chat = _currentChat;
-
+  Future<void> deleteCurrentChat() async {
+    final chat = currentChat;
     if (chat == null) {
       return;
     }
 
-    _chats.removeWhere((element) => element.id == chat.id);
+    _chats.remove(chat);
     _activeChatStreams.remove(chat.id);
 
     await _databaseService.deleteChat(chat.id);
 
-    destinationChatSelected(0);
+    _resetChat();
   }
 
-  sendUserPrompt() async {
+  Future<void> sendUserPrompt() async {
     // Save the chat where the prompt was sent
-    final associatedChat = _currentChat!;
+    final associatedChat = currentChat!;
 
     // Get the user prompt and clear the text field
     final prompt = _getUserPrompt();
@@ -110,7 +105,7 @@ class ChatProvider extends ChangeNotifier {
     await _databaseService.addMessage(prompt, associatedChat.id);
 
     // Update the chat list to show the latest chat at the top
-    await _moveCurrentChatToTop();
+    _moveCurrentChatToTop();
 
     // Stream the Ollama message
     OllamaMessage? ollamaMessage;
@@ -163,7 +158,7 @@ class ChatProvider extends ChangeNotifier {
       if (ollamaMessage == null) {
         ollamaMessage = message;
 
-        if (associatedChat.id == _currentChat?.id) {
+        if (associatedChat.id == currentChat?.id) {
           _messages.add(ollamaMessage);
         }
       } else {
@@ -175,7 +170,7 @@ class ChatProvider extends ChangeNotifier {
       // to be able to show stream in the chat.
       //
       // createdAt property is used like a unique identifier for messages.
-      if (associatedChat.id == _currentChat?.id &&
+      if (associatedChat.id == currentChat?.id &&
           _messages.isNotEmpty &&
           _messages.last.createdAt != ollamaMessage.createdAt) {
         _messages.add(ollamaMessage);
@@ -187,14 +182,16 @@ class ChatProvider extends ChangeNotifier {
     return ollamaMessage;
   }
 
-  cancelCurrentStreaming() {
-    _activeChatStreams.remove(_currentChat?.id);
+  void cancelCurrentStreaming() {
+    _activeChatStreams.remove(currentChat?.id);
     notifyListeners();
   }
 
-  _moveCurrentChatToTop() async {
-    _chats = await _databaseService.getAllChats();
-    _currentChatIndex = 1;
+  void _moveCurrentChatToTop() {
+    final chat = _chats.removeAt(_currentChatIndex);
+    _chats.insert(0, chat);
+    _currentChatIndex = 0;
+
     notifyListeners();
   }
 
@@ -202,7 +199,7 @@ class ChatProvider extends ChangeNotifier {
     return await _ollamaService.listModels();
   }
 
-  _updateOllamaServiceAddress() {
+  void _updateOllamaServiceAddress() {
     final settingsBox = Hive.box('settings');
     _ollamaService.baseUrl = settingsBox.get('serverAddress');
 
