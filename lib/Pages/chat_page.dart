@@ -32,7 +32,7 @@ class _ChatPageState extends State<ChatPage> {
               child: messages.isEmpty
                   ? _buildEmptyChatState(context)
                   : _ChatListView(
-                      key: ObjectKey(chatProvider.currentChat?.id),
+                      key: ValueKey(chatProvider.currentChat?.id),
                       messages: messages,
                     ),
             ),
@@ -172,27 +172,29 @@ class _ChatListView extends StatefulWidget {
 }
 
 class _ChatListViewState extends State<_ChatListView> {
-  final _scrollController = ScrollController();
+  static final _scrollOffsetBucket = PageStorageBucket();
+
+  late final ScrollController _scrollController;
   bool _isScrollToBottomButtonVisible = false;
 
   @override
   void initState() {
     super.initState();
 
-    _scrollController.addListener(() {
-      if (_scrollController.position.pixels > 100 &&
-          !_isScrollToBottomButtonVisible) {
-        setState(() {
-          _isScrollToBottomButtonVisible = true;
-        });
-      }
+    _scrollController = ScrollController(
+      initialScrollOffset: _readScrollOffset(),
+    );
 
-      if (_scrollController.position.pixels < 100 &&
-          _isScrollToBottomButtonVisible) {
-        setState(() {
-          _isScrollToBottomButtonVisible = false;
-        });
-      }
+    // We need to wait to _scrollController to be attached to the list view
+    // to be able to get its position and update the visibility of the scroll to bottom button.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _updateScrollToBottomButtonVisibility();
+    });
+
+    _scrollController.addListener(() {
+      _writeScrollOffset();
+
+      _updateScrollToBottomButtonVisibility();
     });
   }
 
@@ -231,11 +233,40 @@ class _ChatListViewState extends State<_ChatListView> {
     );
   }
 
+  void _updateScrollToBottomButtonVisibility() {
+    if (_scrollController.position.pixels > 100 &&
+        !_isScrollToBottomButtonVisible) {
+      setState(() {
+        _isScrollToBottomButtonVisible = true;
+      });
+    }
+
+    if (_scrollController.position.pixels < 100 &&
+        _isScrollToBottomButtonVisible) {
+      setState(() {
+        _isScrollToBottomButtonVisible = false;
+      });
+    }
+  }
+
   void _scrollToBottom() {
     _scrollController.animateTo(
       0.0,
       duration: const Duration(milliseconds: 150),
       curve: Curves.easeOut,
+    );
+  }
+
+  double _readScrollOffset() {
+    return _scrollOffsetBucket.readState(context, identifier: widget.key) ??
+        0.0;
+  }
+
+  void _writeScrollOffset() {
+    _scrollOffsetBucket.writeState(
+      context,
+      _scrollController.offset,
+      identifier: widget.key,
     );
   }
 }
