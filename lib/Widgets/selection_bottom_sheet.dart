@@ -5,14 +5,12 @@ class SelectionBottomSheet<T> extends StatefulWidget {
   final Widget header;
   final Future<List<T>> Function() fetchItems;
   final T? currentSelection;
-  final void Function(T) onSelection;
 
   const SelectionBottomSheet({
     super.key,
     required this.header,
     required this.fetchItems,
     required this.currentSelection,
-    required this.onSelection,
   });
 
   @override
@@ -79,15 +77,14 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
             children: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(_selectedItem);
                 },
                 child: const Text('Cancel'),
               ),
               TextButton(
                 onPressed: () {
                   if (_selectedItem != null) {
-                    widget.onSelection(_selectedItem as T);
-                    Navigator.of(context).pop();
+                    Navigator.of(context).pop(_selectedItem);
                   }
                 },
                 child: const Text('Select'),
@@ -100,4 +97,24 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
   }
 
   bool get isLoading => _state == OllamaRequestState.loading;
+}
+
+Future<T> showSelectionBottomSheet<T>({
+  required BuildContext context,
+  required Widget header,
+  required Future<List<T>> Function() fetchItems,
+  required T currentSelection,
+}) async {
+  return await showModalBottomSheet(
+    context: context,
+    builder: (context) {
+      return SelectionBottomSheet(
+        header: header,
+        fetchItems: fetchItems,
+        currentSelection: currentSelection,
+      );
+    },
+    isDismissible: false,
+    enableDrag: false,
+  );
 }

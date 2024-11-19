@@ -76,7 +76,7 @@ class _ChatPageState extends State<ChatPage> {
         onPressed: () async {
           if (chatProvider.currentChat == null) {
             if (_selectedModel == null) {
-              await _shoModelSelectionBottomSheet(context);
+              await _showModelSelectionBottomSheet(context);
             }
 
             if (_selectedModel != null) {
@@ -132,33 +132,26 @@ class _ChatPageState extends State<ChatPage> {
           label: Text(_selectedModel?.name ?? 'Select a model to start'),
           iconAlignment: IconAlignment.end,
           onPressed: () {
-            _shoModelSelectionBottomSheet(context);
+            _showModelSelectionBottomSheet(context);
           },
         ),
       ],
     );
   }
 
-  Future _shoModelSelectionBottomSheet(BuildContext context) async {
-    await showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+  Future<void> _showModelSelectionBottomSheet(BuildContext context) async {
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
 
-        return SelectionBottomSheet(
-          header: OllamaBottomSheetHeader(title: "Select a LLM Model"),
-          fetchItems: chatProvider.fetchAvailableModels,
-          currentSelection: _selectedModel,
-          onSelection: (selectedModel) {
-            setState(() {
-              _selectedModel = selectedModel;
-            });
-          },
-        );
-      },
-      isDismissible: false,
-      enableDrag: false,
+    final selectedModel = await showSelectionBottomSheet(
+      context: context,
+      header: OllamaBottomSheetHeader(title: "Select a LLM Model"),
+      fetchItems: chatProvider.fetchAvailableModels,
+      currentSelection: _selectedModel,
     );
+
+    setState(() {
+      _selectedModel = selectedModel;
+    });
   }
 }
 
