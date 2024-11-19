@@ -88,6 +88,9 @@ class _ServerSettingsState extends State<ServerSettings> {
             border: OutlineInputBorder(),
             labelText: 'Ollama Server Address',
           ),
+          onTapOutside: (PointerDownEvent event) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
         ),
         const SizedBox(height: 20),
         Row(
@@ -127,7 +130,7 @@ class _ServerSettingsState extends State<ServerSettings> {
 
     final state = await _establishServerConnection(Uri.parse(serverAddress));
 
-    if (this.mounted == false) {
+    if (mounted == false) {
       return;
     }
 
