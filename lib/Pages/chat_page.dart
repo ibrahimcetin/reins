@@ -31,15 +31,9 @@ class _ChatPageState extends State<ChatPage> {
             Expanded(
               child: messages.isEmpty
                   ? _buildEmptyChatState(context)
-                  : ListView.builder(
+                  : _ChatListView(
                       key: ObjectKey(chatProvider.currentChat?.id),
-                      reverse: true,
-                      itemCount: messages.length,
-                      itemBuilder: (context, index) {
-                        final message = messages[messages.length - index - 1];
-
-                        return ChatBubble(message: message);
-                      },
+                      messages: messages,
                     ),
             ),
             Padding(
@@ -161,6 +155,84 @@ class _ChatPageState extends State<ChatPage> {
       },
       isDismissible: false,
       enableDrag: false,
+    );
+  }
+}
+
+class _ChatListView extends StatefulWidget {
+  final List<OllamaMessage> messages;
+
+  const _ChatListView({super.key, required this.messages});
+
+  @override
+  State<_ChatListView> createState() => _ChatListViewState();
+}
+
+class _ChatListViewState extends State<_ChatListView> {
+  final _scrollController = ScrollController();
+  bool _isScrollToBottomButtonVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels > 100 &&
+          !_isScrollToBottomButtonVisible) {
+        setState(() {
+          _isScrollToBottomButtonVisible = true;
+        });
+      }
+
+      if (_scrollController.position.pixels < 100 &&
+          _isScrollToBottomButtonVisible) {
+        setState(() {
+          _isScrollToBottomButtonVisible = false;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        ListView.builder(
+          key: widget.key,
+          controller: _scrollController,
+          itemCount: widget.messages.length,
+          itemBuilder: (context, index) {
+            final message = widget.messages[widget.messages.length - index - 1];
+
+            return ChatBubble(message: message);
+          },
+          reverse: true,
+        ),
+        if (_isScrollToBottomButtonVisible)
+          IconButton(
+            onPressed: _scrollToBottom,
+            icon: const Icon(Icons.arrow_downward_rounded),
+            style: IconButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.onInverseSurface,
+            ),
+          ),
+      ],
+    );
+  }
+
+  void _scrollToBottom() {
+    _scrollController.animateTo(
+      0.0,
+      duration: const Duration(milliseconds: 150),
+      curve: Curves.easeOut,
     );
   }
 }
