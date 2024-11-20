@@ -40,9 +40,6 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
 
   @override
   void dispose() {
-    // Save the current state of the items list
-    _itemsBucket.writeState(context, _items, identifier: widget.key);
-
     // Cancel _fetchItems if it's still running
     _fetchOperation.cancel();
 
@@ -58,9 +55,14 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
 
     _items = await widget.fetchItems();
 
-    setState(() {
-      _state = OllamaRequestState.success;
-    });
+    if (mounted) {
+      setState(() {
+        _state = OllamaRequestState.success;
+      });
+
+      // Save the current state of the items list
+      _itemsBucket.writeState(context, _items, identifier: widget.key);
+    }
   }
 
   @override
