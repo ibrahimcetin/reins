@@ -7,6 +7,7 @@ import 'package:ollama_chat/Widgets/ollama_bottom_sheet_header.dart';
 import 'package:ollama_chat/Widgets/selection_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -143,6 +144,7 @@ class _ChatPageState extends State<ChatPage> {
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
 
     final selectedModel = await showSelectionBottomSheet(
+      key: ValueKey(Hive.box('settings').get('serverAddress')),
       context: context,
       header: OllamaBottomSheetHeader(title: "Select a LLM Model"),
       fetchItems: chatProvider.fetchAvailableModels,

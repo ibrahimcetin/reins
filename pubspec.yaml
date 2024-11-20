@@ -33,6 +33,7 @@ dependencies:
 
   # HTTP package for making network requests
   http: ^1.2.2
+  async: ^2.11.0
 
   # State management solution
   provider: ^6.1.2

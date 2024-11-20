@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ollama_chat/Models/ollama_request_state.dart';
+import 'package:async/async.dart';
 
 class SelectionBottomSheet<T> extends StatefulWidget {
   final Widget header;
@@ -18,21 +19,43 @@ class SelectionBottomSheet<T> extends StatefulWidget {
 }
 
 class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
+  static final _itemsBucket = PageStorageBucket();
+
   T? _selectedItem;
   List<T> _items = [];
 
-  var _state = OllamaRequestState.loading;
+  var _state = OllamaRequestState.uninitialized;
+  late final CancelableOperation _fetchOperation;
 
   @override
   void initState() {
     super.initState();
 
+    // Load the previous state of the items list
+    _items = _itemsBucket.readState(context, identifier: widget.key) ?? [];
     _selectedItem = widget.currentSelection;
 
-    _fetchItems();
+    _fetchOperation = CancelableOperation.fromFuture(_fetchItems());
+  }
+
+  @override
+  void dispose() {
+    // Save the current state of the items list
+    _itemsBucket.writeState(context, _items, identifier: widget.key);
+
+    // Cancel _fetchItems if it's still running
+    _fetchOperation.cancel();
+
+    super.dispose();
   }
 
   Future<void> _fetchItems() async {
+    if (_items.isEmpty) {
+      setState(() {
+        _state = OllamaRequestState.loading;
+      });
+    }
+
     _items = await widget.fetchItems();
 
     setState(() {
@@ -100,6 +123,7 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
 }
 
 Future<T> showSelectionBottomSheet<T>({
+  ValueKey? key,
   required BuildContext context,
   required Widget header,
   required Future<List<T>> Function() fetchItems,
@@ -109,6 +133,7 @@ Future<T> showSelectionBottomSheet<T>({
     context: context,
     builder: (context) {
       return SelectionBottomSheet(
+        key: key,
         header: header,
         fetchItems: fetchItems,
         currentSelection: currentSelection,
