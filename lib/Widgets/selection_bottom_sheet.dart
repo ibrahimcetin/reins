@@ -25,7 +25,7 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
   List<T> _items = [];
 
   var _state = OllamaRequestState.uninitialized;
-  late final CancelableOperation _fetchOperation;
+  late CancelableOperation _fetchOperation;
 
   @override
   void initState() {
@@ -47,11 +47,9 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
   }
 
   Future<void> _fetchItems() async {
-    if (_items.isEmpty) {
-      setState(() {
-        _state = OllamaRequestState.loading;
-      });
-    }
+    setState(() {
+      _state = OllamaRequestState.loading;
+    });
 
     _items = await widget.fetchItems();
 
@@ -71,30 +69,44 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
       minimum: const EdgeInsets.all(16.0),
       child: Column(
         children: [
-          widget.header,
+          Row(
+            children: [
+              widget.header,
+              const Spacer(),
+              if (_items.isNotEmpty && isLoading)
+                const CircularProgressIndicator()
+            ],
+          ),
           const Divider(),
           Expanded(
             // TODO: Add error case
-            child: isLoading
+            child: _items.isEmpty && isLoading
                 ? const Center(
                     child: CircularProgressIndicator(),
                   )
-                : ListView.builder(
-                    itemCount: _items.length,
-                    itemBuilder: (context, index) {
-                      final item = _items[index];
-
-                      return RadioListTile(
-                        title: Text(item.toString()),
-                        value: item,
-                        groupValue: _selectedItem,
-                        onChanged: (value) {
-                          setState(() {
-                            _selectedItem = value;
-                          });
-                        },
+                : RefreshIndicator(
+                    onRefresh: () async {
+                      _fetchOperation = CancelableOperation.fromFuture(
+                        _fetchItems(),
                       );
                     },
+                    child: ListView.builder(
+                      itemCount: _items.length,
+                      itemBuilder: (context, index) {
+                        final item = _items[index];
+
+                        return RadioListTile(
+                          title: Text(item.toString()),
+                          value: item,
+                          groupValue: _selectedItem,
+                          onChanged: (value) {
+                            setState(() {
+                              _selectedItem = value;
+                            });
+                          },
+                        );
+                      },
+                    ),
                   ),
           ),
           Row(
