@@ -51,15 +51,21 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
       _state = OllamaRequestState.loading;
     });
 
-    _items = await widget.fetchItems();
+    try {
+      _items = await widget.fetchItems();
+
+      _state = OllamaRequestState.success;
+
+      if (mounted) {
+        // Save the current state of the items list
+        _itemsBucket.writeState(context, _items, identifier: widget.key);
+      }
+    } catch (e) {
+      _state = OllamaRequestState.error;
+    }
 
     if (mounted) {
-      setState(() {
-        _state = OllamaRequestState.success;
-      });
-
-      // Save the current state of the items list
-      _itemsBucket.writeState(context, _items, identifier: widget.key);
+      setState(() {});
     }
   }
 
@@ -73,41 +79,13 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
             children: [
               widget.header,
               const Spacer(),
-              if (_items.isNotEmpty && isLoading)
+              if (_items.isNotEmpty && _state == OllamaRequestState.loading)
                 const CircularProgressIndicator()
             ],
           ),
           const Divider(),
           Expanded(
-            // TODO: Add error case
-            child: _items.isEmpty && isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : RefreshIndicator(
-                    onRefresh: () async {
-                      _fetchOperation = CancelableOperation.fromFuture(
-                        _fetchItems(),
-                      );
-                    },
-                    child: ListView.builder(
-                      itemCount: _items.length,
-                      itemBuilder: (context, index) {
-                        final item = _items[index];
-
-                        return RadioListTile(
-                          title: Text(item.toString()),
-                          value: item,
-                          groupValue: _selectedItem,
-                          onChanged: (value) {
-                            setState(() {
-                              _selectedItem = value;
-                            });
-                          },
-                        );
-                      },
-                    ),
-                  ),
+            child: _buildBody(context),
           ),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
@@ -133,7 +111,46 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
     );
   }
 
-  bool get isLoading => _state == OllamaRequestState.loading;
+  Widget _buildBody(BuildContext context) {
+    if (_state == OllamaRequestState.error) {
+      return Center(
+        child: Text(
+          'An error occurred while fetching the items.'
+          '\nCheck your server connection and try again.',
+          style: TextStyle(color: Theme.of(context).colorScheme.error),
+        ),
+      );
+    }
+
+    if (_items.isEmpty && _state == OllamaRequestState.loading) {
+      return const Center(
+        child: CircularProgressIndicator(),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: () async {
+        _fetchOperation = CancelableOperation.fromFuture(_fetchItems());
+      },
+      child: ListView.builder(
+        itemCount: _items.length,
+        itemBuilder: (context, index) {
+          final item = _items[index];
+
+          return RadioListTile(
+            title: Text(item.toString()),
+            value: item,
+            groupValue: _selectedItem,
+            onChanged: (value) {
+              setState(() {
+                _selectedItem = value;
+              });
+            },
+          );
+        },
+      ),
+    );
+  }
 }
 
 Future<T> showSelectionBottomSheet<T>({
