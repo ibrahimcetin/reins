@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:ollama_chat/Pages/settings_page.dart';
 import 'package:provider/provider.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 
@@ -21,9 +20,7 @@ class ChatDrawer extends StatelessWidget {
                 onPressed: () {
                   Navigator.pop(context);
 
-                  Navigator.push(context, MaterialPageRoute(builder: (context) {
-                    return const SettingsPage();
-                  }));
+                  Navigator.pushNamed(context, '/settings');
                 },
               ),
             ),

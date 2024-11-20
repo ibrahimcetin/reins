@@ -2,30 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
 import 'package:ollama_chat/Models/ollama_request_state.dart';
-import 'package:google_fonts/google_fonts.dart';
-
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Settings', style: GoogleFonts.pacifico()),
-      ),
-      body: const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              ServerSettings(),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
 
 class ServerSettings extends StatefulWidget {
   const ServerSettings({super.key});
@@ -37,9 +13,8 @@ class ServerSettings extends StatefulWidget {
 class _ServerSettingsState extends State<ServerSettings> {
   final _settingsBox = Hive.box('settings');
 
-  OllamaRequestState _requestState = OllamaRequestState.uninitialized;
-
   final _serverAddressController = TextEditingController();
+  OllamaRequestState _requestState = OllamaRequestState.uninitialized;
 
   @override
   void initState() {
@@ -75,7 +50,7 @@ class _ServerSettingsState extends State<ServerSettings> {
                 fontWeight: FontWeight.bold,
               ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         TextField(
           controller: _serverAddressController,
           keyboardType: TextInputType.url,
@@ -84,18 +59,23 @@ class _ServerSettingsState extends State<ServerSettings> {
               _requestState = OllamaRequestState.uninitialized;
             });
           },
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
+          decoration: InputDecoration(
             labelText: 'Ollama Server Address',
+            border: OutlineInputBorder(),
+            suffixIcon: IconButton(
+              onPressed: () {},
+              icon: Icon(Icons.info_outline),
+            ),
           ),
           onTapOutside: (PointerDownEvent event) {
             FocusManager.instance.primaryFocus?.unfocus();
           },
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            // TODO: Add search local network button
             ElevatedButton(
               onPressed: _requestState == OllamaRequestState.loading
                   ? null
@@ -139,7 +119,10 @@ class _ServerSettingsState extends State<ServerSettings> {
     });
 
     if (state == OllamaRequestState.success) {
-      _settingsBox.put('serverAddress', serverAddress);
+      final url = Uri.parse(serverAddress);
+      final formattedServerAddress = "${url.scheme}://${url.host}:${url.port}";
+
+      _settingsBox.put('serverAddress', formattedServerAddress);
     }
   }
 
@@ -147,9 +130,10 @@ class _ServerSettingsState extends State<ServerSettings> {
     Uri serverAddress,
   ) async {
     try {
-      final response = await http.get(serverAddress);
+      final response =
+          await http.get(serverAddress).timeout(const Duration(seconds: 10));
 
-      if (response.body == "Ollama is running") {
+      if (response.statusCode == 200 && response.body == "Ollama is running") {
         return OllamaRequestState.success;
       } else {
         return OllamaRequestState.error;
