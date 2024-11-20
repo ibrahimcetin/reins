@@ -72,7 +72,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> createNewChat(OllamaModel model) async {
-    final chat = await _databaseService.createChat(model.model);
+    final chat = await _databaseService.createChat(model.name);
 
     _chats.insert(0, chat);
     _currentChatIndex = 0;
