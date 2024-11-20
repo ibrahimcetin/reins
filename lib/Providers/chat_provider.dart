@@ -203,7 +203,7 @@ class ChatProvider extends ChangeNotifier {
     final settingsBox = Hive.box('settings');
     _ollamaService.baseUrl = settingsBox.get('serverAddress');
 
-    settingsBox.listenable().addListener(() {
+    settingsBox.listenable(keys: ["serverAddress"]).addListener(() {
       _ollamaService.baseUrl = settingsBox.get('serverAddress');
     });
   }
