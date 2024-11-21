@@ -18,10 +18,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
       forceMaterialTransparency: !ResponsiveBreakpoints.of(context).isMobile,
       title: Column(
         children: [
-          Text(
-            title,
-            style: GoogleFonts.pacifico(), // kodeMono,
-          ),
+          Text(title, style: GoogleFonts.pacifico()),
           if (chatProvider.currentChat != null)
             Text(
               chatProvider.currentChat!.model,
@@ -31,20 +28,28 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
             ),
         ],
       ),
-      centerTitle: true,
       actions: [
         IconButton(
           icon: const Icon(Icons.tune),
           onPressed: () {
-            showModalBottomSheet(
-              context: context,
-              builder: (BuildContext context) {
-                return const ChatConfigureBottomSheet();
-              },
-            );
+            _handleCustomizeButton(context);
           },
         ),
       ],
+      forceMaterialTransparency: !ResponsiveBreakpoints.of(context).isMobile,
+    );
+  }
+
+  void _handleCustomizeButton(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: MediaQuery.of(context).viewInsets,
+          child: const ChatConfigureBottomSheet(),
+        );
+      },
     );
   }
 
