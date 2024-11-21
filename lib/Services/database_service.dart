@@ -6,7 +6,7 @@ import 'package:path/path.dart';
 class DatabaseService {
   late Database db;
 
-  Future open(String path) async {
+  Future<void> open(String path) async {
     db = await openDatabase(
       join(await getDatabasesPath(), path),
       version: 1,
@@ -47,7 +47,7 @@ FOREIGN KEY (chat_id) REFERENCES chats(chat_id) ON DELETE CASCADE
     return OllamaChat.fromMap(maps.first);
   }
 
-  Future addMessage(OllamaMessage message, int chatId) async {
+  Future<void> addMessage(OllamaMessage message, int chatId) async {
     // TODO: Get parameters from instance method like toDatabaseParams
     await db.insert('messages', {
       'chat_id': chatId,
@@ -83,7 +83,7 @@ ORDER BY last_update DESC;''');
     });
   }
 
-  Future deleteChat(int chatId) async {
+  Future<void> deleteChat(int chatId) async {
     await db.delete(
       'chats',
       where: 'chat_id = ?',
@@ -97,5 +97,5 @@ ORDER BY last_update DESC;''');
     );
   }
 
-  Future close() async => db.close();
+  Future<void> close() async => db.close();
 }
