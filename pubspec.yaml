@@ -55,6 +55,7 @@ dependencies:
   animated_text_kit: ^4.2.2
   shimmer: ^3.0.0
 
+  # Responsive framework
   responsive_framework: ^1.5.1
 
 dev_dependencies:
