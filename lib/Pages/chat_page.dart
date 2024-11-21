@@ -10,6 +10,7 @@ import 'package:ollama_chat/Widgets/selection_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:shimmer/shimmer.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -267,10 +268,16 @@ class _ChatListViewState extends State<_ChatListView> {
           slivers: [
             if (widget.isAwaitingReply)
               SliverToBoxAdapter(
-                child: ChatBubble(
-                  message: OllamaMessage(
-                    "Thinking...",
-                    role: OllamaMessageRole.assistant,
+                child: Shimmer.fromColors(
+                  // TODO: Play with the colors to make it look better
+                  baseColor: Theme.of(context).colorScheme.onPrimary,
+                  highlightColor: Theme.of(context).colorScheme.onSurface,
+                  period: Duration(milliseconds: 2500),
+                  child: ListTile(
+                    title: Padding(
+                      padding: EdgeInsets.all(10.0),
+                      child: Text("Thinking"),
+                    ),
                   ),
                 ),
               ),
