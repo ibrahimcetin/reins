@@ -102,15 +102,9 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  // ? Is this a good solution to show Thinking... message?
-  bool _isOllamaThinking(ChatProvider chatProvider) {
-    return chatProvider.isCurrentChatStreaming &&
-        chatProvider.messages.isNotEmpty &&
-        chatProvider.messages.last.role != OllamaMessageRole.assistant;
-  }
-
   List<OllamaMessage> _getMessages(ChatProvider chatProvider) {
-    if (_isOllamaThinking(chatProvider)) {
+    // ? Is this a good solution to show Thinking... message?
+    if (chatProvider.isCurrentChatThinking) {
       var messages = [...chatProvider.messages];
 
       messages.add(

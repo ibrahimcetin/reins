@@ -25,9 +25,15 @@ class ChatProvider extends ChangeNotifier {
   OllamaChat? get currentChat =>
       _currentChatIndex == -1 ? null : _chats[_currentChatIndex];
 
-  final Set<int> _activeChatStreams = {};
+  final Map<int, OllamaMessage?> _activeChatStreams = {};
+
   bool get isCurrentChatStreaming =>
-      _activeChatStreams.contains(currentChat?.id);
+      _activeChatStreams.containsKey(currentChat?.id);
+
+  bool get isCurrentChatThinking =>
+      currentChat != null &&
+      _activeChatStreams.containsKey(currentChat?.id) &&
+      _activeChatStreams[currentChat?.id] == null;
 
   ChatProvider() {
     _initialize();
@@ -111,7 +117,7 @@ class ChatProvider extends ChangeNotifier {
     OllamaMessage? ollamaMessage;
 
     try {
-      _activeChatStreams.add(associatedChat.id);
+      _activeChatStreams[associatedChat.id] = null;
       ollamaMessage = await _streamOllamaMessage(associatedChat);
     } catch (_) {
       // TODO: Handle the error, show an error occured
@@ -151,13 +157,20 @@ class ChatProvider extends ChangeNotifier {
     await for (final message in stream) {
       // If the chat id is not in the active chat streams, it means the stream
       // is cancelled by the user. So, we need to break the loop.
-      if (_activeChatStreams.contains(associatedChat.id) == false) {
+      if (_activeChatStreams.containsKey(associatedChat.id) == false) {
         break;
       }
 
       if (ollamaMessage == null) {
+        // Keep the first received message to add the content of the following messages
         ollamaMessage = message;
 
+        // Update the active chat streams key with the ollama message
+        // to be able to show the stream in the chat.
+        // We also use this when the user switches between chats while streaming.
+        _activeChatStreams[associatedChat.id] = ollamaMessage;
+
+        // Be sure the user is in the same chat while the initial message is received
         if (associatedChat.id == currentChat?.id) {
           _messages.add(ollamaMessage);
         }
