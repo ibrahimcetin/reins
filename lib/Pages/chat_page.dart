@@ -4,6 +4,7 @@ import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:ollama_chat/Models/ollama_model.dart';
 import 'package:ollama_chat/Models/settings_route_arguments.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
+import 'package:ollama_chat/Widgets/chat_app_bar.dart';
 import 'package:ollama_chat/Widgets/chat_bubble.dart';
 import 'package:ollama_chat/Widgets/ollama_bottom_sheet_header.dart';
 import 'package:ollama_chat/Widgets/selection_bottom_sheet.dart';
@@ -11,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 class ChatPage extends StatefulWidget {
   const ChatPage({super.key});
@@ -33,6 +35,8 @@ class _ChatPageState extends State<ChatPage> {
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            if (!ResponsiveBreakpoints.of(context).isMobile)
+              ChatAppBar(title: 'Ollama Chat'),
             Expanded(
               child: chatProvider.messages.isEmpty
                   ? _buildEmptyChatState(context)

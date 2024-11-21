@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:ollama_chat/Widgets/chat_configure_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -14,7 +15,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     final chatProvider = Provider.of<ChatProvider>(context);
 
     return AppBar(
-      backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      forceMaterialTransparency: !ResponsiveBreakpoints.of(context).isMobile,
       title: Column(
         children: [
           Text(

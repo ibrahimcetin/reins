@@ -6,6 +6,7 @@ import 'package:ollama_chat/Providers/chat_provider.dart';
 import 'package:ollama_chat/Utils/material_color_adapter.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,6 +43,14 @@ class OllamaChatApp extends StatelessWidget {
             ),
             appBarTheme: const AppBarTheme(centerTitle: true),
             useMaterial3: true,
+          ),
+          builder: (context, child) => ResponsiveBreakpoints.builder(
+            breakpoints: [
+              const Breakpoint(start: 0, end: 450, name: MOBILE),
+              const Breakpoint(start: 451, end: 800, name: TABLET),
+              const Breakpoint(start: 801, end: 1920, name: DESKTOP),
+            ],
+            child: child!,
           ),
           onGenerateRoute: (settings) {
             if (settings.name == '/') {

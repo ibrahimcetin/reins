@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
+import 'package:responsive_framework/responsive_framework.dart';
 
 class ChatDrawer extends StatelessWidget {
   const ChatDrawer({super.key});
@@ -18,7 +19,9 @@ class ChatDrawer extends StatelessWidget {
               child: IconButton(
                 icon: const Icon(Icons.settings_outlined),
                 onPressed: () {
-                  Navigator.pop(context);
+                  if (ResponsiveBreakpoints.of(context).isMobile) {
+                    Navigator.pop(context);
+                  }
 
                   Navigator.pushNamed(context, '/settings');
                 },
@@ -43,7 +46,9 @@ class ChatNavigationDrawer extends StatelessWidget {
           onDestinationSelected: (destination) {
             chatProvider.destinationChatSelected(destination);
 
-            Navigator.pop(context);
+            if (ResponsiveBreakpoints.of(context).isMobile) {
+              Navigator.pop(context);
+            }
           },
           children: [
             Padding(
