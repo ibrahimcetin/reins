@@ -92,7 +92,7 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
             children: [
               TextButton(
                 onPressed: () {
-                  Navigator.of(context).pop(_selectedItem);
+                  Navigator.of(context).pop(widget.currentSelection);
                 },
                 child: const Text('Cancel'),
               ),
