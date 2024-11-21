@@ -130,7 +130,6 @@ class _ChatPageState extends State<ChatPage> {
             },
           )
         else
-          // TODO: After the server addres is set, update the ui to show the select model button
           AnimatedCrossFade(
             crossFadeState: _crossFadeState,
             duration: const Duration(milliseconds: 150),
