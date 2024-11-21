@@ -213,6 +213,9 @@ class ChatProvider extends ChangeNotifier {
 
     settingsBox.listenable(keys: ["serverAddress"]).addListener(() {
       _ollamaService.baseUrl = settingsBox.get('serverAddress');
+
+      // This will update empty chat state to dismiss "Tap to configure server address" message
+      notifyListeners();
     });
   }
 }
