@@ -71,6 +71,12 @@ class ChatProvider extends ChangeNotifier {
   Future<void> _loadCurrentChat() async {
     _messages = await _databaseService.getMessages(currentChat!.id);
 
+    // Add the streaming message to the chat if it exists
+    final streamingMessage = _activeChatStreams[currentChat!.id];
+    if (streamingMessage != null) {
+      _messages.add(streamingMessage);
+    }
+
     _textFieldController.clear();
     FocusManager.instance.primaryFocus?.unfocus();
 
@@ -176,17 +182,6 @@ class ChatProvider extends ChangeNotifier {
         }
       } else {
         ollamaMessage.content += message.content;
-      }
-
-      // If the chat changed previously by user, and come back to the same chat later,
-      // the latest message will be user's message. So, we need to readd the ollamaMessage
-      // to be able to show stream in the chat.
-      //
-      // createdAt property is used like a unique identifier for messages.
-      if (associatedChat.id == currentChat?.id &&
-          _messages.isNotEmpty &&
-          _messages.last.createdAt != ollamaMessage.createdAt) {
-        _messages.add(ollamaMessage);
       }
 
       notifyListeners();
