@@ -92,6 +92,27 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateCurrentChat({
+    String? newModel,
+    String? newTitle,
+    String? newOptions,
+  }) async {
+    final chat = currentChat;
+    if (chat == null) {
+      return;
+    }
+
+    await _databaseService.updateChat(
+      chat,
+      newModel: newModel,
+      newTitle: newTitle,
+      newOptions: newOptions,
+    );
+
+    _chats[_currentChatIndex] = await _databaseService.getChat(chat.id);
+    notifyListeners();
+  }
+
   Future<void> deleteCurrentChat() async {
     final chat = currentChat;
     if (chat == null) {
