@@ -29,17 +29,16 @@ class _ChatPageState extends State<ChatPage> {
   Widget build(BuildContext context) {
     return Consumer<ChatProvider>(
       builder: (BuildContext context, ChatProvider chatProvider, _) {
-        final messages = _getMessages(chatProvider);
-
         return Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Expanded(
-              child: messages.isEmpty
+              child: chatProvider.messages.isEmpty
                   ? _buildEmptyChatState(context)
                   : _ChatListView(
                       key: ValueKey(chatProvider.currentChat?.id),
-                      messages: messages,
+                      messages: chatProvider.messages,
+                      isAwaitingReply: chatProvider.isCurrentChatThinking,
                     ),
             ),
             Padding(
@@ -99,21 +98,6 @@ class _ChatPageState extends State<ChatPage> {
       );
     } else {
       return null;
-    }
-  }
-
-  List<OllamaMessage> _getMessages(ChatProvider chatProvider) {
-    // ? Is this a good solution to show Thinking... message?
-    if (chatProvider.isCurrentChatThinking) {
-      var messages = [...chatProvider.messages];
-
-      messages.add(
-        OllamaMessage("Thinking...", role: OllamaMessageRole.assistant),
-      );
-
-      return messages;
-    } else {
-      return chatProvider.messages;
     }
   }
 
@@ -226,8 +210,13 @@ class _ChatPageState extends State<ChatPage> {
 
 class _ChatListView extends StatefulWidget {
   final List<OllamaMessage> messages;
+  final bool isAwaitingReply;
 
-  const _ChatListView({super.key, required this.messages});
+  const _ChatListView({
+    super.key,
+    required this.messages,
+    required this.isAwaitingReply,
+  });
 
   @override
   State<_ChatListView> createState() => _ChatListViewState();
@@ -272,16 +261,30 @@ class _ChatListViewState extends State<_ChatListView> {
     return Stack(
       alignment: Alignment.bottomCenter,
       children: [
-        ListView.builder(
-          key: widget.key,
+        CustomScrollView(
           controller: _scrollController,
-          itemCount: widget.messages.length,
-          itemBuilder: (context, index) {
-            final message = widget.messages[widget.messages.length - index - 1];
-
-            return ChatBubble(message: message);
-          },
           reverse: true,
+          slivers: [
+            if (widget.isAwaitingReply)
+              SliverToBoxAdapter(
+                child: ChatBubble(
+                  message: OllamaMessage(
+                    "Thinking...",
+                    role: OllamaMessageRole.assistant,
+                  ),
+                ),
+              ),
+            SliverList.builder(
+              key: widget.key,
+              itemCount: widget.messages.length,
+              itemBuilder: (context, index) {
+                final message =
+                    widget.messages[widget.messages.length - index - 1];
+
+                return ChatBubble(message: message);
+              },
+            ),
+          ],
         ),
         if (_isScrollToBottomButtonVisible)
           IconButton(
