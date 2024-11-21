@@ -15,7 +15,6 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     final chatProvider = Provider.of<ChatProvider>(context);
 
     return AppBar(
-      forceMaterialTransparency: !ResponsiveBreakpoints.of(context).isMobile,
       title: Column(
         children: [
           Text(title, style: GoogleFonts.pacifico()),
