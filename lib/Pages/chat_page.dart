@@ -82,6 +82,7 @@ class _ChatPageState extends State<ChatPage> {
         color: Theme.of(context).colorScheme.onSurface,
         onPressed: () async {
           if (Hive.box('settings').get('serverAddress') == null) {
+            setState(() => _crossFadeState = CrossFadeState.showSecond);
             setState(() => _scale = _scale == 1.0 ? 1.05 : 1.0);
           } else if (chatProvider.currentChat == null) {
             if (_selectedModel == null) {
@@ -125,6 +126,7 @@ class _ChatPageState extends State<ChatPage> {
             },
           )
         else
+          // TODO: After the server addres is set, update the ui to show the select model button
           AnimatedCrossFade(
             crossFadeState: _crossFadeState,
             duration: const Duration(milliseconds: 150),
