@@ -4,7 +4,9 @@ import 'package:hive/hive.dart';
 import 'package:ollama_chat/Models/ollama_request_state.dart';
 
 class ServerSettings extends StatefulWidget {
-  const ServerSettings({super.key});
+  final bool autoFocusServerAddress;
+
+  const ServerSettings({super.key, this.autoFocusServerAddress = false});
 
   @override
   State<ServerSettings> createState() => _ServerSettingsState();
@@ -52,6 +54,7 @@ class _ServerSettingsState extends State<ServerSettings> {
         ),
         const SizedBox(height: 16),
         TextField(
+          autofocus: widget.autoFocusServerAddress,
           controller: _serverAddressController,
           keyboardType: TextInputType.url,
           onChanged: (_) {

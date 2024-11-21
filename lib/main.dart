@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ollama_chat/Models/settings_route_arguments.dart';
 import 'package:ollama_chat/Pages/main_page.dart';
 import 'package:ollama_chat/Pages/settings_page/settings_page.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
@@ -42,9 +43,24 @@ class OllamaChatApp extends StatelessWidget {
             appBarTheme: const AppBarTheme(centerTitle: true),
             useMaterial3: true,
           ),
-          routes: {
-            '/': (context) => const OllamaChatMainPage(title: 'Ollama Chat'),
-            '/settings': (context) => const SettingsPage(),
+          onGenerateRoute: (settings) {
+            if (settings.name == '/') {
+              return MaterialPageRoute(
+                builder: (context) =>
+                    const OllamaChatMainPage(title: 'Ollama Chat'),
+              );
+            }
+
+            if (settings.name == '/settings') {
+              final args = settings.arguments as SettingsRouteArguments?;
+
+              return MaterialPageRoute(
+                builder: (context) => SettingsPage(arguments: args),
+              );
+            }
+
+            assert(false, 'Need to implement ${settings.name}');
+            return null;
           },
         );
       },
