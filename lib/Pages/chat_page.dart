@@ -1,6 +1,8 @@
+import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
 import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:ollama_chat/Models/ollama_model.dart';
+import 'package:ollama_chat/Models/settings_route_arguments.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 import 'package:ollama_chat/Widgets/chat_bubble.dart';
 import 'package:ollama_chat/Widgets/ollama_bottom_sheet_header.dart';
@@ -19,6 +21,9 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   // This is for empty chat state to select a model
   OllamaModel? _selectedModel;
+
+  var _crossFadeState = CrossFadeState.showFirst;
+  double _scale = 1.0;
 
   @override
   Widget build(BuildContext context) {
@@ -74,8 +79,11 @@ class _ChatPageState extends State<ChatPage> {
     } else if (chatProvider.textFieldController.text.trim().isNotEmpty) {
       return IconButton(
         icon: const Icon(Icons.arrow_upward_rounded),
+        color: Theme.of(context).colorScheme.onSurface,
         onPressed: () async {
-          if (chatProvider.currentChat == null) {
+          if (Hive.box('settings').get('serverAddress') == null) {
+            setState(() => _scale = _scale == 1.0 ? 1.05 : 1.0);
+          } else if (chatProvider.currentChat == null) {
             if (_selectedModel == null) {
               await _showModelSelectionBottomSheet(context);
             }
@@ -88,7 +96,6 @@ class _ChatPageState extends State<ChatPage> {
             chatProvider.sendUserPrompt();
           }
         },
-        color: Theme.of(context).colorScheme.onSurface,
       );
     } else {
       return null;
@@ -116,6 +123,7 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
+  // TODO: Refactor this method to a separate widget.
   Widget _buildEmptyChatState(BuildContext context) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -128,14 +136,79 @@ class _ChatPageState extends State<ChatPage> {
             BlendMode.srcIn,
           ),
         ),
-        TextButton.icon(
-          icon: const Icon(Icons.auto_awesome_outlined),
-          label: Text(_selectedModel?.name ?? 'Select a model to start'),
-          iconAlignment: IconAlignment.end,
-          onPressed: () {
-            _showModelSelectionBottomSheet(context);
-          },
-        ),
+        if (Hive.box('settings').get('serverAddress') != null)
+          TextButton.icon(
+            icon: const Icon(Icons.auto_awesome_outlined),
+            label: Text(_selectedModel?.name ?? 'Select a model to start'),
+            iconAlignment: IconAlignment.end,
+            onPressed: () {
+              _showModelSelectionBottomSheet(context);
+            },
+          )
+        else
+          AnimatedCrossFade(
+            crossFadeState: _crossFadeState,
+            duration: const Duration(milliseconds: 150),
+            firstChild: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: AnimatedTextKit(
+                animatedTexts: [
+                  TyperAnimatedText(
+                    'Welcome to Ollama Chat!',
+                    speed: const Duration(milliseconds: 100),
+                  ),
+                  TyperAnimatedText(
+                    'Configure the server address to start.',
+                    speed: const Duration(milliseconds: 100),
+                  ),
+                ],
+                isRepeatingAnimation: false,
+                pause: Duration(milliseconds: 1500),
+                onFinished: () =>
+                    setState(() => _crossFadeState = CrossFadeState.showSecond),
+              ),
+            ),
+            secondChild: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+              child: AnimatedScale(
+                scale: _scale,
+                duration: const Duration(milliseconds: 100),
+                onEnd: () => setState(() => _scale = 1.0),
+                child: OutlinedButton.icon(
+                  icon: const Icon(
+                    Icons.warning_amber_rounded,
+                    color: Colors.amber,
+                  ),
+                  label: Text('Tap to configure the server address'),
+                  iconAlignment: IconAlignment.start,
+                  onPressed: () {
+                    Navigator.pushNamed(
+                      context,
+                      '/settings',
+                      arguments:
+                          SettingsRouteArguments(autoFocusServerAddress: true),
+                    );
+                  },
+                ),
+              ),
+            ),
+            layoutBuilder:
+                (topChild, topChildKey, bottomChild, bottomChildKey) {
+              return Stack(
+                alignment: Alignment.center,
+                children: [
+                  Positioned(
+                    key: topChildKey,
+                    child: topChild,
+                  ),
+                  Positioned(
+                    key: bottomChildKey,
+                    child: bottomChild,
+                  ),
+                ],
+              );
+            },
+          ),
       ],
     );
   }
