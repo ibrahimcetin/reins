@@ -23,6 +23,27 @@ void main() async {
     expect(chat.options, isNull);
   });
 
+  test("Test database get chat", () async {
+    final chat = await service.createChat("llama3.2-vision");
+
+    final retrievedChat = await service.getChat(chat.id);
+    expect(retrievedChat.id, chat.id);
+    expect(retrievedChat.model, chat.model);
+    expect(retrievedChat.title, chat.title);
+    expect(retrievedChat.options, chat.options);
+  });
+
+  test("Test database update chat", () async {
+    final chat = await service.createChat("llama3.2-vision");
+
+    await service.updateChat(chat, newModel: "llama3.2");
+
+    final updatedChat = await service.getChat(chat.id);
+    expect(updatedChat.model, "llama3.2");
+    expect(updatedChat.title, "New Chat");
+    expect(updatedChat.options, isNull);
+  });
+
   test("Test database add message", () async {
     final message = OllamaMessage(
       "Hello, this is a test message.",

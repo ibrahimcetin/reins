@@ -47,6 +47,24 @@ FOREIGN KEY (chat_id) REFERENCES chats(chat_id) ON DELETE CASCADE
     return OllamaChat.fromMap(maps.first);
   }
 
+  Future<void> updateChat(
+    OllamaChat chat, {
+    String? newModel,
+    String? newTitle,
+    String? newOptions,
+  }) async {
+    await db.update(
+      'chats',
+      {
+        'model': newModel ?? chat.model,
+        'chat_title': newTitle ?? chat.title,
+        'options': newOptions ?? chat.options,
+      },
+      where: 'chat_id = ?',
+      whereArgs: [chat.id],
+    );
+  }
+
   Future<void> addMessage(OllamaMessage message, int chatId) async {
     // TODO: Get parameters from instance method like toDatabaseParams
     await db.insert('messages', {
@@ -68,6 +86,16 @@ ORDER BY last_update DESC;''');
     return List.generate(maps.length, (i) {
       return OllamaChat.fromMap(maps[i]);
     });
+  }
+
+  Future<OllamaChat> getChat(int chatId) async {
+    final List<Map<String, dynamic>> maps = await db.query(
+      'chats',
+      where: 'chat_id = ?',
+      whereArgs: [chatId],
+    );
+
+    return OllamaChat.fromMap(maps.first);
   }
 
   Future<List<OllamaMessage>> getMessages(int chatId) async {
