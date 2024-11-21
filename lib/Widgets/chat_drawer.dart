@@ -82,7 +82,12 @@ class ChatNavigationDrawer extends StatelessWidget {
             ...chatProvider.chats.map((chat) {
               return NavigationDrawerDestination(
                 icon: const Icon(Icons.chat_outlined),
-                label: Text(chat.title),
+                label: Expanded(
+                  child: Text(
+                    chat.title,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 selectedIcon: const Icon(Icons.chat),
               );
             }),
