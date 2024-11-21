@@ -15,20 +15,16 @@ class SettingsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text('Settings', style: GoogleFonts.pacifico()),
       ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              ThemesSettings(),
-              SizedBox(height: 16),
-              ServerSettings(
-                autoFocusServerAddress:
-                    arguments?.autoFocusServerAddress ?? false,
-              ),
-            ],
+      body: ListView(
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.all(16),
+        children: [
+          ThemesSettings(),
+          SizedBox(height: 16),
+          ServerSettings(
+            autoFocusServerAddress: arguments?.autoFocusServerAddress ?? false,
           ),
-        ),
+        ],
       ),
     );
   }
