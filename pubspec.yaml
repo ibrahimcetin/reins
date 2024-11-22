@@ -130,6 +130,10 @@ flutter_native_splash:
   image: assets/images/splash_light.png
   image_dark: assets/images/splash_dark.png
 
+  android_12:
+    image: assets/images/splash_light_android12.png
+    image_dark: assets/images/splash_dark_android12.png
+
   android: true
   ios: true
   web: false
