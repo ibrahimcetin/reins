@@ -74,6 +74,8 @@ dev_dependencies:
   # SQLite FFI for testing
   sqflite_common_ffi: ^2.3.4
 
+  # Splash screen generator
+  flutter_native_splash: ^2.4.3
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -121,3 +123,13 @@ flutter_launcher_icons:
   image_path: "assets/images/ollama.png"
   android: true
   ios: true
+
+flutter_native_splash:
+  color: "#ffffff"
+  color_dark: "#000000"
+  image: assets/images/splash_light.png
+  image_dark: assets/images/splash_dark.png
+
+  android: true
+  ios: true
+  web: false
