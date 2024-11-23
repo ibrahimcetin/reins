@@ -635,7 +635,7 @@ packages:
     source: hosted
     version: "2.5.4+6"
   sqflite_common_ffi:
-    dependency: "direct dev"
+    dependency: "direct main"
     description:
       name: sqflite_common_ffi
       sha256: b8ba78c1b72a9ee6c2323b06af95d43fd13e03d90c8369cb454fd7f629a72588

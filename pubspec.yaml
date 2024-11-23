@@ -40,6 +40,7 @@ dependencies:
 
   # SQLite plugin for Flutter
   sqflite: ^2.4.1
+  sqflite_common_ffi: ^2.3.4
 
   # Hive, key-value store
   hive: ^2.2.3
@@ -70,9 +71,6 @@ dev_dependencies:
 
   # Create custom icons for Android and iOS
   flutter_launcher_icons: ^0.14.1
-
-  # SQLite FFI for testing
-  sqflite_common_ffi: ^2.3.4
 
   # Splash screen generator
   flutter_native_splash: ^2.4.3
