@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ollama_chat/Pages/chat_page.dart';
+import 'package:ollama_chat/Pages/chat_page/chat_page.dart';
 import 'package:ollama_chat/Widgets/chat_app_bar.dart';
 import 'package:ollama_chat/Widgets/chat_drawer.dart';
 import 'package:responsive_framework/responsive_framework.dart';
