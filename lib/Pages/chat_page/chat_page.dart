@@ -57,6 +57,7 @@ class _ChatPageState extends State<ChatPage> {
                       isAwaitingReply: chatProvider.isCurrentChatThinking,
                     ),
             ),
+            // TODO: Wrap with ConstrainedBox to limit the height
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
@@ -69,7 +70,8 @@ class _ChatPageState extends State<ChatPage> {
                   labelText: 'Prompt',
                   suffixIcon: _buildTextFieldSuffixIcon(chatProvider),
                 ),
-                maxLines: null,
+                minLines: 1,
+                maxLines: 5,
                 textCapitalization: TextCapitalization.sentences,
                 onTapOutside: (PointerDownEvent event) {
                   FocusManager.instance.primaryFocus?.unfocus();
