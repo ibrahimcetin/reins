@@ -53,7 +53,7 @@ class OllamaModelDetails {
   String parentModel;
   String format;
   String family;
-  List<String> families;
+  List<String>? families;
   String parameterSize;
   String quantizationLevel;
 
@@ -71,7 +71,9 @@ class OllamaModelDetails {
         parentModel: json["parent_model"],
         format: json["format"],
         family: json["family"],
-        families: List<String>.from(json["families"].map((x) => x)),
+        families: json["families"] != null
+            ? List<String>.from(json["families"].map((x) => x))
+            : null,
         parameterSize: json["parameter_size"],
         quantizationLevel: json["quantization_level"],
       );
@@ -80,7 +82,9 @@ class OllamaModelDetails {
         "parent_model": parentModel,
         "format": format,
         "family": family,
-        "families": List<dynamic>.from(families.map((x) => x)),
+        "families": families != null
+            ? List<String>.from(families!.map((x) => x))
+            : null,
         "parameter_size": parameterSize,
         "quantization_level": quantizationLevel,
       };
