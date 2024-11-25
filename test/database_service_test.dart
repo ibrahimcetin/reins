@@ -2,10 +2,14 @@ import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:ollama_chat/Services/database_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:test/test.dart';
+import 'package:path/path.dart' as path;
 
 void main() async {
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
+
+  final databasePath = path.join(await getDatabasesPath(), 'test_database.db');
+  await databaseFactoryFfi.deleteDatabase(databasePath);
 
   final service = DatabaseService();
   await service.open('test_database.db');

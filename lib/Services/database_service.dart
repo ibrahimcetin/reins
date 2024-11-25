@@ -1,14 +1,14 @@
 import 'package:ollama_chat/Models/ollama_chat.dart';
 import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:sqflite/sqflite.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as path;
 
 class DatabaseService {
   late Database db;
 
-  Future<void> open(String path) async {
+  Future<void> open(String databaseFile) async {
     db = await openDatabase(
-      join(await getDatabasesPath(), path),
+      path.join(await getDatabasesPath(), databaseFile),
       version: 1,
       onCreate: (Database db, int version) async {
         await db.execute('''CREATE TABLE chats (

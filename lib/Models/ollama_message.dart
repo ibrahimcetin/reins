@@ -69,6 +69,16 @@ class OllamaMessage {
         evalDuration: json["eval_duration"],
       );
 
+  factory OllamaMessage.fromDatabase(Map<String, dynamic> map) {
+    return OllamaMessage(
+      map['content'],
+      role: OllamaMessageRole.fromString(map['role']),
+      images: map['images'] != null ? List<dynamic>.from(map['images']) : null,
+      createdAt: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
+      model: map['model'],
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         "model": model,
         "created_at": createdAt.toIso8601String(),
@@ -94,16 +104,6 @@ class OllamaMessage {
         "content": content,
         "images": images,
       };
-
-  factory OllamaMessage.fromDatabase(Map<String, dynamic> map) {
-    return OllamaMessage(
-      map['content'],
-      role: OllamaMessageRole.fromString(map['role']),
-      images: map['images'] != null ? List<dynamic>.from(map['images']) : null,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
-      model: map['model'],
-    );
-  }
 }
 
 enum OllamaMessageRole {

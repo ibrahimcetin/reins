@@ -42,6 +42,9 @@ dependencies:
   sqflite: ^2.4.1
   sqflite_common_ffi: ^2.3.4
 
+  # Path provider for SQLite
+  path: ^1.9.0
+
   # Hive, key-value store
   hive: ^2.2.3
   hive_flutter: ^1.1.0
