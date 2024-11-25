@@ -25,6 +25,16 @@ class _ChatPageState extends State<ChatPage> {
   double _scale = 1.0;
 
   @override
+  void initState() {
+    super.initState();
+
+    // If the server address changes, reset the selected model
+    Hive.box('settings').watch(key: 'serverAddress').listen((event) {
+      _selectedModel = null;
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Consumer<ChatProvider>(
       builder: (BuildContext context, ChatProvider chatProvider, _) {
