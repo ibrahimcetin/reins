@@ -18,6 +18,8 @@ class _ServerSettingsState extends State<ServerSettings> {
   final _serverAddressController = TextEditingController();
   OllamaRequestState _requestState = OllamaRequestState.uninitialized;
 
+  String? _serverAddressErrorText;
+
   @override
   void initState() {
     super.initState();
@@ -59,12 +61,14 @@ class _ServerSettingsState extends State<ServerSettings> {
           keyboardType: TextInputType.url,
           onChanged: (_) {
             setState(() {
+              _serverAddressErrorText = null;
               _requestState = OllamaRequestState.uninitialized;
             });
           },
           decoration: InputDecoration(
             labelText: 'Ollama Server Address',
             border: OutlineInputBorder(),
+            errorText: _serverAddressErrorText,
             suffixIcon: IconButton(
               onPressed: () {},
               icon: Icon(Icons.info_outline),
@@ -105,27 +109,36 @@ class _ServerSettingsState extends State<ServerSettings> {
   }
 
   _handleConnectButton() async {
-    final serverAddress = _serverAddressController.text;
-
     setState(() {
       _requestState = OllamaRequestState.loading;
     });
 
-    final state = await _establishServerConnection(Uri.parse(serverAddress));
+    try {
+      final newAddress = _validateServerAddress(_serverAddressController.text);
 
-    if (mounted == false) {
-      return;
-    }
+      final state = await _establishServerConnection(Uri.parse(newAddress));
 
-    setState(() {
-      _requestState = state;
-    });
+      if (!mounted) {
+        return;
+      }
 
-    if (state == OllamaRequestState.success) {
-      final url = Uri.parse(serverAddress);
-      final formattedServerAddress = "${url.scheme}://${url.host}:${url.port}";
+      setState(() {
+        _requestState = state;
+      });
 
-      _settingsBox.put('serverAddress', formattedServerAddress);
+      final currentAddress = _settingsBox.get('serverAddress');
+      if (state == OllamaRequestState.success && newAddress != currentAddress) {
+        _settingsBox.put('serverAddress', newAddress);
+      }
+    } on String catch (error) {
+      setState(() {
+        _serverAddressErrorText = error;
+        _requestState = OllamaRequestState.error;
+      });
+    } catch (_) {
+      setState(() {
+        _requestState = OllamaRequestState.error;
+      });
     }
   }
 
@@ -144,6 +157,34 @@ class _ServerSettingsState extends State<ServerSettings> {
     } catch (e) {
       return OllamaRequestState.error;
     }
+  }
+
+  String _validateServerAddress(String address) {
+    if (address.isEmpty) {
+      throw 'Please enter a server address.';
+    }
+
+    final url = Uri.parse(address);
+
+    if (url.scheme.isEmpty) {
+      throw 'Please include the scheme. e.g. http://localhost:11434';
+    }
+
+    if (url.host.isEmpty) {
+      throw 'Please include the host. e.g. http://localhost:11434';
+    }
+
+    if (url.scheme != 'http' && url.scheme != 'https') {
+      throw 'Invalid scheme. Only http and https are supported.';
+    }
+
+    String formattedAddress = "${url.scheme}://${url.host}";
+
+    if (url.hasPort) {
+      formattedAddress += ":${url.port}";
+    }
+
+    return formattedAddress;
   }
 
   Color get _connectionStatusColor {
