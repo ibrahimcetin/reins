@@ -137,6 +137,8 @@ class _ServerSettingsState extends State<ServerSettings> {
       });
     } catch (_) {
       setState(() {
+        _serverAddressErrorText =
+            'Invalid URL format. Use: http(s)://<host>:<port>.';
         _requestState = OllamaRequestState.error;
       });
     }
@@ -167,6 +169,12 @@ class _ServerSettingsState extends State<ServerSettings> {
     final url = Uri.parse(address);
 
     if (url.scheme.isEmpty) {
+      throw 'Please include the scheme. e.g. http://localhost:11434';
+    }
+
+    // If user don't include the scheme and just enter host and port like 'localhost:11434'.
+    // The parser will consider the host as the scheme, so host will be empty. But actually the scheme is empty.
+    if (url.scheme != 'http' && url.scheme != 'https' && url.host.isEmpty) {
       throw 'Please include the scheme. e.g. http://localhost:11434';
     }
 
