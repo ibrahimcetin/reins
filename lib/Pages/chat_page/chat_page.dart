@@ -21,6 +21,10 @@ class _ChatPageState extends State<ChatPage> {
   // This is for empty chat state to select a model
   OllamaModel? _selectedModel;
 
+  // Text field controller for the chat prompt
+  final _textFieldController = TextEditingController();
+
+  // These are for the welcome screen animation
   var _crossFadeState = CrossFadeState.showFirst;
   double _scale = 1.0;
 
@@ -70,22 +74,11 @@ class _ChatPageState extends State<ChatPage> {
             // TODO: Wrap with ConstrainedBox to limit the height
             Padding(
               padding: const EdgeInsets.all(8.0),
-              child: TextField(
-                controller: chatProvider.textFieldController,
-                onChanged: (value) => setState(() {}),
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(30.0),
-                  ),
-                  labelText: 'Prompt',
-                  suffixIcon: _buildTextFieldSuffixIcon(chatProvider),
-                ),
-                minLines: 1,
-                maxLines: 5,
-                textCapitalization: TextCapitalization.sentences,
-                onTapOutside: (PointerDownEvent event) {
-                  FocusManager.instance.primaryFocus?.unfocus();
-                },
+              child: ChatTextField(
+                key: ValueKey(chatProvider.currentChat?.id),
+                controller: _textFieldController,
+                onChanged: (_) => setState(() {}),
+                suffixIcon: _buildTextFieldSuffixIcon(chatProvider),
               ),
             ),
           ],
@@ -103,7 +96,7 @@ class _ChatPageState extends State<ChatPage> {
           chatProvider.cancelCurrentStreaming();
         },
       );
-    } else if (chatProvider.textFieldController.text.trim().isNotEmpty) {
+    } else if (_textFieldController.text.trim().isNotEmpty) {
       return IconButton(
         icon: const Icon(Icons.arrow_upward_rounded),
         color: Theme.of(context).colorScheme.onSurface,
@@ -127,10 +120,13 @@ class _ChatPageState extends State<ChatPage> {
 
       if (_selectedModel != null) {
         await chatProvider.createNewChat(_selectedModel!);
-        chatProvider.sendUserPrompt();
+
+        chatProvider.sendPrompt(_textFieldController.text);
+        _textFieldController.clear();
       }
     } else {
-      chatProvider.sendUserPrompt();
+      chatProvider.sendPrompt(_textFieldController.text);
+      _textFieldController.clear();
     }
   }
 

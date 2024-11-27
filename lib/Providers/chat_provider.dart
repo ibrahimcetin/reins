@@ -10,9 +10,6 @@ class ChatProvider extends ChangeNotifier {
   List<OllamaMessage> _messages = [];
   List<OllamaMessage> get messages => _messages;
 
-  final _textFieldController = TextEditingController();
-  TextEditingController get textFieldController => _textFieldController;
-
   final _ollamaService = OllamaService();
   final _databaseService = DatabaseService();
 
@@ -63,7 +60,6 @@ class ChatProvider extends ChangeNotifier {
     _currentChatIndex = -1;
 
     _messages.clear();
-    _textFieldController.clear();
 
     notifyListeners();
   }
@@ -77,7 +73,7 @@ class ChatProvider extends ChangeNotifier {
       _messages.add(streamingMessage);
     }
 
-    _textFieldController.clear();
+    // Unfocus the text field to dismiss the keyboard
     FocusManager.instance.primaryFocus?.unfocus();
 
     notifyListeners();
@@ -127,12 +123,15 @@ class ChatProvider extends ChangeNotifier {
     _resetChat();
   }
 
-  Future<void> sendUserPrompt() async {
+  Future<void> sendPrompt(String text) async {
     // Save the chat where the prompt was sent
     final associatedChat = currentChat!;
 
-    // Get the user prompt and clear the text field
-    final prompt = _getUserPrompt();
+    // Create a user prompt message and add it to the chat
+    final prompt = OllamaMessage(text.trim(), role: OllamaMessageRole.user);
+    _messages.add(prompt);
+
+    notifyListeners();
 
     // Save the user prompt to the database
     await _databaseService.addMessage(prompt, associatedChat.id);
@@ -157,20 +156,6 @@ class ChatProvider extends ChangeNotifier {
     if (ollamaMessage != null) {
       await _databaseService.addMessage(ollamaMessage, associatedChat.id);
     }
-  }
-
-  OllamaMessage _getUserPrompt() {
-    final message = OllamaMessage(
-      _textFieldController.text.trim(),
-      role: OllamaMessageRole.user,
-    );
-
-    _textFieldController.clear();
-
-    _messages.add(message);
-    notifyListeners();
-
-    return message;
   }
 
   Future<OllamaMessage?> _streamOllamaMessage(OllamaChat associatedChat) async {
