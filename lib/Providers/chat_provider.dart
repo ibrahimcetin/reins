@@ -202,6 +202,8 @@ class ChatProvider extends ChangeNotifier {
   }
 
   void _moveCurrentChatToTop() {
+    if (_currentChatIndex == 0) return;
+
     final chat = _chats.removeAt(_currentChatIndex);
     _chats.insert(0, chat);
     _currentChatIndex = 0;
