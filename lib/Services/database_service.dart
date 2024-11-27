@@ -1,63 +1,82 @@
 import 'package:ollama_chat/Models/ollama_chat.dart';
 import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:uuid/uuid.dart';
 import 'package:path/path.dart' as path;
 
 class DatabaseService {
-  late Database db;
+  late Database _db;
 
   Future<void> open(String databaseFile) async {
-    db = await openDatabase(
+    _db = await openDatabase(
       path.join(await getDatabasesPath(), databaseFile),
       version: 1,
       onCreate: (Database db, int version) async {
-        await db.execute('''CREATE TABLE chats (
-chat_id INTEGER PRIMARY KEY AUTOINCREMENT,
+        await db.execute('''CREATE TABLE IF NOT EXISTS chats (
+chat_id TEXT PRIMARY KEY,
 model TEXT NOT NULL,
 chat_title TEXT NOT NULL,
+system_prompt TEXT,
 options TEXT
-);
-''');
+) WITHOUT ROWID;''');
 
-        await db.execute('''CREATE TABLE messages (
-message_id INTEGER PRIMARY KEY AUTOINCREMENT,
-chat_id INTEGER NOT NULL,
+        await db.execute('''CREATE TABLE IF NOT EXISTS messages (
+message_id TEXT PRIMARY KEY,
+chat_id TEXT NOT NULL,
 content TEXT NOT NULL,
 role TEXT CHECK(role IN ('user', 'assistant', 'system')) NOT NULL,
 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (chat_id) REFERENCES chats(chat_id) ON DELETE CASCADE
-);''');
+) WITHOUT ROWID;''');
       },
     );
   }
 
+  Future<void> close() async => _db.close();
+
+  // Chat Operations
+
   Future<OllamaChat> createChat(String model) async {
-    await db.insert('chats', {
+    final id = Uuid().v4();
+
+    await _db.insert('chats', {
+      'chat_id': id,
       'model': model,
       'chat_title': 'New Chat',
+      'system_prompt': null,
       'options': null,
     });
 
-    final List<Map<String, dynamic>> maps = await db.query(
+    return (await getChat(id))!;
+  }
+
+  Future<OllamaChat?> getChat(String chatId) async {
+    final List<Map<String, dynamic>> maps = await _db.query(
       'chats',
-      orderBy: 'chat_id DESC',
-      limit: 1,
+      where: 'chat_id = ?',
+      whereArgs: [chatId],
     );
 
-    return OllamaChat.fromMap(maps.first);
+    if (maps.isEmpty) {
+      return null;
+    } else {
+      return OllamaChat.fromMap(maps.first);
+    }
   }
 
   Future<void> updateChat(
     OllamaChat chat, {
     String? newModel,
     String? newTitle,
+    String? newSystemPrompt,
     String? newOptions,
   }) async {
-    await db.update(
+    await _db.update(
       'chats',
       {
         'model': newModel ?? chat.model,
         'chat_title': newTitle ?? chat.title,
+        'system_prompt': newSystemPrompt ?? chat.systemPrompt,
         'options': newOptions ?? chat.options,
       },
       where: 'chat_id = ?',
@@ -65,19 +84,23 @@ FOREIGN KEY (chat_id) REFERENCES chats(chat_id) ON DELETE CASCADE
     );
   }
 
-  Future<void> addMessage(OllamaMessage message, int chatId) async {
-    // TODO: Get parameters from instance method like toDatabaseParams
-    await db.insert('messages', {
-      'chat_id': chatId,
-      'content': message.content,
-      'role': message.role.toString().split('.').last,
-      'timestamp': message.createdAt.millisecondsSinceEpoch,
-    });
+  Future<void> deleteChat(String chatId) async {
+    await _db.delete(
+      'chats',
+      where: 'chat_id = ?',
+      whereArgs: [chatId],
+    );
+
+    await _db.delete(
+      'messages',
+      where: 'chat_id = ?',
+      whereArgs: [chatId],
+    );
   }
 
   Future<List<OllamaChat>> getAllChats() async {
-    final List<Map<String, dynamic>> maps = await db.rawQuery(
-        '''SELECT chats.chat_id, chats.chat_title, chats.model, chats.options, MAX(messages.timestamp) AS last_update
+    final List<Map<String, dynamic>> maps = await _db.rawQuery(
+        '''SELECT chats.chat_id, chats.model, chats.chat_title, chats.system_prompt, chats.options, MAX(messages.timestamp) AS last_update
 FROM chats
 LEFT JOIN messages ON chats.chat_id = messages.chat_id
 GROUP BY chats.chat_id
@@ -88,18 +111,47 @@ ORDER BY last_update DESC;''');
     });
   }
 
-  Future<OllamaChat> getChat(int chatId) async {
-    final List<Map<String, dynamic>> maps = await db.query(
-      'chats',
-      where: 'chat_id = ?',
-      whereArgs: [chatId],
-    );
+  // Message Operations
 
-    return OllamaChat.fromMap(maps.first);
+  Future<void> addMessage(
+    OllamaMessage message, {
+    required OllamaChat chat,
+  }) async {
+    // TODO: Get parameters from instance method like toDatabaseParams
+
+    await _db.insert('messages', {
+      'message_id': message.id,
+      'chat_id': chat.id,
+      'content': message.content,
+      'role': message.role.toString().split('.').last,
+      'timestamp': message.createdAt.millisecondsSinceEpoch,
+    });
   }
 
-  Future<List<OllamaMessage>> getMessages(int chatId) async {
-    final List<Map<String, dynamic>> maps = await db.query(
+  Future<OllamaMessage?> getMessage(String messageId) async {
+    final List<Map<String, dynamic>> maps = await _db.query(
+      'messages',
+      where: 'message_id = ?',
+      whereArgs: [messageId],
+    );
+
+    if (maps.isEmpty) {
+      return null;
+    } else {
+      return OllamaMessage.fromDatabase(maps.first);
+    }
+  }
+
+  Future<void> deleteMessage(String messageId) async {
+    await _db.delete(
+      'messages',
+      where: 'message_id = ?',
+      whereArgs: [messageId],
+    );
+  }
+
+  Future<List<OllamaMessage>> getMessages(String chatId) async {
+    final List<Map<String, dynamic>> maps = await _db.query(
       'messages',
       where: 'chat_id = ?',
       whereArgs: [chatId],
@@ -110,20 +162,4 @@ ORDER BY last_update DESC;''');
       return OllamaMessage.fromDatabase(maps[i]);
     });
   }
-
-  Future<void> deleteChat(int chatId) async {
-    await db.delete(
-      'chats',
-      where: 'chat_id = ?',
-      whereArgs: [chatId],
-    );
-
-    await db.delete(
-      'messages',
-      where: 'chat_id = ?',
-      whereArgs: [chatId],
-    );
-  }
-
-  Future<void> close() async => db.close();
 }

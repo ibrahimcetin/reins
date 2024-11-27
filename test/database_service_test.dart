@@ -14,61 +14,145 @@ void main() async {
   final service = DatabaseService();
   await service.open('test_database.db');
 
+  const model = "llama3.2";
+
   test("Test database open", () async {
     await service.open('test_database.db');
   });
 
   test("Test database create chat", () async {
-    final chat = await service.createChat("llama3.2-vision");
+    final chat = await service.createChat(model);
 
-    expect(chat.id, isPositive);
-    expect(chat.model, equals("llama3.2-vision"));
+    expect(chat.id, isNotEmpty);
+    expect(chat.model, model);
     expect(chat.title, "New Chat");
+    expect(chat.systemPrompt, isNull);
     expect(chat.options, isNull);
   });
 
   test("Test database get chat", () async {
-    final chat = await service.createChat("llama3.2-vision");
+    final chat = await service.createChat(model);
 
-    final retrievedChat = await service.getChat(chat.id);
+    final retrievedChat = (await service.getChat(chat.id))!;
     expect(retrievedChat.id, chat.id);
     expect(retrievedChat.model, chat.model);
     expect(retrievedChat.title, chat.title);
+    expect(retrievedChat.systemPrompt, chat.systemPrompt);
     expect(retrievedChat.options, chat.options);
   });
 
-  test("Test database update chat", () async {
-    final chat = await service.createChat("llama3.2-vision");
+  test("Test database update chat title", () async {
+    final chat = await service.createChat(model);
 
     await service.updateChat(chat, newModel: "llama3.2");
 
-    final updatedChat = await service.getChat(chat.id);
+    final updatedChat = (await service.getChat(chat.id))!;
     expect(updatedChat.model, "llama3.2");
     expect(updatedChat.title, "New Chat");
+    expect(updatedChat.systemPrompt, isNull);
     expect(updatedChat.options, isNull);
   });
 
+  test('Test database update chat system prompt', () async {
+    const systemPrompt =
+        "You are Mario from super mario bros, acting as an assistant.";
+
+    final chat = await service.createChat(model);
+
+    await service.updateChat(
+      chat,
+      newSystemPrompt: systemPrompt,
+    );
+
+    final updatedChat = (await service.getChat(chat.id))!;
+    expect(updatedChat.model, model);
+    expect(updatedChat.title, "New Chat");
+    expect(updatedChat.systemPrompt, systemPrompt);
+    expect(updatedChat.options, isNull);
+
+    await service.updateChat(updatedChat, newSystemPrompt: null);
+  });
+
+  test("Test database delete chat", () async {
+    final chat = await service.createChat(model);
+
+    await service.deleteChat(chat.id);
+
+    expect(await service.getChat(chat.id), isNull);
+  });
+
+  test("Test database get all chats", () async {
+    await service.createChat(model);
+    final chats = await service.getAllChats();
+
+    if (chats.isNotEmpty) {
+      expect(chats.first.id, isNotEmpty);
+      expect(chats.first.model, model);
+      expect(chats.first.title, "New Chat");
+      expect(chats.first.systemPrompt, isNull);
+      expect(chats.first.options, isNull);
+    }
+  });
+
   test("Test database add message", () async {
+    final chat = await service.createChat(model);
     final message = OllamaMessage(
       "Hello, this is a test message.",
       role: OllamaMessageRole.user,
     );
 
-    await service.addMessage(message, 1);
+    await service.addMessage(message, chat: chat);
 
-    final messages = await service.getMessages(1);
-    expect(messages.first.content, "Hello, this is a test message.");
-    expect(messages.first.role, OllamaMessageRole.user);
+    final messages = await service.getMessages(chat.id);
+    expect(messages.length, 1);
+    expect(messages.first.id, message.id);
+    expect(messages.first.content, message.content);
+    expect(messages.first.role, message.role);
   });
 
-  test("Test database get all chats", () async {
-    final chats = await service.getAllChats();
+  test("Test database get message", () async {
+    final chat = await service.createChat(model);
+    final message = OllamaMessage(
+      "Hello, this is a test message.",
+      role: OllamaMessageRole.user,
+    );
 
-    if (chats.isNotEmpty) {
-      expect(chats.first.id, isPositive);
-      expect(chats.first.model, equals("llama3.2-vision"));
-      expect(chats.first.title, "New Chat");
-      expect(chats.first.options, isNull);
-    }
+    await service.addMessage(message, chat: chat);
+
+    final retrievedMessage = await service.getMessage(message.id);
+    expect(retrievedMessage, isNotNull);
+    expect(retrievedMessage!.id, message.id);
+    expect(retrievedMessage.content, message.content);
+    expect(retrievedMessage.role, message.role);
+  });
+
+  test('Test database delete message', () async {
+    final chat = await service.createChat(model);
+    final message = OllamaMessage(
+      "Hello, this is a test message.",
+      role: OllamaMessageRole.user,
+    );
+
+    await service.addMessage(message, chat: chat);
+    expect(await service.getMessage(message.id), isNotNull);
+
+    await service.deleteMessage(message.id);
+    expect(await service.getMessage(message.id), isNull);
+  });
+
+  test("Test database get messages", () async {
+    final chat = await service.createChat(model);
+    final message = OllamaMessage(
+      "Hello, this is a test message.",
+      role: OllamaMessageRole.user,
+    );
+
+    await service.addMessage(message, chat: chat);
+
+    final messages = await service.getMessages(chat.id);
+    expect(messages.length, 1);
+    expect(messages.first.id, message.id);
+    expect(messages.first.content, message.content);
+    expect(messages.first.role, message.role);
   });
 }

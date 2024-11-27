@@ -1,4 +1,9 @@
+import 'package:uuid/uuid.dart';
+
 class OllamaMessage {
+  /// The unique identifier of the message.
+  String id;
+
   /// The text content of the message.
   String content;
 
@@ -27,6 +32,7 @@ class OllamaMessage {
 
   OllamaMessage(
     this.content, {
+    String? id,
     required this.role,
     this.images,
     DateTime? createdAt,
@@ -40,7 +46,8 @@ class OllamaMessage {
     this.promptEvalDuration,
     this.evalCount,
     this.evalDuration,
-  }) : createdAt = createdAt ?? DateTime.now();
+  })  : id = id ?? Uuid().v4(),
+        createdAt = createdAt ?? DateTime.now();
 
   factory OllamaMessage.fromJson(Map<String, dynamic> json) => OllamaMessage(
         json["message"] != null
@@ -72,6 +79,7 @@ class OllamaMessage {
   factory OllamaMessage.fromDatabase(Map<String, dynamic> map) {
     return OllamaMessage(
       map['content'],
+      id: map['message_id'],
       role: OllamaMessageRole.fromString(map['role']),
       images: map['images'] != null ? List<dynamic>.from(map['images']) : null,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),

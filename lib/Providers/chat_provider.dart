@@ -22,7 +22,7 @@ class ChatProvider extends ChangeNotifier {
   OllamaChat? get currentChat =>
       _currentChatIndex == -1 ? null : _chats[_currentChatIndex];
 
-  final Map<int, OllamaMessage?> _activeChatStreams = {};
+  final Map<String, OllamaMessage?> _activeChatStreams = {};
 
   bool get isCurrentChatStreaming =>
       _activeChatStreams.containsKey(currentChat?.id);
@@ -94,9 +94,7 @@ class ChatProvider extends ChangeNotifier {
     String? newOptions,
   }) async {
     final chat = currentChat;
-    if (chat == null) {
-      return;
-    }
+    if (chat == null) return;
 
     await _databaseService.updateChat(
       chat,
@@ -105,7 +103,7 @@ class ChatProvider extends ChangeNotifier {
       newOptions: newOptions,
     );
 
-    _chats[_currentChatIndex] = await _databaseService.getChat(chat.id);
+    _chats[_currentChatIndex] = (await _databaseService.getChat(chat.id))!;
     notifyListeners();
   }
 
@@ -134,7 +132,7 @@ class ChatProvider extends ChangeNotifier {
     notifyListeners();
 
     // Save the user prompt to the database
-    await _databaseService.addMessage(prompt, associatedChat.id);
+    await _databaseService.addMessage(prompt, chat: associatedChat);
 
     // Update the chat list to show the latest chat at the top
     _moveCurrentChatToTop();
@@ -154,7 +152,7 @@ class ChatProvider extends ChangeNotifier {
 
     // Save the Ollama message to the database
     if (ollamaMessage != null) {
-      await _databaseService.addMessage(ollamaMessage, associatedChat.id);
+      await _databaseService.addMessage(ollamaMessage, chat: associatedChat);
     }
   }
 
