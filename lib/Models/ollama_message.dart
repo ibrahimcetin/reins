@@ -112,6 +112,18 @@ class OllamaMessage {
         "content": content,
         "images": images,
       };
+
+  void updateMetadataFrom(OllamaMessage message) {
+    done = message.done;
+    doneReason = message.doneReason;
+    context = message.context;
+    totalDuration = message.totalDuration;
+    loadDuration = message.loadDuration;
+    promptEvalCount = message.promptEvalCount;
+    promptEvalDuration = message.promptEvalDuration;
+    evalCount = message.evalCount;
+    evalDuration = message.evalDuration;
+  }
 }
 
 enum OllamaMessageRole {

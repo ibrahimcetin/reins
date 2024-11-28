@@ -1,5 +1,7 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:http/http.dart' as http;
+import 'package:ollama_chat/Models/ollama_exception.dart';
 import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:ollama_chat/Models/ollama_model.dart';
 
@@ -53,8 +55,12 @@ class OllamaService {
     if (response.statusCode == 200) {
       final jsonBody = json.decode(response.body);
       return OllamaMessage.fromJson(jsonBody);
+    } else if (response.statusCode == 404) {
+      throw OllamaException("$model not found on the server.");
+    } else if (response.statusCode == 500) {
+      throw OllamaException("Internal server error.");
     } else {
-      throw Exception("Failed to generate message");
+      throw OllamaException("Something went wrong.");
     }
   }
 
@@ -80,8 +86,12 @@ class OllamaService {
       await for (final message in _processStream(response.stream)) {
         yield message;
       }
+    } else if (response.statusCode == 404) {
+      throw OllamaException("$model not found on the server.");
+    } else if (response.statusCode == 500) {
+      throw OllamaException("Internal server error.");
     } else {
-      throw Exception("Failed to generate message");
+      throw OllamaException("Something went wrong.");
     }
   }
 
@@ -116,8 +126,12 @@ class OllamaService {
     if (response.statusCode == 200) {
       final jsonBody = json.decode(response.body);
       return OllamaMessage.fromJson(jsonBody);
+    } else if (response.statusCode == 404) {
+      throw OllamaException("$model not found on the server.");
+    } else if (response.statusCode == 500) {
+      throw OllamaException("Internal server error.");
     } else {
-      throw Exception("Failed to chat");
+      throw OllamaException("Something went wrong.");
     }
   }
 
@@ -143,8 +157,12 @@ class OllamaService {
       await for (final message in _processStream(response.stream)) {
         yield message;
       }
+    } else if (response.statusCode == 404) {
+      throw OllamaException("$model not found on the server.");
+    } else if (response.statusCode == 500) {
+      throw OllamaException("Internal server error.");
     } else {
-      throw Exception("Failed to chat");
+      throw OllamaException("Something went wrong.");
     }
   }
 
@@ -185,8 +203,10 @@ class OllamaService {
       return List<OllamaModel>.from(
         jsonBody["models"].map((m) => OllamaModel.fromJson(m)),
       );
+    } else if (response.statusCode == 500) {
+      throw OllamaException("Internal server error.");
     } else {
-      throw Exception("Failed to list models");
+      throw OllamaException("Something went wrong.");
     }
   }
 }

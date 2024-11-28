@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:ollama_chat/Models/ollama_chat.dart';
+import 'package:ollama_chat/Models/ollama_exception.dart';
 import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:ollama_chat/Models/ollama_model.dart';
 import 'package:ollama_chat/Services/database_service.dart';
@@ -31,6 +34,15 @@ class ChatProvider extends ChangeNotifier {
       currentChat != null &&
       _activeChatStreams.containsKey(currentChat?.id) &&
       _activeChatStreams[currentChat?.id] == null;
+
+  /// A map of chat errors, indexed by chat ID.
+  final Map<String, OllamaException> _chatErrors = {};
+
+  /// The current chat error. This is the error associated with the current chat.
+  /// If there is no error, this will be `null`.
+  ///
+  /// This is used to display error messages in the chat view.
+  OllamaException? get currentChatError => _chatErrors[currentChat?.id];
 
   ChatProvider() {
     _initialize();
@@ -134,21 +146,44 @@ class ChatProvider extends ChangeNotifier {
     // Save the user prompt to the database
     await _databaseService.addMessage(prompt, chat: associatedChat);
 
+    await _initializeChatStream(associatedChat);
+  }
+
+  Future<void> _initializeChatStream(OllamaChat associatedChat) async {
+    // Clear the error message associated with the chat
+    if (_chatErrors.remove(associatedChat.id) != null) {
+      notifyListeners();
+      // Wait for a short time to show the user that the error message is cleared
+      await Future.delayed(Duration(milliseconds: 250));
+    }
+
     // Update the chat list to show the latest chat at the top
     _moveCurrentChatToTop();
 
     // Stream the Ollama message
-    OllamaMessage? ollamaMessage;
+    _activeChatStreams[associatedChat.id] = null;
+
+    // Notify the listeners to show the thinking indicator
+    notifyListeners();
 
     try {
-      _activeChatStreams[associatedChat.id] = null;
-      ollamaMessage = await _streamOllamaMessage(associatedChat);
-    } catch (_) {
-      // TODO: Handle the error, show an error occured
-    } finally {
-      _activeChatStreams.remove(associatedChat.id);
-      notifyListeners();
+      await _streamOllamaMessage(associatedChat);
+    } on OllamaException catch (error) {
+      _chatErrors[associatedChat.id] = error;
+    } on SocketException catch (_) {
+      _chatErrors[associatedChat.id] =
+          OllamaException("Network connection lost.");
+    } catch (error) {
+      _chatErrors[associatedChat.id] = OllamaException("Something went wrong.");
     }
+
+    // We get the Ollama message from the active chat streams to save it to the database.
+    // Because _streamOllamaMessage only returns if it is successed.
+    // _activeChatStreams holds the latest message.
+    final ollamaMessage = _activeChatStreams[associatedChat.id];
+
+    _activeChatStreams.remove(associatedChat.id);
+    notifyListeners();
 
     // Save the Ollama message to the database
     if (ollamaMessage != null) {
@@ -162,36 +197,57 @@ class ChatProvider extends ChangeNotifier {
       model: associatedChat.model,
     );
 
-    OllamaMessage? ollamaMessage;
+    OllamaMessage? streamingMessage;
+    OllamaMessage? receivedMessage;
 
-    await for (final message in stream) {
+    await for (receivedMessage in stream) {
       // If the chat id is not in the active chat streams, it means the stream
       // is cancelled by the user. So, we need to break the loop.
       if (_activeChatStreams.containsKey(associatedChat.id) == false) {
         break;
       }
 
-      if (ollamaMessage == null) {
+      if (streamingMessage == null) {
         // Keep the first received message to add the content of the following messages
-        ollamaMessage = message;
+        streamingMessage = receivedMessage;
 
         // Update the active chat streams key with the ollama message
         // to be able to show the stream in the chat.
         // We also use this when the user switches between chats while streaming.
-        _activeChatStreams[associatedChat.id] = ollamaMessage;
+        _activeChatStreams[associatedChat.id] = streamingMessage;
 
         // Be sure the user is in the same chat while the initial message is received
         if (associatedChat.id == currentChat?.id) {
-          _messages.add(ollamaMessage);
+          _messages.add(streamingMessage);
         }
       } else {
-        ollamaMessage.content += message.content;
+        streamingMessage.content += receivedMessage.content;
       }
 
       notifyListeners();
     }
 
-    return ollamaMessage;
+    if (receivedMessage != null) {
+      // Update the metadata of the streaming message with the last received message
+      streamingMessage?.updateMetadataFrom(receivedMessage);
+    }
+
+    return streamingMessage;
+  }
+
+  Future<void> retryLastPrompt() async {
+    if (_messages.isEmpty) return;
+
+    final associatedChat = currentChat!;
+
+    if (_messages.last.role == OllamaMessageRole.assistant) {
+      final message = _messages.removeLast();
+      await _databaseService.deleteMessage(message.id);
+    }
+
+    await _initializeChatStream(associatedChat);
+
+    notifyListeners();
   }
 
   void cancelCurrentStreaming() {
@@ -205,8 +261,6 @@ class ChatProvider extends ChangeNotifier {
     final chat = _chats.removeAt(_currentChatIndex);
     _chats.insert(0, chat);
     _currentChatIndex = 0;
-
-    notifyListeners();
   }
 
   Future<List<OllamaModel>> fetchAvailableModels() async {

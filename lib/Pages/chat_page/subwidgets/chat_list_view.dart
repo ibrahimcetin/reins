@@ -6,11 +6,13 @@ import 'package:shimmer/shimmer.dart';
 class ChatListView extends StatefulWidget {
   final List<OllamaMessage> messages;
   final bool isAwaitingReply;
+  final Widget? error;
 
   const ChatListView({
     super.key,
     required this.messages,
     required this.isAwaitingReply,
+    this.error,
   });
 
   @override
@@ -60,6 +62,10 @@ class _ChatListViewState extends State<ChatListView> {
           controller: _scrollController,
           reverse: true,
           slivers: [
+            if (widget.error != null)
+              SliverToBoxAdapter(
+                child: widget.error,
+              ),
             if (widget.isAwaitingReply)
               SliverToBoxAdapter(
                 child: Shimmer.fromColors(

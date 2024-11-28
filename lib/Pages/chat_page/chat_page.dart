@@ -69,6 +69,12 @@ class _ChatPageState extends State<ChatPage> {
                       key: ValueKey(chatProvider.currentChat?.id),
                       messages: chatProvider.messages,
                       isAwaitingReply: chatProvider.isCurrentChatThinking,
+                      error: chatProvider.currentChatError != null
+                          ? ChatError(
+                              message: chatProvider.currentChatError!.message,
+                              onRetry: () => chatProvider.retryLastPrompt(),
+                            )
+                          : null,
                     ),
             ),
             // TODO: Wrap with ConstrainedBox to limit the height
