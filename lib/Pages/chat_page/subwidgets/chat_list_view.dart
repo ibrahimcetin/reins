@@ -40,10 +40,15 @@ class _ChatListViewState extends State<ChatListView> {
     });
 
     _scrollController.addListener(() {
-      _writeScrollOffset();
-
       _updateScrollToBottomButtonVisibility();
     });
+  }
+
+  @override
+  void deactivate() {
+    _writeScrollOffset();
+
+    super.deactivate();
   }
 
   @override
@@ -135,6 +140,8 @@ class _ChatListViewState extends State<ChatListView> {
   }
 
   void _writeScrollOffset() {
+    if (widget.key == null) return;
+
     _scrollOffsetBucket.writeState(
       context,
       _scrollController.offset,
