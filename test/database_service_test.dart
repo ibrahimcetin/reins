@@ -126,6 +126,21 @@ void main() async {
     expect(retrievedMessage.role, message.role);
   });
 
+  test('Test database update message', () async {
+    final chat = await service.createChat(model);
+
+    final message = OllamaMessage("Message", role: OllamaMessageRole.user);
+    await service.addMessage(message, chat: chat);
+
+    await service.updateMessage(message, newContent: "Updated message");
+    final retrievedMessage = (await service.getMessage(message.id))!;
+
+    expect(retrievedMessage, isNotNull);
+    expect(retrievedMessage.id, message.id);
+    expect(retrievedMessage.content, 'Updated message');
+    expect(retrievedMessage.role, message.role);
+  });
+
   test('Test database delete message', () async {
     final chat = await service.createChat(model);
     final message = OllamaMessage(
@@ -154,5 +169,19 @@ void main() async {
     expect(messages.first.id, message.id);
     expect(messages.first.content, message.content);
     expect(messages.first.role, message.role);
+  });
+
+  test("Test database delete messages", () async {
+    final chat = await service.createChat(model);
+    final message = OllamaMessage(
+      "Hello, this is a test message.",
+      role: OllamaMessageRole.user,
+    );
+
+    await service.addMessage(message, chat: chat);
+    expect(await service.getMessage(message.id), isNotNull);
+
+    await service.deleteMessages([message]);
+    expect(await service.getMessage(message.id), isNull);
   });
 }

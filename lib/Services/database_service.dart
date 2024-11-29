@@ -142,6 +142,20 @@ ORDER BY last_update DESC;''');
     }
   }
 
+  Future<void> updateMessage(
+    OllamaMessage message, {
+    String? newContent,
+  }) async {
+    await _db.update(
+      'messages',
+      {
+        'content': newContent ?? message.content,
+      },
+      where: 'message_id = ?',
+      whereArgs: [message.id],
+    );
+  }
+
   Future<void> deleteMessage(String messageId) async {
     await _db.delete(
       'messages',
@@ -160,6 +174,18 @@ ORDER BY last_update DESC;''');
 
     return List.generate(maps.length, (i) {
       return OllamaMessage.fromDatabase(maps[i]);
+    });
+  }
+
+  Future<void> deleteMessages(List<OllamaMessage> messages) async {
+    await _db.transaction((txn) async {
+      for (final message in messages) {
+        await txn.delete(
+          'messages',
+          where: 'message_id = ?',
+          whereArgs: [message.id],
+        );
+      }
     });
   }
 }
