@@ -150,6 +150,9 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> _initializeChatStream(OllamaChat associatedChat) async {
+    // Clear the active chat streams to cancel the previous stream
+    _activeChatStreams.remove(associatedChat.id);
+
     // Clear the error message associated with the chat
     if (_chatErrors.remove(associatedChat.id) != null) {
       notifyListeners();
