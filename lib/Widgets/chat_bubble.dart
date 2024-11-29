@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 import 'package:ollama_chat/Utils/border_painter.dart';
 import 'package:ollama_chat/Widgets/chat_bubble_bottom_sheet.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:markdown/markdown.dart' as md;
 
 class ChatBubble extends StatelessWidget {
   final OllamaMessage message;
@@ -182,12 +185,19 @@ class _ChatBubbleBody extends StatelessWidget {
                 : Theme.of(context).colorScheme.surface,
             borderRadius: BorderRadius.circular(10.0),
           ),
-          child: Text(
-            message.content,
-            style: TextStyle(
-              color: isSentFromUser
-                  ? Theme.of(context).colorScheme.onPrimaryContainer
-                  : Theme.of(context).colorScheme.onSurface,
+          child: MarkdownBody(
+            data: message.content,
+            softLineBreak: true,
+            styleSheet: MarkdownStyleSheet(
+              textScaler: TextScaler.linear(1.18),
+              code: GoogleFonts.sourceCodePro(),
+            ),
+            extensionSet: md.ExtensionSet(
+              md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+              <md.InlineSyntax>[
+                md.EmojiSyntax(),
+                ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
+              ],
             ),
           ),
         ),

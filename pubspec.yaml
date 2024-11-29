@@ -63,6 +63,10 @@ dependencies:
   # Responsive framework
   responsive_framework: ^1.5.1
 
+  # Markdown rendering
+  flutter_markdown: ^0.7.4+3
+  markdown: any
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
