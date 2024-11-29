@@ -48,34 +48,7 @@ class _ChatPageState extends State<ChatPage> {
             if (!ResponsiveBreakpoints.of(context).isMobile)
               ChatAppBar(title: 'Ollama Chat'),
             Expanded(
-              child: chatProvider.messages.isEmpty
-                  ? ChatEmpty(
-                      child: (Hive.box('settings').get('serverAddress') != null)
-                          ? ChatSelectModelButton(
-                              currentModelName: _selectedModel?.name,
-                              onPressed: () =>
-                                  _showModelSelectionBottomSheet(context),
-                            )
-                          : ChatWelcome(
-                              showingState: _crossFadeState,
-                              onFirstChildFinished: () => setState(() =>
-                                  _crossFadeState = CrossFadeState.showSecond),
-                              secondChildScale: _scale,
-                              onSecondChildScaleEnd: () =>
-                                  setState(() => _scale = 1.0),
-                            ),
-                    )
-                  : ChatListView(
-                      key: ValueKey(chatProvider.currentChat?.id),
-                      messages: chatProvider.messages,
-                      isAwaitingReply: chatProvider.isCurrentChatThinking,
-                      error: chatProvider.currentChatError != null
-                          ? ChatError(
-                              message: chatProvider.currentChatError!.message,
-                              onRetry: () => chatProvider.retryLastPrompt(),
-                            )
-                          : null,
-                    ),
+              child: _buildChatBody(chatProvider),
             ),
             // TODO: Wrap with ConstrainedBox to limit the height
             Padding(
@@ -91,6 +64,47 @@ class _ChatPageState extends State<ChatPage> {
         );
       },
     );
+  }
+
+  Widget _buildChatBody(ChatProvider chatProvider) {
+    if (chatProvider.messages.isEmpty) {
+      if (chatProvider.currentChat == null) {
+        if (Hive.box('settings').get('serverAddress') == null) {
+          return ChatEmpty(
+            child: ChatWelcome(
+              showingState: _crossFadeState,
+              onFirstChildFinished: () =>
+                  setState(() => _crossFadeState = CrossFadeState.showSecond),
+              secondChildScale: _scale,
+              onSecondChildScaleEnd: () => setState(() => _scale = 1.0),
+            ),
+          );
+        } else {
+          return ChatEmpty(
+            child: ChatSelectModelButton(
+              currentModelName: _selectedModel?.name,
+              onPressed: () => _showModelSelectionBottomSheet(context),
+            ),
+          );
+        }
+      } else {
+        return ChatEmpty(
+          child: Text('No messages yet!'),
+        );
+      }
+    } else {
+      return ChatListView(
+        key: ValueKey(chatProvider.currentChat?.id),
+        messages: chatProvider.messages,
+        isAwaitingReply: chatProvider.isCurrentChatThinking,
+        error: chatProvider.currentChatError != null
+            ? ChatError(
+                message: chatProvider.currentChatError!.message,
+                onRetry: () => chatProvider.retryLastPrompt(),
+              )
+            : null,
+      );
+    }
   }
 
   Widget? _buildTextFieldSuffixIcon(ChatProvider chatProvider) {
