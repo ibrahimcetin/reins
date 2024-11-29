@@ -123,7 +123,7 @@ ORDER BY last_update DESC;''');
       'message_id': message.id,
       'chat_id': chat.id,
       'content': message.content,
-      'role': message.role.toString().split('.').last,
+      'role': message.role.toCaseString(),
       'timestamp': message.createdAt.millisecondsSinceEpoch,
     });
   }

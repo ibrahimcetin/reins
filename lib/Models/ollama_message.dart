@@ -54,8 +54,7 @@ class OllamaMessage {
             ? json["message"]["content"] // For chat messages
             : json["response"], // For generated messages
         role: json["message"] != null
-            ? OllamaMessageRole.fromString(
-                json["message"]["role"]) // For chat messages
+            ? OllamaMessageRole.fromString(json["message"]["role"])
             : OllamaMessageRole.assistant, // For generated messages (default)
         images: json["message"]?["images"] != null
             ? List<dynamic>.from(json["message"]["images"])
@@ -108,7 +107,7 @@ class OllamaMessage {
       };
 
   Map<String, dynamic> toChatJson() => {
-        "role": role.toString().split('.').last,
+        "role": role.toCaseString(),
         "content": content,
         "images": images,
       };
@@ -142,5 +141,9 @@ enum OllamaMessageRole {
       default:
         throw ArgumentError('Unknown role: $role');
     }
+  }
+
+  String toCaseString() {
+    return toString().split('.').last;
   }
 }
