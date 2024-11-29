@@ -33,13 +33,20 @@ class _ChatListViewState extends State<ChatListView> {
       initialScrollOffset: _readScrollOffset(),
     );
 
-    // We need to wait to _scrollController to be attached to the list view
-    // to be able to get its position and update the visibility of the scroll to bottom button.
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    _scrollController.addListener(() {
       _updateScrollToBottomButtonVisibility();
     });
+  }
 
-    _scrollController.addListener(() {
+  @override
+  void didUpdateWidget(covariant ChatListView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+
+    // Add to the post frame callback to ensure that the scroll offset is
+    // read after the widget has been updated.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Update the button visibility when the user switches chats,
+      // regenerates a message or delete a message.
       _updateScrollToBottomButtonVisibility();
     });
   }

@@ -235,6 +235,26 @@ class ChatProvider extends ChangeNotifier {
     return streamingMessage;
   }
 
+  Future<void> regenerateMessage(OllamaMessage message) async {
+    final associatedChat = currentChat!;
+
+    final messageIndex = _messages.indexOf(message);
+    if (messageIndex == -1) return;
+
+    final includeMessage = (message.role == OllamaMessageRole.user ? 1 : 0);
+
+    final stayedMessages = _messages.sublist(0, messageIndex + includeMessage);
+    final removeMessages = _messages.sublist(messageIndex + includeMessage);
+
+    _messages = stayedMessages;
+    notifyListeners();
+
+    await _databaseService.deleteMessages(removeMessages);
+
+    // Reinitialize the chat stream
+    await _initializeChatStream(associatedChat);
+  }
+
   Future<void> retryLastPrompt() async {
     if (_messages.isEmpty) return;
 
@@ -248,6 +268,25 @@ class ChatProvider extends ChangeNotifier {
     await _initializeChatStream(associatedChat);
 
     notifyListeners();
+  }
+
+  Future<void> updateMessage(
+    OllamaMessage message, {
+    String? newContent,
+  }) async {
+    message.content = newContent ?? message.content;
+    notifyListeners();
+
+    await _databaseService.updateMessage(message, newContent: newContent);
+  }
+
+  Future<void> deleteMessage(OllamaMessage message) async {
+    await _databaseService.deleteMessage(message.id);
+
+    // If the message is in the chat, remove it from the chat
+    if (_messages.remove(message)) {
+      notifyListeners();
+    }
   }
 
   void cancelCurrentStreaming() {
