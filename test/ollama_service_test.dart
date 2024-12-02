@@ -1,3 +1,4 @@
+import 'package:ollama_chat/Models/ollama_chat.dart';
 import 'package:ollama_chat/Services/ollama_service.dart';
 import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:test/test.dart';
@@ -6,25 +7,26 @@ void main() {
   final service = OllamaService();
   const model = "llama3.2:latest";
 
+  final chat = OllamaChat(
+    model: model,
+    title: "Test chat",
+    systemPrompt:
+        "You are a pirate who don't talk too much, acting as an assistant.",
+  );
+  chat.options.temperature = 0;
+  chat.options.seed = 1453;
+
   const ollamaChatResponseText =
       '''*nods* Alright then...\n\n```dart\nprint('Hello, world!');\n```\n\n*hands over a piece of parchment with the code on it*''';
 
   test("Test Ollama generate endpoint (non-stream)", () async {
-    final message = await service.generate(
-      "Hello",
-      model: model,
-      options: {"temperature": 0, "seed": 1453},
-    );
+    final message = await service.generate("Hello", chat: chat);
 
     expect(message.content, "How can I assist you today?");
   });
 
   test("Test Ollama generate endpoint (stream)", () async {
-    final stream = service.generateStream(
-      "Hello",
-      model: model,
-      options: {"temperature": 0, "seed": 1453},
-    );
+    final stream = service.generateStream("Hello", chat: chat);
 
     var ollamaMessage = "";
     await for (final message in stream) {
@@ -38,10 +40,6 @@ void main() {
     final message = await service.chat(
       [
         OllamaMessage(
-          "You are a pirate who don't talk too much, acting as an assistant.",
-          role: OllamaMessageRole.system,
-        ),
-        OllamaMessage(
           "Hello!",
           role: OllamaMessageRole.user,
         ),
@@ -54,8 +52,7 @@ void main() {
           role: OllamaMessageRole.user,
         ),
       ],
-      model: model,
-      options: {"temperature": 0, "seed": 1453},
+      chat: chat,
     );
 
     expect(message.content, ollamaChatResponseText);
@@ -65,10 +62,6 @@ void main() {
     final stream = service.chatStream(
       [
         OllamaMessage(
-          "You are a pirate who don't talk too much, acting as an assistant.",
-          role: OllamaMessageRole.system,
-        ),
-        OllamaMessage(
           "Hello!",
           role: OllamaMessageRole.user,
         ),
@@ -81,8 +74,7 @@ void main() {
           role: OllamaMessageRole.user,
         ),
       ],
-      model: model,
-      options: {"temperature": 0, "seed": 1453},
+      chat: chat,
     );
 
     List<String> ollamaMessages = [];

@@ -1,3 +1,4 @@
+import 'package:ollama_chat/Models/ollama_chat.dart';
 import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:ollama_chat/Services/database_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -71,6 +72,37 @@ void main() async {
     expect(updatedChat.options, isNull);
 
     await service.updateChat(updatedChat, newSystemPrompt: null);
+  });
+
+  test('Test database update chat options', () async {
+    final chat = await service.createChat(model);
+
+    await service.updateChat(
+      chat,
+      newOptions: OllamaChatOptions(
+        mirostat: 1,
+        mirostatEta: 0.1,
+        mirostatTau: 0.1,
+        contextSize: 1,
+        repeatLastN: 1,
+        repeatPenalty: 0.1,
+        temperature: 0.1,
+        seed: 1,
+      ),
+    );
+
+    final updatedChat = (await service.getChat(chat.id))!;
+    expect(updatedChat.model, model);
+    expect(updatedChat.title, "New Chat");
+    expect(updatedChat.systemPrompt, isNull);
+    expect(updatedChat.options.mirostat, 1);
+    expect(updatedChat.options.mirostatEta, 0.1);
+    expect(updatedChat.options.mirostatTau, 0.1);
+    expect(updatedChat.options.contextSize, 1);
+    expect(updatedChat.options.repeatLastN, 1);
+    expect(updatedChat.options.repeatPenalty, 0.1);
+    expect(updatedChat.options.temperature, 0.1);
+    expect(updatedChat.options.seed, 1);
   });
 
   test("Test database delete chat", () async {

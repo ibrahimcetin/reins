@@ -43,7 +43,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         IconButton(
           icon: const Icon(Icons.tune),
           onPressed: () {
-            _handleCustomizeButton(context);
+            _handleConfigureButton(context);
           },
         ),
       ],
@@ -51,7 +51,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 
-  void _handleModelSelectionButton(BuildContext context) async {
+  Future<void> _handleModelSelectionButton(BuildContext context) async {
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
 
     final selectedModelName = await showSelectionBottomSheet(
@@ -69,16 +69,25 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     await chatProvider.updateCurrentChat(newModel: selectedModelName);
   }
 
-  void _handleCustomizeButton(BuildContext context) {
-    showModalBottomSheet(
+  Future<void> _handleConfigureButton(BuildContext context) async {
+    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+
+    final arguments = chatProvider.currentChatConfiguration;
+
+    await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
         return Padding(
           padding: MediaQuery.of(context).viewInsets,
-          child: const ChatConfigureBottomSheet(),
+          child: ChatConfigureBottomSheet(arguments: arguments),
         );
       },
+    );
+
+    await chatProvider.updateCurrentChat(
+      newSystemPrompt: arguments.systemPrompt,
+      newOptions: arguments.chatOptions,
     );
   }
 

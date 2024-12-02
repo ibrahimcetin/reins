@@ -1,29 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:ollama_chat/Models/chat_configure_arguments.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 import 'package:ollama_chat/Widgets/ollama_bottom_sheet_header.dart';
 import 'package:provider/provider.dart';
 
-class ChatConfigureBottomSheet extends StatefulWidget {
-  const ChatConfigureBottomSheet({super.key});
+class ChatConfigureBottomSheet extends StatelessWidget {
+  final ChatConfigureArguments arguments;
 
-  @override
-  State<ChatConfigureBottomSheet> createState() =>
-      _ChatConfigureBottomSheetState();
-}
-
-class _ChatConfigureBottomSheetState extends State<ChatConfigureBottomSheet> {
-  final _scrollController = ScrollController();
-
-  double _temperature = 0.8;
-
-  bool _showAdvancedConfigurations = false;
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-
-    super.dispose();
-  }
+  const ChatConfigureBottomSheet({super.key, required this.arguments});
 
   @override
   Widget build(BuildContext context) {
@@ -40,113 +24,150 @@ class _ChatConfigureBottomSheetState extends State<ChatConfigureBottomSheet> {
             OllamaBottomSheetHeader(title: 'Configure The Chat'),
             Divider(),
             Expanded(
-              child: ListView(
-                controller: _scrollController,
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(vertical: 16.0),
-                keyboardDismissBehavior:
-                    ScrollViewKeyboardDismissBehavior.onDrag,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      _RenameButton(),
-                      _BottomSheetButton(
-                        icon: const Icon(Icons.save_as_outlined),
-                        title: 'Save as a new model',
-                        onPressed: () {},
-                      ),
-                      _DeleteButton(),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _BottomSheetTextField(
-                    labelText: 'System Prompt',
-                    infoText:
-                        'The system prompt is the message that the AI will see before generating a response. '
-                        'It is used to provide context to the AI. '
-                        'For example, if you are asking the AI to generate a response to a question, '
-                        'you can provide the question as the system prompt.',
-                  ),
-                  const SizedBox(height: 16),
-                  Divider(),
-                  const SizedBox(height: 16),
-                  _BottomSheetTextField(
-                    labelText: 'Temperature',
-                    hintText: 'Enter a value between 0 and 1',
-                    errorText: (_temperature < 0.0 || _temperature > 1.0)
-                        ? 'Temperature must be between 0 and 1'
-                        : null,
-                    infoText: 'The temperature of the model. '
-                        'Increasing the temperature will make the model answer more creatively.',
-                    keyboardType:
-                        TextInputType.numberWithOptions(decimal: true),
-                    onChanged: (value) {
-                      setState(() {
-                        value = value.replaceAll(',', '.');
-                        _temperature = double.tryParse(value) ?? 0.8;
-                      });
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  _BottomSheetTextField(
-                    labelText: 'Seed',
-                    infoText:
-                        'Sets the random number seed to use for generation. '
-                        'Setting this to a specific number will make the model generate the same text for the same prompt.',
-                    keyboardType: TextInputType.number,
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      setState(() {
-                        _showAdvancedConfigurations =
-                            !_showAdvancedConfigurations;
-
-                        _scrollController.animateTo(
-                          _showAdvancedConfigurations
-                              ? _scrollController.position.pixels + 100
-                              : _scrollController.position.minScrollExtent,
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.ease,
-                        );
-                      });
-                    },
-                    child: Text(
-                      _showAdvancedConfigurations
-                          ? 'Hide Advanced Configurations'
-                          : 'Show Advanced Configurations',
-                    ),
-                  ),
-                  if (_showAdvancedConfigurations) ...[
-                    _BottomSheetTextField(
-                      labelText: 'Number of Predictions',
-                      infoText:
-                          'Maximum number of tokens to predict when generating text.',
-                      keyboardType: TextInputType.number,
-                    ),
-                    const SizedBox(height: 16),
-                    _BottomSheetTextField(
-                      labelText: 'Repeat Penalty',
-                      infoText: 'Sets how strongly to penalize repetitions.',
-                      keyboardType:
-                          TextInputType.numberWithOptions(decimal: true),
-                    ),
-                    const SizedBox(height: 16),
-                    TextButton.icon(
-                      onPressed: () {},
-                      icon: const Icon(Icons.settings_backup_restore_rounded),
-                      label: const Text('Reset to Defaults'),
-                      style: TextButton.styleFrom(
-                        foregroundColor: Colors.red,
-                      ),
-                    ),
-                  ],
-                ],
-              ),
+              child: _ChatConfigureBottomSheetContent(arguments: arguments),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _ChatConfigureBottomSheetContent extends StatefulWidget {
+  final ChatConfigureArguments arguments;
+
+  const _ChatConfigureBottomSheetContent({
+    super.key,
+    required this.arguments,
+  });
+
+  @override
+  State<_ChatConfigureBottomSheetContent> createState() =>
+      __ChatConfigureBottomSheetContentState();
+}
+
+class __ChatConfigureBottomSheetContentState
+    extends State<_ChatConfigureBottomSheetContent> {
+  final _scrollController = ScrollController();
+  bool _showAdvancedConfigurations = false;
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListView(
+      controller: _scrollController,
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.symmetric(vertical: 16.0),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      children: [
+        // The buttons to rename, save as a new model, and delete the chat
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _RenameButton(),
+            _BottomSheetButton(
+              icon: const Icon(Icons.save_as_outlined),
+              title: 'Save as a new model',
+              onPressed: () {},
+            ),
+            _DeleteButton(),
+          ],
+        ),
+        const SizedBox(height: 16),
+        _BottomSheetTextField(
+          initialValue: widget.arguments.systemPrompt,
+          labelText: 'System Prompt',
+          infoText:
+              'The system prompt is the message that the AI will see before generating a response. '
+              'It is used to provide context to the AI.',
+          onChanged: (value) => widget.arguments.systemPrompt = value,
+        ),
+        const SizedBox(height: 16),
+        Divider(),
+        const SizedBox(height: 16),
+        _BottomSheetTextField(
+          initialValue: widget.arguments.chatOptions.temperature.toString(),
+          labelText: 'Temperature',
+          hintText: 'Enter a value between 0 and 1',
+          errorText: 'Temperature must be between 0 and 1',
+          errorCondition: () =>
+              widget.arguments.chatOptions.temperature < 0 ||
+              widget.arguments.chatOptions.temperature > 1,
+          infoText: 'The temperature of the model. '
+              'Increasing the temperature will make the model answer more creatively.',
+          keyboardType: TextInputType.numberWithOptions(decimal: true),
+          onChanged: (value) {
+            setState(() {
+              value = value.replaceAll(',', '.');
+              widget.arguments.chatOptions.temperature =
+                  double.tryParse(value) ?? 0.8;
+            });
+          },
+        ),
+        const SizedBox(height: 16),
+        _BottomSheetTextField(
+          initialValue: widget.arguments.chatOptions.seed.toString(),
+          labelText: 'Seed',
+          hintText: 'Enter a number',
+          errorText: 'Seed must be a number',
+          errorCondition: () => widget.arguments.chatOptions.seed.isNaN,
+          infoText: 'Sets the random number seed to use for generation. '
+              'Setting this to a specific number will make the model generate the same text for the same prompt.',
+          keyboardType: TextInputType.number,
+          onChanged: (v) =>
+              widget.arguments.chatOptions.seed = int.tryParse(v) ?? 0,
+        ),
+        // The advanced configurations section
+        TextButton(
+          onPressed: () {
+            setState(() {
+              _showAdvancedConfigurations = !_showAdvancedConfigurations;
+
+              _scrollController.animateTo(
+                _showAdvancedConfigurations
+                    ? _scrollController.position.pixels + 100
+                    : _scrollController.position.minScrollExtent,
+                duration: const Duration(milliseconds: 500),
+                curve: Curves.ease,
+              );
+            });
+          },
+          child: Text(
+            _showAdvancedConfigurations
+                ? 'Hide Advanced Configurations'
+                : 'Show Advanced Configurations',
+          ),
+        ),
+        if (_showAdvancedConfigurations) ...[
+          _BottomSheetTextField(
+            labelText: 'Number of Predictions',
+            infoText:
+                'Maximum number of tokens to predict when generating text.',
+            keyboardType: TextInputType.number,
+          ),
+          const SizedBox(height: 16),
+          _BottomSheetTextField(
+            labelText: 'Repeat Penalty',
+            infoText: 'Sets how strongly to penalize repetitions.',
+            keyboardType: TextInputType.numberWithOptions(decimal: true),
+          ),
+          const SizedBox(height: 16),
+          TextButton.icon(
+            onPressed: () {},
+            icon: const Icon(Icons.settings_backup_restore_rounded),
+            label: const Text('Reset to Defaults'),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+            ),
+          ),
+        ],
+      ],
     );
   }
 }
@@ -308,9 +329,13 @@ class _BottomSheetButton extends StatelessWidget {
 }
 
 class _BottomSheetTextField extends StatelessWidget {
+  final String? initialValue;
+
   final String labelText;
   final String? hintText;
+
   final String? errorText;
+  final bool Function()? errorCondition;
 
   final String infoText;
 
@@ -320,9 +345,11 @@ class _BottomSheetTextField extends StatelessWidget {
 
   const _BottomSheetTextField({
     super.key,
+    this.initialValue,
     required this.labelText,
     this.hintText,
     this.errorText,
+    this.errorCondition,
     required this.infoText,
     this.keyboardType = TextInputType.text,
     this.onChanged,
@@ -330,11 +357,16 @@ class _BottomSheetTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    return TextFormField(
+      initialValue: initialValue,
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
-        errorText: errorText,
+        errorText: errorCondition != null
+            ? errorCondition!()
+                ? errorText
+                : null
+            : null,
         border: OutlineInputBorder(),
         suffixIcon: IconButton(
           onPressed: () {

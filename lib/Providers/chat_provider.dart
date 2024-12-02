@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:ollama_chat/Models/chat_configure_arguments.dart';
 import 'package:ollama_chat/Models/ollama_chat.dart';
 import 'package:ollama_chat/Models/ollama_exception.dart';
 import 'package:ollama_chat/Models/ollama_message.dart';
@@ -43,6 +44,21 @@ class ChatProvider extends ChangeNotifier {
   ///
   /// This is used to display error messages in the chat view.
   OllamaException? get currentChatError => _chatErrors[currentChat?.id];
+
+  /// The current chat configuration.
+  ChatConfigureArguments get currentChatConfiguration {
+    if (currentChat == null) {
+      return _emptyChatConfiguration ?? ChatConfigureArguments.defaultArguments;
+    } else {
+      return ChatConfigureArguments(
+        systemPrompt: currentChat!.systemPrompt,
+        chatOptions: currentChat!.options,
+      );
+    }
+  }
+
+  /// The chat configuration for the empty chat.
+  ChatConfigureArguments? _emptyChatConfiguration;
 
   ChatProvider() {
     _initialize();
@@ -97,26 +113,43 @@ class ChatProvider extends ChangeNotifier {
     _chats.insert(0, chat);
     _currentChatIndex = 0;
 
+    if (_emptyChatConfiguration != null) {
+      await updateCurrentChat(
+        newSystemPrompt: _emptyChatConfiguration!.systemPrompt,
+        newOptions: _emptyChatConfiguration!.chatOptions,
+      );
+
+      _emptyChatConfiguration = null;
+    }
+
     notifyListeners();
   }
 
   Future<void> updateCurrentChat({
     String? newModel,
     String? newTitle,
-    String? newOptions,
+    String? newSystemPrompt,
+    OllamaChatOptions? newOptions,
   }) async {
     final chat = currentChat;
-    if (chat == null) return;
 
-    await _databaseService.updateChat(
-      chat,
-      newModel: newModel,
-      newTitle: newTitle,
-      newOptions: newOptions,
-    );
+    if (chat == null) {
+      _emptyChatConfiguration = ChatConfigureArguments(
+        systemPrompt: newSystemPrompt,
+        chatOptions: newOptions ?? OllamaChatOptions(),
+      );
+    } else {
+      await _databaseService.updateChat(
+        chat,
+        newModel: newModel,
+        newTitle: newTitle,
+        newSystemPrompt: newSystemPrompt,
+        newOptions: newOptions,
+      );
 
-    _chats[_currentChatIndex] = (await _databaseService.getChat(chat.id))!;
-    notifyListeners();
+      _chats[_currentChatIndex] = (await _databaseService.getChat(chat.id))!;
+      notifyListeners();
+    }
   }
 
   Future<void> deleteCurrentChat() async {
@@ -195,10 +228,7 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<OllamaMessage?> _streamOllamaMessage(OllamaChat associatedChat) async {
-    final stream = _ollamaService.chatStream(
-      _messages,
-      model: associatedChat.model,
-    );
+    final stream = _ollamaService.chatStream(_messages, chat: associatedChat);
 
     OllamaMessage? streamingMessage;
     OllamaMessage? receivedMessage;

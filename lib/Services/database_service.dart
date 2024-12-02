@@ -69,7 +69,7 @@ FOREIGN KEY (chat_id) REFERENCES chats(chat_id) ON DELETE CASCADE
     String? newModel,
     String? newTitle,
     String? newSystemPrompt,
-    String? newOptions,
+    OllamaChatOptions? newOptions,
   }) async {
     await _db.update(
       'chats',
@@ -77,7 +77,7 @@ FOREIGN KEY (chat_id) REFERENCES chats(chat_id) ON DELETE CASCADE
         'model': newModel ?? chat.model,
         'chat_title': newTitle ?? chat.title,
         'system_prompt': newSystemPrompt ?? chat.systemPrompt,
-        'options': newOptions ?? chat.options,
+        'options': newOptions?.toJson() ?? chat.options.toJson(),
       },
       where: 'chat_id = ?',
       whereArgs: [chat.id],

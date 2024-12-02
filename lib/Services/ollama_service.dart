@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:ollama_chat/Models/ollama_chat.dart';
 import 'package:ollama_chat/Models/ollama_exception.dart';
 import 'package:ollama_chat/Models/ollama_message.dart';
 import 'package:ollama_chat/Models/ollama_model.dart';
@@ -36,8 +37,7 @@ class OllamaService {
   /// Returns a [Future] that completes with an [OllamaMessage].
   Future<OllamaMessage> generate(
     String prompt, {
-    required String model,
-    Map<String, dynamic> options = const {},
+    required OllamaChat chat,
   }) async {
     final url = Uri.parse("$baseUrl/api/generate");
 
@@ -45,9 +45,9 @@ class OllamaService {
       url,
       headers: headers,
       body: json.encode({
-        "model": model,
+        "model": chat.model,
         "prompt": prompt,
-        "options": options,
+        "options": chat.options.toMap(),
         "stream": false,
       }),
     );
@@ -56,7 +56,7 @@ class OllamaService {
       final jsonBody = json.decode(response.body);
       return OllamaMessage.fromJson(jsonBody);
     } else if (response.statusCode == 404) {
-      throw OllamaException("$model not found on the server.");
+      throw OllamaException("${chat.model} not found on the server.");
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
@@ -66,17 +66,16 @@ class OllamaService {
 
   Stream<OllamaMessage> generateStream(
     String prompt, {
-    required String model,
-    Map<String, dynamic> options = const {},
+    required OllamaChat chat,
   }) async* {
     final url = Uri.parse("$baseUrl/api/generate");
 
     final request = http.Request("POST", url);
     request.headers.addAll(headers);
     request.body = json.encode({
-      "model": model,
+      "model": chat.model,
       "prompt": prompt,
-      "options": options,
+      "options": chat.options.toMap(),
       "stream": true,
     });
 
@@ -87,7 +86,7 @@ class OllamaService {
         yield message;
       }
     } else if (response.statusCode == 404) {
-      throw OllamaException("$model not found on the server.");
+      throw OllamaException("${chat.model} not found on the server.");
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
@@ -107,8 +106,7 @@ class OllamaService {
   /// the Ollama service.
   Future<OllamaMessage> chat(
     List<OllamaMessage> messages, {
-    required String model,
-    Map<String, dynamic> options = const {},
+    required OllamaChat chat,
   }) async {
     final url = Uri.parse("$baseUrl/api/chat");
 
@@ -116,9 +114,10 @@ class OllamaService {
       url,
       headers: headers,
       body: json.encode({
-        "model": model,
-        "messages": messages.map((m) => m.toChatJson()).toList(),
-        "options": options,
+        "model": chat.model,
+        "messages":
+            _serializeChatMessagesWithSystemPrompt(messages, chat.systemPrompt),
+        "options": chat.options.toMap(),
         "stream": false,
       }),
     );
@@ -127,7 +126,7 @@ class OllamaService {
       final jsonBody = json.decode(response.body);
       return OllamaMessage.fromJson(jsonBody);
     } else if (response.statusCode == 404) {
-      throw OllamaException("$model not found on the server.");
+      throw OllamaException("${chat.model} not found on the server.");
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
@@ -137,17 +136,17 @@ class OllamaService {
 
   Stream<OllamaMessage> chatStream(
     List<OllamaMessage> messages, {
-    required String model,
-    Map<String, dynamic> options = const {},
+    required OllamaChat chat,
   }) async* {
     final url = Uri.parse("$baseUrl/api/chat");
 
     final request = http.Request("POST", url);
     request.headers.addAll(headers);
     request.body = json.encode({
-      "model": model,
-      "messages": messages.map((m) => m.toChatJson()).toList(),
-      "options": options,
+      "model": chat.model,
+      "messages":
+          _serializeChatMessagesWithSystemPrompt(messages, chat.systemPrompt),
+      "options": chat.options.toMap(),
       "stream": true,
     });
 
@@ -158,7 +157,7 @@ class OllamaService {
         yield message;
       }
     } else if (response.statusCode == 404) {
-      throw OllamaException("$model not found on the server.");
+      throw OllamaException("${chat.model} not found on the server.");
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
@@ -193,6 +192,23 @@ class OllamaService {
     }
   }
 
+  // Serializes chat messages with a system prompt.
+  List<Map<String, dynamic>> _serializeChatMessagesWithSystemPrompt(
+    List<OllamaMessage> messages,
+    String? systemPrompt,
+  ) {
+    final jsonMessages = messages.map((m) => m.toChatJson()).toList();
+
+    if (systemPrompt != null && systemPrompt.isNotEmpty) {
+      final systemPromptMessage =
+          OllamaMessage(systemPrompt, role: OllamaMessageRole.system);
+      jsonMessages.insert(0, systemPromptMessage.toChatJson());
+    }
+
+    return jsonMessages;
+  }
+
+  /// Lists the available models on the Ollama service.
   Future<List<OllamaModel>> listModels() async {
     final url = Uri.parse("$baseUrl/api/tags");
 
