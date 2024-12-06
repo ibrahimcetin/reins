@@ -32,6 +32,8 @@ void main() async {
 }
 
 class OllamaChatApp extends StatelessWidget {
+  static const title = 'Ollama Chat';
+
   const OllamaChatApp({super.key});
 
   @override
@@ -40,13 +42,12 @@ class OllamaChatApp extends StatelessWidget {
       valueListenable: Hive.box('settings').listenable(keys: ['color']),
       builder: (context, box, _) {
         return MaterialApp(
-          title: 'Ollama Chat',
+          title: title,
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
-              seedColor: box.get('color', defaultValue: Colors.grey),
-              brightness:
-                  View.of(context).platformDispatcher.platformBrightness,
+              brightness: MediaQuery.platformBrightnessOf(context),
               dynamicSchemeVariant: DynamicSchemeVariant.neutral,
+              seedColor: box.get('color', defaultValue: Colors.grey),
             ),
             appBarTheme: const AppBarTheme(centerTitle: true),
             useMaterial3: true,
@@ -62,8 +63,7 @@ class OllamaChatApp extends StatelessWidget {
           onGenerateRoute: (settings) {
             if (settings.name == '/') {
               return MaterialPageRoute(
-                builder: (context) =>
-                    const OllamaChatMainPage(title: 'Ollama Chat'),
+                builder: (context) => const OllamaChatMainPage(title: title),
               );
             }
 
