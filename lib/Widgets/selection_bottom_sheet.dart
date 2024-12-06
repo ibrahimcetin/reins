@@ -120,36 +120,40 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
           style: TextStyle(color: Theme.of(context).colorScheme.error),
         ),
       );
-    }
-
-    if (_items.isEmpty && _state == OllamaRequestState.loading) {
+    } else if (_state == OllamaRequestState.loading && _items.isEmpty) {
       return const Center(
         child: CircularProgressIndicator(),
       );
-    }
+    } else if (_state == OllamaRequestState.success || _items.isNotEmpty) {
+      if (_items.isEmpty) {
+        return Center(child: Text('No items found.'));
+      }
 
-    return RefreshIndicator(
-      onRefresh: () async {
-        _fetchOperation = CancelableOperation.fromFuture(_fetchItems());
-      },
-      child: ListView.builder(
-        itemCount: _items.length,
-        itemBuilder: (context, index) {
-          final item = _items[index];
-
-          return RadioListTile(
-            title: Text(item.toString()),
-            value: item,
-            groupValue: _selectedItem,
-            onChanged: (value) {
-              setState(() {
-                _selectedItem = value;
-              });
-            },
-          );
+      return RefreshIndicator(
+        onRefresh: () async {
+          _fetchOperation = CancelableOperation.fromFuture(_fetchItems());
         },
-      ),
-    );
+        child: ListView.builder(
+          itemCount: _items.length,
+          itemBuilder: (context, index) {
+            final item = _items[index];
+
+            return RadioListTile(
+              title: Text(item.toString()),
+              value: item,
+              groupValue: _selectedItem,
+              onChanged: (value) {
+                setState(() {
+                  _selectedItem = value;
+                });
+              },
+            );
+          },
+        ),
+      );
+    } else {
+      return const SizedBox.shrink();
+    }
   }
 }
 
