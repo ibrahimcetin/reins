@@ -3,6 +3,8 @@ import 'package:ollama_chat/Models/settings_route_arguments.dart';
 import 'package:ollama_chat/Pages/main_page.dart';
 import 'package:ollama_chat/Pages/settings_page/settings_page.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
+import 'package:ollama_chat/Services/database_service.dart';
+import 'package:ollama_chat/Services/ollama_service.dart';
 import 'package:ollama_chat/Utils/material_color_adapter.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -24,8 +26,17 @@ void main() async {
   await Hive.openBox('settings');
 
   runApp(
-    ChangeNotifierProvider(
-      create: (_) => ChatProvider(),
+    MultiProvider(
+      providers: [
+        Provider(create: (_) => OllamaService()),
+        Provider(create: (_) => DatabaseService()),
+        ChangeNotifierProvider(
+          create: (context) => ChatProvider(
+            ollamaService: context.read(),
+            databaseService: context.read(),
+          ),
+        ),
+      ],
       child: const OllamaChatApp(),
     ),
   );

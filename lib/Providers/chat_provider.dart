@@ -11,11 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 
 class ChatProvider extends ChangeNotifier {
+  final OllamaService _ollamaService;
+  final DatabaseService _databaseService;
+
   List<OllamaMessage> _messages = [];
   List<OllamaMessage> get messages => _messages;
-
-  final _ollamaService = OllamaService();
-  final _databaseService = DatabaseService();
 
   List<OllamaChat> _chats = [];
   List<OllamaChat> get chats => _chats;
@@ -60,7 +60,11 @@ class ChatProvider extends ChangeNotifier {
   /// The chat configuration for the empty chat.
   ChatConfigureArguments? _emptyChatConfiguration;
 
-  ChatProvider() {
+  ChatProvider({
+    required OllamaService ollamaService,
+    required DatabaseService databaseService,
+  })  : _ollamaService = ollamaService,
+        _databaseService = databaseService {
     _initialize();
   }
 
