@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ollama_chat/Models/chat_configure_arguments.dart';
+import 'package:ollama_chat/Models/ollama_chat.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
 import 'package:ollama_chat/Widgets/ollama_bottom_sheet_header.dart';
 import 'package:provider/provider.dart';
@@ -48,8 +49,17 @@ class _ChatConfigureBottomSheetContent extends StatefulWidget {
 
 class __ChatConfigureBottomSheetContentState
     extends State<_ChatConfigureBottomSheetContent> {
+  late OllamaChatOptions _chatOptions;
+
   final _scrollController = ScrollController();
   bool _showAdvancedConfigurations = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _chatOptions = widget.arguments.chatOptions;
+  }
 
   @override
   void dispose() {
@@ -79,49 +89,35 @@ class __ChatConfigureBottomSheetContentState
             _DeleteButton(),
           ],
         ),
+        // The chat configurations section
         const SizedBox(height: 16),
         _BottomSheetTextField(
           initialValue: widget.arguments.systemPrompt,
           labelText: 'System Prompt',
           infoText:
-              'The system prompt is the message that the AI will see before generating a response. '
-              'It is used to provide context to the AI.',
-          onChanged: (value) => widget.arguments.systemPrompt = value,
+              'The system prompt is the message that the AI will see before generating a response. It is used to provide context to the AI.',
+          type: _BottomSheetTextFieldType.text,
+          onChanged: (value) => widget.arguments.systemPrompt = value ?? '',
         ),
         const SizedBox(height: 16),
         Divider(),
         const SizedBox(height: 16),
         _BottomSheetTextField(
-          initialValue: widget.arguments.chatOptions.temperature.toString(),
+          initialValue: _chatOptions.temperature,
           labelText: 'Temperature',
-          hintText: 'Enter a value between 0 and 1',
-          errorText: 'Temperature must be between 0 and 1',
-          errorCondition: () =>
-              widget.arguments.chatOptions.temperature < 0 ||
-              widget.arguments.chatOptions.temperature > 1,
-          infoText: 'The temperature of the model. '
-              'Increasing the temperature will make the model answer more creatively.',
-          keyboardType: TextInputType.numberWithOptions(decimal: true),
-          onChanged: (value) {
-            setState(() {
-              value = value.replaceAll(',', '.');
-              widget.arguments.chatOptions.temperature =
-                  double.tryParse(value) ?? 0.8;
-            });
-          },
+          infoText:
+              'The temperature of the model. Increasing the temperature will make the model answer more creatively.',
+          type: _BottomSheetTextFieldType.decimalBetween0And1,
+          onChanged: (v) => _chatOptions.temperature = v ?? 0.8,
         ),
         const SizedBox(height: 16),
         _BottomSheetTextField(
-          initialValue: widget.arguments.chatOptions.seed.toString(),
+          initialValue: _chatOptions.seed,
           labelText: 'Seed',
-          hintText: 'Enter a number',
-          errorText: 'Seed must be a number',
-          errorCondition: () => widget.arguments.chatOptions.seed.isNaN,
-          infoText: 'Sets the random number seed to use for generation. '
-              'Setting this to a specific number will make the model generate the same text for the same prompt.',
-          keyboardType: TextInputType.number,
-          onChanged: (v) =>
-              widget.arguments.chatOptions.seed = int.tryParse(v) ?? 0,
+          infoText:
+              'Sets the random number seed to use for generation. Setting this to a specific number will make the model generate the same text for the same prompt.',
+          type: _BottomSheetTextFieldType.number,
+          onChanged: (v) => _chatOptions.seed = v ?? 0,
         ),
         // The advanced configurations section
         TextButton(
@@ -146,25 +142,125 @@ class __ChatConfigureBottomSheetContentState
         ),
         if (_showAdvancedConfigurations) ...[
           _BottomSheetTextField(
-            labelText: 'Number of Predictions',
+            initialValue: _chatOptions.maxTokens,
+            labelText: 'Max Tokens',
             infoText:
-                'Maximum number of tokens to predict when generating text.',
-            keyboardType: TextInputType.number,
+                'Maximum number of tokens to predict when generating text. -1 = infinite generation.',
+            type: _BottomSheetTextFieldType.number,
+            onChanged: (v) => _chatOptions.maxTokens = v ?? -1,
           ),
           const SizedBox(height: 16),
           _BottomSheetTextField(
-            labelText: 'Repeat Penalty',
-            infoText: 'Sets how strongly to penalize repetitions.',
-            keyboardType: TextInputType.numberWithOptions(decimal: true),
+            initialValue: _chatOptions.repeatLastN,
+            labelText: 'Repeat Last N',
+            infoText:
+                'How far back the model looks to prevent repetition. 0 = disabled, -1 = full context size.',
+            type: _BottomSheetTextFieldType.number,
+            onChanged: (v) => _chatOptions.repeatLastN = v ?? 64,
           ),
           const SizedBox(height: 16),
+          _BottomSheetTextField(
+            initialValue: _chatOptions.contextSize,
+            labelText: 'Context Size',
+            infoText:
+                'Size of the context window used to generate the next token. A larger context size results in more coherent text.',
+            type: _BottomSheetTextFieldType.number,
+            onChanged: (v) => _chatOptions.contextSize = v ?? 2048,
+          ),
+          const SizedBox(height: 16),
+          _BottomSheetTextField(
+            initialValue: _chatOptions.repeatPenalty,
+            labelText: 'Repeat Penalty',
+            infoText:
+                'The penalty for repeating tokens in the output text. 0 = disabled.',
+            type: _BottomSheetTextFieldType.decimal,
+            onChanged: (v) => _chatOptions.repeatPenalty = v ?? 1.1,
+          ),
+          const SizedBox(height: 16),
+          _BottomSheetTextField(
+            initialValue: _chatOptions.tailFreeSampling,
+            labelText: 'Tail Free Sampling',
+            infoText:
+                'Controls tail-free sampling to reduce the impact of less probable tokens. 1.0 disables this setting; higher values reduce the impact more.',
+            type: _BottomSheetTextFieldType.decimal,
+            onChanged: (v) => _chatOptions.tailFreeSampling = v ?? 1.0,
+          ),
+          const SizedBox(height: 16),
+          _BottomSheetTextField(
+            initialValue: _chatOptions.topK,
+            labelText: 'Top K',
+            infoText:
+                'Limits the probability of generating nonsense. A higher value (e.g., 100) allows more diverse answers, while a lower value (e.g., 10) is more conservative.',
+            type: _BottomSheetTextFieldType.number,
+            onChanged: (v) => _chatOptions.topK = v ?? 40,
+          ),
+          const SizedBox(height: 16),
+          _BottomSheetTextField(
+            initialValue: _chatOptions.topP,
+            labelText: 'Top P',
+            infoText:
+                'Works with Top K to control text diversity. Higher values lead to more diverse text, lower values to more focused text.',
+            type: _BottomSheetTextFieldType.decimalBetween0And1,
+            onChanged: (v) => _chatOptions.topP = v ?? 0.9,
+          ),
+          const SizedBox(height: 16),
+          _BottomSheetTextField(
+            initialValue: _chatOptions.minP,
+            labelText: 'Min P',
+            infoText:
+                'Ensures a balance of quality and variety by setting a minimum token probability relative to the most likely token. Tokens with lower probability are filtered out.',
+            type: _BottomSheetTextFieldType.decimalBetween0And1,
+            onChanged: (v) => _chatOptions.minP = v ?? 0.0,
+          ),
+          const SizedBox(height: 16),
+          _BottomSheetTextField(
+            initialValue: _chatOptions.mirostat,
+            labelText: 'Mirostat',
+            infoText:
+                'Enable Mirostat sampling for controlling perplexity. (default: 0, 0 = disabled, 1 = Mirostat, 2 = Mirostat 2.0)',
+            type: _BottomSheetTextFieldType.number,
+            onChanged: (v) => _chatOptions.mirostat = v ?? 0,
+          ),
+          const SizedBox(height: 16),
+          _BottomSheetTextField(
+            initialValue: _chatOptions.mirostatEta,
+            labelText: 'Mirostat Eta',
+            infoText:
+                'Influences how quickly the algorithm responds to feedback from the generated text. A lower value results in slower adjustments; a higher value makes the algorithm more responsive.',
+            type: _BottomSheetTextFieldType.decimalBetween0And1,
+            onChanged: (v) => _chatOptions.mirostatEta = v ?? 0.1,
+          ),
+          const SizedBox(height: 16),
+          _BottomSheetTextField(
+            initialValue: _chatOptions.mirostatTau,
+            labelText: 'Mirostat Tau',
+            infoText:
+                'Controls the balance between coherence and diversity of the output. A lower value results in more focused and coherent text. A higher value results in more diverse text.',
+            type: _BottomSheetTextFieldType.decimal,
+            onChanged: (v) => _chatOptions.mirostatTau = v ?? 5.0,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.info_outline_rounded),
+              const SizedBox(width: 8),
+              Text('Leave empty to use the default value'),
+            ],
+          ),
           TextButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.settings_backup_restore_rounded),
             label: const Text('Reset to Defaults'),
-            style: TextButton.styleFrom(
-              foregroundColor: Colors.red,
-            ),
+            icon: const Icon(Icons.settings_backup_restore_rounded),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            onPressed: () {
+              setState(() {
+                final defaults = ChatConfigureArguments.defaultArguments;
+                widget.arguments.systemPrompt = defaults.systemPrompt;
+                widget.arguments.chatOptions = defaults.chatOptions;
+              });
+
+              Navigator.of(context).pop();
+            },
           ),
         ],
       ],
@@ -328,45 +424,39 @@ class _BottomSheetButton extends StatelessWidget {
   }
 }
 
-class _BottomSheetTextField extends StatelessWidget {
-  final String? initialValue;
+class _BottomSheetTextField<T> extends StatefulWidget {
+  final T? initialValue;
 
   final String labelText;
-  final String? hintText;
-
-  final String? errorText;
-  final bool Function()? errorCondition;
-
   final String infoText;
+  final _BottomSheetTextFieldType type;
 
-  final TextInputType keyboardType;
-
-  final Function(String)? onChanged;
+  final Function(T?)? onChanged;
 
   const _BottomSheetTextField({
     super.key,
     this.initialValue,
     required this.labelText,
-    this.hintText,
-    this.errorText,
-    this.errorCondition,
     required this.infoText,
-    this.keyboardType = TextInputType.text,
+    required this.type,
     this.onChanged,
   });
 
   @override
+  State<_BottomSheetTextField<T>> createState() => _BottomSheetTextFieldState();
+}
+
+class _BottomSheetTextFieldState<T> extends State<_BottomSheetTextField<T>> {
+  String? _errorText;
+
+  @override
   Widget build(BuildContext context) {
     return TextFormField(
-      initialValue: initialValue,
+      initialValue: widget.initialValue?.toString(),
       decoration: InputDecoration(
-        labelText: labelText,
-        hintText: hintText,
-        errorText: errorCondition != null
-            ? errorCondition!()
-                ? errorText
-                : null
-            : null,
+        labelText: widget.labelText,
+        hintText: _hintText,
+        errorText: _errorText,
         border: OutlineInputBorder(),
         suffixIcon: IconButton(
           onPressed: () {
@@ -374,8 +464,8 @@ class _BottomSheetTextField extends StatelessWidget {
               context: context,
               builder: (context) {
                 return AlertDialog(
-                  title: Text(labelText),
-                  content: Text(infoText),
+                  title: Text(widget.labelText),
+                  content: Text(widget.infoText),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context),
@@ -389,12 +479,110 @@ class _BottomSheetTextField extends StatelessWidget {
           icon: Icon(Icons.info_outline),
         ),
       ),
-      onChanged: onChanged,
-      keyboardType: keyboardType,
+      onChanged: (value) {
+        final (validValue, errorText) = _validator(value);
+        setState(() => _errorText = errorText);
+
+        widget.onChanged?.call(validValue);
+      },
+      keyboardType: _keyboardType,
       textCapitalization: TextCapitalization.sentences,
       onTapOutside: (PointerDownEvent event) {
         FocusManager.instance.primaryFocus?.unfocus();
       },
     );
   }
+
+  String get _hintText {
+    switch (widget.type) {
+      case _BottomSheetTextFieldType.text:
+        return 'Enter a text';
+      case _BottomSheetTextFieldType.number:
+        return 'Enter a number';
+      case _BottomSheetTextFieldType.decimal:
+        return 'Enter a value';
+      case _BottomSheetTextFieldType.decimalBetween0And1:
+        return 'Enter a value between 0 and 1';
+    }
+  }
+
+  (T?, String?) Function(String?) get _validator {
+    switch (widget.type) {
+      case _BottomSheetTextFieldType.text:
+        return (v) {
+          if (v == null) {
+            return (null, '${widget.labelText} must not be empty');
+          } else if (v.isEmpty) {
+            return (null, null);
+          } else {
+            return (v as T?, null);
+          }
+        };
+      case _BottomSheetTextFieldType.number:
+        return (v) {
+          if (v == null) {
+            return (null, '${widget.labelText} must not be empty');
+          } else if (v.isEmpty) {
+            return (null, null);
+          } else if (int.tryParse(v) == null) {
+            return (null, '${widget.labelText} must be a number');
+          } else {
+            return (int.tryParse(v) as T?, null);
+          }
+        };
+      case _BottomSheetTextFieldType.decimal:
+        return (value) {
+          final v = value?.replaceAll(',', '.');
+
+          if (v == null) {
+            return (null, '${widget.labelText} must not be empty');
+          } else if (v.isEmpty) {
+            return (null, null);
+          } else if (double.tryParse(v) == null) {
+            return (null, '${widget.labelText} must be a decimal number');
+          } else {
+            return (double.tryParse(v) as T?, null);
+          }
+        };
+      case _BottomSheetTextFieldType.decimalBetween0And1:
+        return (value) {
+          final v = value?.replaceAll(',', '.');
+
+          if (v == null) {
+            return (null, '${widget.labelText} must not be empty');
+          } else if (v.isEmpty) {
+            return (null, null);
+          } else if (double.tryParse(v) == null) {
+            return (null, '${widget.labelText} must be a decimal number');
+          } else {
+            final value = double.parse(v);
+            if (value < 0 || value > 1) {
+              return (null, '${widget.labelText} must be between 0 and 1');
+            } else {
+              return (double.tryParse(v) as T?, null);
+            }
+          }
+        };
+    }
+  }
+
+  TextInputType get _keyboardType {
+    switch (widget.type) {
+      case _BottomSheetTextFieldType.text:
+        return TextInputType.text;
+      case _BottomSheetTextFieldType.number:
+        return TextInputType.number;
+      case _BottomSheetTextFieldType.decimal:
+        return TextInputType.numberWithOptions(decimal: true);
+      case _BottomSheetTextFieldType.decimalBetween0And1:
+        return TextInputType.numberWithOptions(decimal: true);
+    }
+  }
+}
+
+enum _BottomSheetTextFieldType {
+  text,
+  number,
+  decimal,
+  decimalBetween0And1,
 }
