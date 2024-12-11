@@ -46,7 +46,7 @@ class _ChatPageState extends State<ChatPage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             if (!ResponsiveBreakpoints.of(context).isMobile)
-              ChatAppBar(title: 'Ollama Chat'),
+              ChatAppBar(), // If the screen is large, show the app bar
             Expanded(
               child: _buildChatBody(chatProvider),
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
+import 'package:ollama_chat/Constants/constants.dart';
 import 'package:ollama_chat/Providers/chat_provider.dart';
+import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class ChatDrawer extends StatelessWidget {
@@ -54,7 +55,7 @@ class ChatNavigationDrawer extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.fromLTRB(28, 16, 16, 10),
               child: Text(
-                'Ollama Chat',
+                AppConstants.appName,
                 style: Theme.of(context).textTheme.titleSmall,
               ),
             ),

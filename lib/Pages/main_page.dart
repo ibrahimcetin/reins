@@ -5,36 +5,32 @@ import 'package:ollama_chat/Widgets/chat_drawer.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class OllamaChatMainPage extends StatelessWidget {
-  const OllamaChatMainPage({super.key, required this.title});
-
-  final String title;
+  const OllamaChatMainPage({super.key});
 
   @override
   Widget build(BuildContext context) {
     if (ResponsiveBreakpoints.of(context).isMobile) {
-      return Scaffold(
-        appBar: ChatAppBar(title: title),
-        body: const SafeArea(child: ChatPage()),
-        drawer: const ChatDrawer(),
+      return const Scaffold(
+        appBar: ChatAppBar(),
+        body: SafeArea(child: ChatPage()),
+        drawer: ChatDrawer(),
       );
     } else {
-      return _OllamaChatLargeMainPage(title: title);
+      return _OllamaChatLargeMainPage();
     }
   }
 }
 
 class _OllamaChatLargeMainPage extends StatelessWidget {
-  const _OllamaChatLargeMainPage({super.key, required this.title});
-
-  final String title;
+  const _OllamaChatLargeMainPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return const Scaffold(
       body: SafeArea(
         child: Row(
           children: [
-            const ChatDrawer(),
+            ChatDrawer(),
             Expanded(child: ChatPage()),
           ],
         ),

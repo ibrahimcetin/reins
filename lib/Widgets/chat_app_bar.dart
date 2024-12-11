@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ollama_chat/Constants/constants.dart';
 import 'package:ollama_chat/Widgets/chat_configure_bottom_sheet.dart';
 import 'package:ollama_chat/Widgets/ollama_bottom_sheet_header.dart';
 import 'package:ollama_chat/Widgets/selection_bottom_sheet.dart';
@@ -9,9 +10,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
-  final String title;
-
-  const ChatAppBar({super.key, required this.title});
+  const ChatAppBar({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +19,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: Column(
         children: [
-          Text(title, style: GoogleFonts.pacifico()),
+          Text(AppConstants.appName, style: GoogleFonts.pacifico()),
           if (chatProvider.currentChat != null)
             InkWell(
               onTap: () {

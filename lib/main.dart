@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ollama_chat/Constants/constants.dart';
 import 'package:ollama_chat/Models/settings_route_arguments.dart';
 import 'package:ollama_chat/Pages/main_page.dart';
 import 'package:ollama_chat/Pages/settings_page/settings_page.dart';
@@ -43,8 +44,6 @@ void main() async {
 }
 
 class OllamaChatApp extends StatelessWidget {
-  static const title = 'Ollama Chat';
-
   const OllamaChatApp({super.key});
 
   @override
@@ -53,7 +52,7 @@ class OllamaChatApp extends StatelessWidget {
       valueListenable: Hive.box('settings').listenable(keys: ['color']),
       builder: (context, box, _) {
         return MaterialApp(
-          title: title,
+          title: AppConstants.appName,
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
               brightness: MediaQuery.platformBrightnessOf(context),
@@ -74,7 +73,7 @@ class OllamaChatApp extends StatelessWidget {
           onGenerateRoute: (settings) {
             if (settings.name == '/') {
               return MaterialPageRoute(
-                builder: (context) => const OllamaChatMainPage(title: title),
+                builder: (context) => const OllamaChatMainPage(),
               );
             }
 
