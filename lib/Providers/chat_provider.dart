@@ -209,8 +209,9 @@ class ChatProvider extends ChangeNotifier {
     } on OllamaException catch (error) {
       _chatErrors[associatedChat.id] = error;
     } on SocketException catch (_) {
-      _chatErrors[associatedChat.id] =
-          OllamaException("Network connection lost.");
+      _chatErrors[associatedChat.id] = OllamaException(
+        'Network connection lost. Check your server address or internet connection.',
+      );
     } catch (error) {
       _chatErrors[associatedChat.id] = OllamaException("Something went wrong.");
     }
