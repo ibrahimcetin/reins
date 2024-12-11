@@ -251,7 +251,11 @@ class __ChatConfigureBottomSheetContentState
           TextButton.icon(
             label: const Text('Reset to Defaults'),
             icon: const Icon(Icons.settings_backup_restore_rounded),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(
+              foregroundColor: Colors.red,
+              iconColor: Colors.red,
+              iconSize: 24,
+            ),
             onPressed: () {
               setState(() {
                 final defaults = ChatConfigureArguments.defaultArguments;
@@ -409,6 +413,8 @@ class _BottomSheetButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainer,
         foregroundColor: isDestructive ? Colors.red : null,
+        iconColor: isDestructive ? Colors.red : null,
+        iconSize: 24,
         padding: const EdgeInsets.all(16.0),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(8.0),
