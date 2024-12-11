@@ -230,6 +230,8 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<OllamaMessage?> _streamOllamaMessage(OllamaChat associatedChat) async {
+    if (_messages.isEmpty) return null;
+
     final stream = _ollamaService.chatStream(_messages, chat: associatedChat);
 
     OllamaMessage? streamingMessage;
