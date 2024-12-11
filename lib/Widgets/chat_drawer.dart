@@ -61,7 +61,7 @@ class ChatNavigationDrawer extends StatelessWidget {
             ),
             const NavigationDrawerDestination(
               icon: CircleAvatar(
-                backgroundImage: AssetImage("assets/images/ollama.png"),
+                backgroundImage: AssetImage(AppConstants.ollamaIconPng),
                 radius: 16,
               ),
               label: Text("Ollama"),

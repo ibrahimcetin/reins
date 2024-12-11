@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ollama_chat/Constants/constants.dart';
 
 class OllamaBottomSheetHeader extends StatelessWidget {
   final String title;
@@ -13,7 +14,7 @@ class OllamaBottomSheetHeader extends StatelessWidget {
           padding: const EdgeInsets.all(16.0),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(8.0),
-            child: Image.asset("assets/images/ollama.png", height: 48),
+            child: Image.asset(AppConstants.appIconPng, height: 48),
           ),
         ),
         Text(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:ollama_chat/Constants/constants.dart';
 
 class ThemesSettings extends StatefulWidget {
   const ThemesSettings({super.key});
@@ -35,7 +36,7 @@ class _ThemesSettingsState extends State<ThemesSettings> {
           child: Row(
             children: [
               CircleAvatar(
-                backgroundImage: AssetImage("assets/images/ollama.png"),
+                backgroundImage: AssetImage(AppConstants.appIconPng),
                 radius: 16,
               ),
               const SizedBox(width: 12),

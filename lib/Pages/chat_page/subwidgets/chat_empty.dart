@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:ollama_chat/Constants/constants.dart';
 
 class ChatEmpty extends StatelessWidget {
   final Widget child;
@@ -12,7 +13,7 @@ class ChatEmpty extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         SvgPicture.asset(
-          "assets/images/ollama.svg",
+          AppConstants.appIconSvg,
           height: 48,
           colorFilter: ColorFilter.mode(
             Theme.of(context).colorScheme.onSurface,
