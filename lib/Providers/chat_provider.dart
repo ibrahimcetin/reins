@@ -158,16 +158,14 @@ class ChatProvider extends ChangeNotifier {
 
   Future<void> deleteCurrentChat() async {
     final chat = currentChat;
-    if (chat == null) {
-      return;
-    }
+    if (chat == null) return;
+
+    _resetChat();
 
     _chats.remove(chat);
     _activeChatStreams.remove(chat.id);
 
     await _databaseService.deleteChat(chat.id);
-
-    _resetChat();
   }
 
   Future<void> sendPrompt(String text) async {
