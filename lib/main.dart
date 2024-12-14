@@ -68,6 +68,7 @@ class OllamaChatApp extends StatelessWidget {
               const Breakpoint(start: 451, end: 800, name: TABLET),
               const Breakpoint(start: 801, end: 1920, name: DESKTOP),
             ],
+            useShortestSide: true,
             child: child!,
           ),
           onGenerateRoute: (settings) {
