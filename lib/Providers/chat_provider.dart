@@ -181,6 +181,7 @@ class ChatProvider extends ChangeNotifier {
     // Save the user prompt to the database
     await _databaseService.addMessage(prompt, chat: associatedChat);
 
+    // Initialize the chat stream with the messages in the chat
     await _initializeChatStream(associatedChat);
   }
 
@@ -217,7 +218,7 @@ class ChatProvider extends ChangeNotifier {
     }
 
     // We get the Ollama message from the active chat streams to save it to the database.
-    // Because _streamOllamaMessage only returns if it is successed.
+    // Because _streamOllamaMessage only returns if it is succeeded.
     // _activeChatStreams holds the latest message.
     final ollamaMessage = _activeChatStreams[associatedChat.id];
 
@@ -289,7 +290,7 @@ class ChatProvider extends ChangeNotifier {
 
     await _databaseService.deleteMessages(removeMessages);
 
-    // Reinitialize the chat stream
+    // Reinitialize the chat stream with the messages in the chat
     await _initializeChatStream(associatedChat);
   }
 
@@ -303,6 +304,7 @@ class ChatProvider extends ChangeNotifier {
       await _databaseService.deleteMessage(message.id);
     }
 
+    // Reinitialize the chat stream with the messages in the chat
     await _initializeChatStream(associatedChat);
 
     notifyListeners();
