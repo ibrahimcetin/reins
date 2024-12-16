@@ -5,18 +5,18 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "ollama_chat",
+            "name": "reins",
             "request": "launch",
             "type": "dart"
         },
         {
-            "name": "ollama_chat (profile mode)",
+            "name": "reins (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile"
         },
         {
-            "name": "ollama_chat (release mode)",
+            "name": "reins (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release"

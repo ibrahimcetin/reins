@@ -1,4 +1,4 @@
-import 'package:ollama_chat/Models/ollama_chat.dart';
+import 'package:reins/Models/ollama_chat.dart';
 
 class ChatConfigureArguments {
   String? systemPrompt;

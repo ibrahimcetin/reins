@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:ollama_chat/Constants/constants.dart';
+import 'package:reins/Constants/constants.dart';
 
 class ThemesSettings extends StatefulWidget {
   const ThemesSettings({super.key});

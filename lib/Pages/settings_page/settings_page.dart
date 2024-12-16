@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ollama_chat/Models/settings_route_arguments.dart';
+import 'package:reins/Models/settings_route_arguments.dart';
 
 import 'subwidgets/subwidgets.dart';
 

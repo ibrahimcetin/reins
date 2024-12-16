@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "ollama_chat" "\0"
+            VALUE "CompanyName", "dev.ibrahimcetin" "\0"
+            VALUE "FileDescription", "reins" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "ollama_chat" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "ollama_chat.exe" "\0"
-            VALUE "ProductName", "ollama_chat" "\0"
+            VALUE "InternalName", "reins" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2024 dev.ibrahimcetin. All rights reserved." "\0"
+            VALUE "OriginalFilename", "reins.exe" "\0"
+            VALUE "ProductName", "reins" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

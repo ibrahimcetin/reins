@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
-import 'package:ollama_chat/Models/ollama_request_state.dart';
+import 'package:reins/Models/ollama_request_state.dart';
 
 class ServerSettings extends StatefulWidget {
   final bool autoFocusServerAddress;

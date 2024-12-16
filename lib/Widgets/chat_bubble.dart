@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ollama_chat/Models/ollama_message.dart';
-import 'package:ollama_chat/Providers/chat_provider.dart';
-import 'package:ollama_chat/Utils/border_painter.dart';
-import 'package:ollama_chat/Widgets/chat_bubble_bottom_sheet.dart';
+import 'package:reins/Models/ollama_message.dart';
+import 'package:reins/Providers/chat_provider.dart';
+import 'package:reins/Utils/border_painter.dart';
+import 'package:reins/Widgets/chat_bubble_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;

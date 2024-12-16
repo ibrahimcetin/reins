@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ollama_chat/Models/ollama_message.dart';
-import 'package:ollama_chat/Widgets/chat_bubble.dart';
+import 'package:reins/Models/ollama_message.dart';
+import 'package:reins/Widgets/chat_bubble.dart';
 import 'package:shimmer/shimmer.dart';
 
 class ChatListView extends StatefulWidget {

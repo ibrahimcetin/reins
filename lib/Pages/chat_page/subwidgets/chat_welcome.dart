@@ -1,6 +1,6 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
 import 'package:flutter/material.dart';
-import 'package:ollama_chat/Models/settings_route_arguments.dart';
+import 'package:reins/Models/settings_route_arguments.dart';
 
 class ChatWelcome extends StatelessWidget {
   final CrossFadeState showingState;

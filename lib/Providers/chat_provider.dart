@@ -1,12 +1,12 @@
 import 'dart:io';
 
-import 'package:ollama_chat/Models/chat_configure_arguments.dart';
-import 'package:ollama_chat/Models/ollama_chat.dart';
-import 'package:ollama_chat/Models/ollama_exception.dart';
-import 'package:ollama_chat/Models/ollama_message.dart';
-import 'package:ollama_chat/Models/ollama_model.dart';
-import 'package:ollama_chat/Services/database_service.dart';
-import 'package:ollama_chat/Services/ollama_service.dart';
+import 'package:reins/Models/chat_configure_arguments.dart';
+import 'package:reins/Models/ollama_chat.dart';
+import 'package:reins/Models/ollama_exception.dart';
+import 'package:reins/Models/ollama_message.dart';
+import 'package:reins/Models/ollama_model.dart';
+import 'package:reins/Services/database_service.dart';
+import 'package:reins/Services/ollama_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 

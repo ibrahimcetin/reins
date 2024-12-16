@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ollama_chat/Models/ollama_request_state.dart';
+import 'package:reins/Models/ollama_request_state.dart';
 import 'package:async/async.dart';
 
 class SelectionBottomSheet<T> extends StatefulWidget {

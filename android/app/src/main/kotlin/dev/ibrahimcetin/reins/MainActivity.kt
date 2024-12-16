@@ -1,4 +1,4 @@
-package com.example.ollama_chat
+package dev.ibrahimcetin.reins
 
 import io.flutter.embedding.android.FlutterActivity
 

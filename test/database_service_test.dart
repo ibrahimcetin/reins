@@ -1,6 +1,6 @@
-import 'package:ollama_chat/Models/ollama_chat.dart';
-import 'package:ollama_chat/Models/ollama_message.dart';
-import 'package:ollama_chat/Services/database_service.dart';
+import 'package:reins/Models/ollama_chat.dart';
+import 'package:reins/Models/ollama_message.dart';
+import 'package:reins/Services/database_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;

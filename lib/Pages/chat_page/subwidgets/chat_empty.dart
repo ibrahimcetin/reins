@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:ollama_chat/Constants/constants.dart';
+import 'package:reins/Constants/constants.dart';
 
 class ChatEmpty extends StatelessWidget {
   final Widget child;

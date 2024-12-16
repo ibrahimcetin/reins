@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:ollama_chat/Models/ollama_model.dart';
-import 'package:ollama_chat/Providers/chat_provider.dart';
-import 'package:ollama_chat/Widgets/chat_app_bar.dart';
-import 'package:ollama_chat/Widgets/ollama_bottom_sheet_header.dart';
-import 'package:ollama_chat/Widgets/selection_bottom_sheet.dart';
+import 'package:reins/Models/ollama_model.dart';
+import 'package:reins/Providers/chat_provider.dart';
+import 'package:reins/Widgets/chat_app_bar.dart';
+import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
+import 'package:reins/Widgets/selection_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:responsive_framework/responsive_framework.dart';

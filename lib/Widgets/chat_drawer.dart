@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:ollama_chat/Constants/constants.dart';
-import 'package:ollama_chat/Providers/chat_provider.dart';
+import 'package:reins/Constants/constants.dart';
+import 'package:reins/Providers/chat_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 

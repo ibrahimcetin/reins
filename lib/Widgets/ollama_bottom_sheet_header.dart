@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ollama_chat/Constants/constants.dart';
+import 'package:reins/Constants/constants.dart';
 
 class OllamaBottomSheetHeader extends StatelessWidget {
   final String title;

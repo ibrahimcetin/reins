@@ -1,6 +1,6 @@
 {
-    "name": "ollama_chat",
-    "short_name": "ollama_chat",
+    "name": "reins",
+    "short_name": "reins",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

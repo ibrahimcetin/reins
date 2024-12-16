@@ -1,4 +1,4 @@
-name: ollama_chat
+name: reins
 description: "A new Flutter project."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
@@ -126,7 +126,7 @@ flutter:
   # see https://flutter.dev/to/font-from-package
 
 flutter_launcher_icons:
-  image_path: "assets/images/ollama.png"
+  image_path: "assets/images/reins.png"
   android: true
   ios: true
 

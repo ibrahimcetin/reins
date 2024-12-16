@@ -1,6 +1,6 @@
-import 'package:ollama_chat/Models/ollama_chat.dart';
-import 'package:ollama_chat/Services/ollama_service.dart';
-import 'package:ollama_chat/Models/ollama_message.dart';
+import 'package:reins/Models/ollama_chat.dart';
+import 'package:reins/Services/ollama_service.dart';
+import 'package:reins/Models/ollama_message.dart';
 import 'package:test/test.dart';
 
 void main() {

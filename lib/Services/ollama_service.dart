@@ -1,10 +1,10 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
-import 'package:ollama_chat/Models/ollama_chat.dart';
-import 'package:ollama_chat/Models/ollama_exception.dart';
-import 'package:ollama_chat/Models/ollama_message.dart';
-import 'package:ollama_chat/Models/ollama_model.dart';
+import 'package:reins/Models/ollama_chat.dart';
+import 'package:reins/Models/ollama_exception.dart';
+import 'package:reins/Models/ollama_message.dart';
+import 'package:reins/Models/ollama_model.dart';
 
 class OllamaService {
   /// The base URL for the Ollama service API.

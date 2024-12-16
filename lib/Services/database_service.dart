@@ -1,5 +1,5 @@
-import 'package:ollama_chat/Models/ollama_chat.dart';
-import 'package:ollama_chat/Models/ollama_message.dart';
+import 'package:reins/Models/ollama_chat.dart';
+import 'package:reins/Models/ollama_message.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 import 'package:path/path.dart' as path;
