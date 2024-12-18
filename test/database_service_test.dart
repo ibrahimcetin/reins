@@ -28,7 +28,7 @@ void main() async {
     expect(chat.model, model);
     expect(chat.title, "New Chat");
     expect(chat.systemPrompt, isNull);
-    expect(chat.options, isNull);
+    expect(chat.options.toJson(), OllamaChatOptions().toJson());
   });
 
   test("Test database get chat", () async {
@@ -39,7 +39,7 @@ void main() async {
     expect(retrievedChat.model, chat.model);
     expect(retrievedChat.title, chat.title);
     expect(retrievedChat.systemPrompt, chat.systemPrompt);
-    expect(retrievedChat.options, chat.options);
+    expect(retrievedChat.options.toJson(), chat.options.toJson());
   });
 
   test("Test database update chat title", () async {
@@ -51,7 +51,7 @@ void main() async {
     expect(updatedChat.model, "llama3.2");
     expect(updatedChat.title, "New Chat");
     expect(updatedChat.systemPrompt, isNull);
-    expect(updatedChat.options, isNull);
+    expect(chat.options.toJson(), OllamaChatOptions().toJson());
   });
 
   test('Test database update chat system prompt', () async {
@@ -69,7 +69,7 @@ void main() async {
     expect(updatedChat.model, model);
     expect(updatedChat.title, "New Chat");
     expect(updatedChat.systemPrompt, systemPrompt);
-    expect(updatedChat.options, isNull);
+    expect(chat.options.toJson(), OllamaChatOptions().toJson());
 
     await service.updateChat(updatedChat, newSystemPrompt: null);
   });
@@ -122,7 +122,7 @@ void main() async {
       expect(chats.first.model, model);
       expect(chats.first.title, "New Chat");
       expect(chats.first.systemPrompt, isNull);
-      expect(chats.first.options, isNull);
+      expect(chats.first.options.toJson(), OllamaChatOptions().toJson());
     }
   });
 
