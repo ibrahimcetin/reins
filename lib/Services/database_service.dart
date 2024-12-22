@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:reins/Models/ollama_chat.dart';
 import 'package:reins/Models/ollama_message.dart';
 import 'package:sqflite/sqflite.dart';
@@ -24,10 +27,25 @@ options TEXT
 message_id TEXT PRIMARY KEY,
 chat_id TEXT NOT NULL,
 content TEXT NOT NULL,
+images TEXT,
 role TEXT CHECK(role IN ('user', 'assistant', 'system')) NOT NULL,
 timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
 FOREIGN KEY (chat_id) REFERENCES chats(chat_id) ON DELETE CASCADE
 ) WITHOUT ROWID;''');
+
+        // Create cleanup_jobs table
+        await db.execute('''CREATE TABLE IF NOT EXISTS cleanup_jobs (
+id INTEGER PRIMARY KEY AUTOINCREMENT,
+image_paths TEXT NOT NULL
+)''');
+
+        // Create trigger to handle image deletion
+        await db.execute('''CREATE TRIGGER IF NOT EXISTS delete_images_trigger
+AFTER DELETE ON messages
+WHEN OLD.images IS NOT NULL
+BEGIN
+  INSERT INTO cleanup_jobs (image_paths) VALUES (OLD.images);
+END;''');
       },
     );
   }
@@ -96,6 +114,9 @@ FOREIGN KEY (chat_id) REFERENCES chats(chat_id) ON DELETE CASCADE
       where: 'chat_id = ?',
       whereArgs: [chatId],
     );
+
+    // ? Should we run with Isolate.run?
+    _cleanupDeletedImages();
   }
 
   Future<List<OllamaChat>> getAllChats() async {
@@ -117,14 +138,9 @@ ORDER BY last_update DESC;''');
     OllamaMessage message, {
     required OllamaChat chat,
   }) async {
-    // TODO: Get parameters from instance method like toDatabaseParams
-
     await _db.insert('messages', {
-      'message_id': message.id,
       'chat_id': chat.id,
-      'content': message.content,
-      'role': message.role.toCaseString(),
-      'timestamp': message.createdAt.millisecondsSinceEpoch,
+      ...message.toDatabaseMap(),
     });
   }
 
@@ -162,6 +178,8 @@ ORDER BY last_update DESC;''');
       where: 'message_id = ?',
       whereArgs: [messageId],
     );
+
+    _cleanupDeletedImages();
   }
 
   Future<List<OllamaMessage>> getMessages(String chatId) async {
@@ -187,5 +205,36 @@ ORDER BY last_update DESC;''');
         );
       }
     });
+
+    _cleanupDeletedImages();
+  }
+
+  // ? Should we trigger this cleanup on every message deletion?
+  // ? Or should we run it on every app start?
+  Future<void> _cleanupDeletedImages() async {
+    final List<Map<String, dynamic>> results = await _db.query(
+      'cleanup_jobs',
+      columns: ['id', 'image_paths'],
+      where: 'image_paths IS NOT NULL',
+    );
+
+    for (final result in results) {
+      try {
+        final imagePaths = List<String>.from(jsonDecode(result['image_paths']));
+        for (final imagePath in imagePaths) {
+          final file = File(imagePath);
+          if (await file.exists()) {
+            await file.delete();
+          }
+        }
+
+        // Delete the row after images are deleted
+        await _db.delete(
+          'cleanup_jobs',
+          where: 'id = ?',
+          whereArgs: [result['id']],
+        );
+      } catch (_) {}
+    }
   }
 }

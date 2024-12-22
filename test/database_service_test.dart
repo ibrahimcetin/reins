@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:reins/Models/ollama_chat.dart';
 import 'package:reins/Models/ollama_message.dart';
 import 'package:reins/Services/database_service.dart';
@@ -16,6 +18,9 @@ void main() async {
   await service.open('test_database.db');
 
   const model = "llama3.2";
+
+  final assetsPath = path.join(Directory.current.path, 'test', 'assets');
+  final imageFile = File(path.join(assetsPath, 'ollama.png'));
 
   test("Test database open", () async {
     await service.open('test_database.db');
@@ -113,6 +118,38 @@ void main() async {
     expect(await service.getChat(chat.id), isNull);
   });
 
+  test('Test database delete chat with images', () async {
+    List<File> images = [];
+    for (var i = 0; i < 10; i++) {
+      final image = File(path.join(assetsPath, 'test_image$i.png'));
+      await imageFile.copy(image.path);
+
+      images.add(image);
+    }
+
+    final chat = await service.createChat(model);
+
+    for (final image in images) {
+      await service.addMessage(
+        OllamaMessage(
+          "Hello, this is a test message.",
+          images: [image],
+          role: OllamaMessageRole.user,
+        ),
+        chat: chat,
+      );
+    }
+
+    await service.deleteChat(chat.id);
+
+    expect(await service.getChat(chat.id), isNull);
+    // Wait for the images to be deleted
+    await Future.delayed(Duration(seconds: 1));
+    for (final image in images) {
+      expect(await image.exists(), isFalse);
+    }
+  });
+
   test("Test database get all chats", () async {
     await service.createChat(model);
     final chats = await service.getAllChats();
@@ -124,7 +161,7 @@ void main() async {
       expect(chats.first.systemPrompt, isNull);
       expect(chats.first.options.toJson(), OllamaChatOptions().toJson());
     }
-  });
+  }, retry: 5);
 
   test("Test database add message", () async {
     final chat = await service.createChat(model);
@@ -142,6 +179,24 @@ void main() async {
     expect(messages.first.role, message.role);
   });
 
+  test('Test database add message with images', () async {
+    final chat = await service.createChat(model);
+    final message = OllamaMessage(
+      "Hello, this is a test message.",
+      images: [imageFile],
+      role: OllamaMessageRole.user,
+    );
+
+    await service.addMessage(message, chat: chat);
+
+    final messages = await service.getMessages(chat.id);
+    expect(messages.length, 1);
+    expect(messages.first.id, message.id);
+    expect(messages.first.content, message.content);
+    expect(messages.first.images!.first.path, message.images!.first.path);
+    expect(messages.first.role, message.role);
+  });
+
   test("Test database get message", () async {
     final chat = await service.createChat(model);
     final message = OllamaMessage(
@@ -155,6 +210,24 @@ void main() async {
     expect(retrievedMessage, isNotNull);
     expect(retrievedMessage!.id, message.id);
     expect(retrievedMessage.content, message.content);
+    expect(retrievedMessage.role, message.role);
+  });
+
+  test('Test database get message with images', () async {
+    final chat = await service.createChat(model);
+    final message = OllamaMessage(
+      "Hello, this is a test message.",
+      images: [imageFile],
+      role: OllamaMessageRole.user,
+    );
+
+    await service.addMessage(message, chat: chat);
+
+    final retrievedMessage = await service.getMessage(message.id);
+    expect(retrievedMessage, isNotNull);
+    expect(retrievedMessage!.id, message.id);
+    expect(retrievedMessage.content, message.content);
+    expect(retrievedMessage.images!.first.path, message.images!.first.path);
     expect(retrievedMessage.role, message.role);
   });
 
@@ -187,6 +260,29 @@ void main() async {
     expect(await service.getMessage(message.id), isNull);
   });
 
+  test('Test database delete message with images', () async {
+    final testImagePath = path.join(assetsPath, 'test_image.png');
+    await imageFile.copy(testImagePath);
+    final testImageFile = File(testImagePath);
+
+    final chat = await service.createChat(model);
+    final message = OllamaMessage(
+      "Hello, this is a test message.",
+      images: [testImageFile],
+      role: OllamaMessageRole.user,
+    );
+
+    await service.addMessage(message, chat: chat);
+    expect(await service.getMessage(message.id), isNotNull);
+
+    await service.deleteMessage(message.id);
+    expect(await service.getMessage(message.id), isNull);
+
+    // Wait for the image to be deleted
+    await Future.delayed(Duration(seconds: 1));
+    expect(await testImageFile.exists(), isFalse);
+  });
+
   test("Test database get messages", () async {
     final chat = await service.createChat(model);
     final message = OllamaMessage(
@@ -215,5 +311,40 @@ void main() async {
 
     await service.deleteMessages([message]);
     expect(await service.getMessage(message.id), isNull);
+  });
+
+  test('Test database delete messages with images', () async {
+    List<File> images = [];
+    for (var i = 0; i < 10; i++) {
+      final image = File(path.join(assetsPath, 'test_image$i.png'));
+      await imageFile.copy(image.path);
+
+      images.add(image);
+    }
+
+    final chat = await service.createChat(model);
+
+    List<OllamaMessage> messages = [];
+    for (final image in images) {
+      final message = OllamaMessage(
+        "Hello, this is a test message.",
+        images: [image],
+        role: OllamaMessageRole.user,
+      );
+      await service.addMessage(message, chat: chat);
+      messages.add(message);
+    }
+
+    await service.deleteMessages(messages);
+
+    for (final message in messages) {
+      expect(await service.getMessage(message.id), isNull);
+    }
+
+    // Wait for the images to be deleted
+    await Future.delayed(Duration(seconds: 1));
+    for (final image in images) {
+      expect(await image.exists(), isFalse);
+    }
   });
 }

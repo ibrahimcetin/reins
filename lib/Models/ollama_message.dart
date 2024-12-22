@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:uuid/uuid.dart';
 
 class OllamaMessage {
@@ -8,7 +11,7 @@ class OllamaMessage {
   String content;
 
   /// The image content of the message.
-  List<dynamic>? images; // TODO: Implement image support
+  List<File>? images;
 
   /// The date and time the message was created.
   DateTime createdAt;
@@ -56,9 +59,7 @@ class OllamaMessage {
         role: json["message"] != null
             ? OllamaMessageRole.fromString(json["message"]["role"])
             : OllamaMessageRole.assistant, // For generated messages (default)
-        images: json["message"]?["images"] != null
-            ? List<dynamic>.from(json["message"]["images"])
-            : null,
+        images: null, // TODO: Implement image support
         createdAt: DateTime.parse(json["created_at"]),
         model: json["model"],
         // Metadata fields
@@ -80,19 +81,27 @@ class OllamaMessage {
       map['content'],
       id: map['message_id'],
       role: OllamaMessageRole.fromString(map['role']),
-      images: map['images'] != null ? List<dynamic>.from(map['images']) : null,
+      images: map['images'] != null
+          ? jsonDecode(map['images'])
+              .map<File>((e) => File(e as String))
+              .toList()
+          : null,
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
       model: map['model'],
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Future<Map<String, dynamic>> toJson() async => {
         "model": model,
         "created_at": createdAt.toIso8601String(),
         "message": {
-          "role": role.toString(),
+          "role": role.toCaseString(),
           "content": content,
-          "images": images,
+          "images": images != null
+              ? await Future.wait(
+                  images!.map((e) async => base64Encode(await e.readAsBytes())),
+                )
+              : null,
         },
         "done": done,
         "done_reason": doneReason,
@@ -106,10 +115,24 @@ class OllamaMessage {
         "eval_duration": evalDuration,
       };
 
-  Map<String, dynamic> toChatJson() => {
+  Future<Map<String, dynamic>> toChatJson() async => {
         "role": role.toCaseString(),
         "content": content,
-        "images": images,
+        "images": images != null
+            ? await Future.wait(
+                images!.map((e) async => base64Encode(await e.readAsBytes())),
+              )
+            : null,
+      };
+
+  Map<String, dynamic> toDatabaseMap() => {
+        'message_id': id,
+        'content': content,
+        'images': images != null
+            ? jsonEncode(images!.map((e) => e.path).toList())
+            : null,
+        'role': role.toCaseString(),
+        'timestamp': createdAt.millisecondsSinceEpoch,
       };
 
   void updateMetadataFrom(OllamaMessage message) {

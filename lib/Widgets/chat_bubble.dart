@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:photo_view/photo_view.dart';
 import 'package:reins/Models/ollama_message.dart';
 import 'package:reins/Providers/chat_provider.dart';
 import 'package:reins/Utils/border_painter.dart';
@@ -8,6 +11,7 @@ import 'package:reins/Widgets/chat_bubble_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
+import 'package:reins/Widgets/chat_image.dart';
 
 class ChatBubble extends StatelessWidget {
   final OllamaMessage message;
@@ -169,49 +173,59 @@ class _ChatBubbleBody extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      title: Align(
-        alignment: bubbleAlignment,
-        child: Container(
-          padding: const EdgeInsets.all(10.0),
-          constraints: BoxConstraints(
-            maxWidth: isSentFromUser
-                ? MediaQuery.of(context).size.width * 0.8
-                : double.infinity,
-          ),
-          decoration: BoxDecoration(
-            color: isSentFromUser
-                ? Theme.of(context).colorScheme.primaryContainer
-                : Theme.of(context).colorScheme.surface,
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          child: MarkdownBody(
-            data: message.content,
-            softLineBreak: true,
-            styleSheet: MarkdownStyleSheet(
-              textScaler: TextScaler.linear(1.18),
-              code: GoogleFonts.sourceCodePro(),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 25.0, vertical: 15.0),
+      child: Column(
+        spacing: 8,
+        crossAxisAlignment: bubbleAlignment,
+        children: [
+          // If the message has an image attachment, display it
+          if (message.images != null && message.images!.isNotEmpty)
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: message.images!
+                  .map(
+                    (imageFile) => _ChatBubbleImage(imageFile: imageFile),
+                  )
+                  .toList(),
             ),
-            extensionSet: md.ExtensionSet(
-              md.ExtensionSet.gitHubFlavored.blockSyntaxes,
-              <md.InlineSyntax>[
-                md.EmojiSyntax(),
-                ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
-              ],
+          Container(
+            padding: isSentFromUser ? const EdgeInsets.all(10.0) : null,
+            constraints: BoxConstraints(
+              maxWidth: isSentFromUser
+                  ? MediaQuery.of(context).size.width * 0.8
+                  : double.infinity,
+            ),
+            decoration: BoxDecoration(
+              color: isSentFromUser
+                  ? Theme.of(context).colorScheme.primaryContainer
+                  : Theme.of(context).colorScheme.surface,
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            child: MarkdownBody(
+              data: message.content,
+              softLineBreak: true,
+              styleSheet: MarkdownStyleSheet(
+                textScaler: TextScaler.linear(1.18),
+                code: GoogleFonts.sourceCodePro(),
+              ),
+              extensionSet: md.ExtensionSet(
+                md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+                <md.InlineSyntax>[
+                  md.EmojiSyntax(),
+                  ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
+                ],
+              ),
             ),
           ),
-        ),
-      ),
-      subtitle: Align(
-        alignment: bubbleAlignment,
-        child: Text(
-          TimeOfDay.fromDateTime(message.createdAt.toLocal()).format(context),
-          style: TextStyle(
-            color: isSentFromUser
-                ? Theme.of(context).colorScheme.onSurfaceVariant
-                : Theme.of(context).colorScheme.onSurfaceVariant,
+          Text(
+            TimeOfDay.fromDateTime(message.createdAt.toLocal()).format(context),
+            style: TextStyle(
+              color: Theme.of(context).colorScheme.onSurfaceVariant,
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -223,8 +237,77 @@ class _ChatBubbleBody extends StatelessWidget {
   ///
   /// If the message is sent from the user, the alignment is [Alignment.centerRight].
   /// Otherwise, the alignment is [Alignment.centerLeft].
-  Alignment get bubbleAlignment =>
-      isSentFromUser ? Alignment.centerRight : Alignment.centerLeft;
+  CrossAxisAlignment get bubbleAlignment =>
+      isSentFromUser ? CrossAxisAlignment.end : CrossAxisAlignment.start;
+}
+
+class _ChatBubbleImage extends StatelessWidget {
+  final File imageFile;
+
+  const _ChatBubbleImage({super.key, required this.imageFile});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(_createRoute());
+      },
+      child: Hero(
+        tag: imageFile.path,
+        child: ChatImage(
+          image: FileImage(imageFile),
+          aspectRatio: 1.5,
+          width: MediaQuery.of(context).size.height * 0.2,
+        ),
+      ),
+    );
+  }
+
+  Route _createRoute() {
+    return PageRouteBuilder(
+      pageBuilder: (context, animation, secondaryAnimation) {
+        return Scaffold(
+          body: SafeArea(
+            child: Stack(
+              children: [
+                Center(
+                  child: PhotoView(
+                    imageProvider: FileImage(imageFile),
+                    errorBuilder: (context, error, stackTrace) {
+                      return Center(
+                        child: Icon(Icons.error, color: Colors.red),
+                      );
+                    },
+                    backgroundDecoration: BoxDecoration(
+                      color: Colors.transparent,
+                    ),
+                    heroAttributes: PhotoViewHeroAttributes(
+                      tag: imageFile.path,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  top: 5,
+                  right: 0,
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.close,
+                      color: Colors.white,
+                      shadows: [BoxShadow(blurRadius: 10)],
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+      transitionsBuilder: (context, animation, secondaryAnimation, child) {
+        return FadeTransition(opacity: animation, child: child);
+      },
+    );
+  }
 }
 
 class _ChatBubbleMenu extends StatefulWidget {
@@ -259,7 +342,7 @@ class __ChatBubbleMenuState extends State<_ChatBubbleMenu> {
             controller.open(position: details.localPosition);
           },
           child: CustomPaint(
-            painter: BorderPainter(
+            foregroundPainter: BorderPainter(
               color: controller.isOpen
                   ? Theme.of(context).colorScheme.primaryContainer
                   : Theme.of(context).colorScheme.surface,

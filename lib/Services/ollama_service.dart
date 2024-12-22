@@ -116,7 +116,7 @@ class OllamaService {
       body: json.encode({
         "model": chat.model,
         "messages":
-            _serializeChatMessagesWithSystemPrompt(messages, chat.systemPrompt),
+            await _prepareMessagesWithSystemPrompt(messages, chat.systemPrompt),
         "options": chat.options.toMap(),
         "stream": false,
       }),
@@ -145,7 +145,7 @@ class OllamaService {
     request.body = json.encode({
       "model": chat.model,
       "messages":
-          _serializeChatMessagesWithSystemPrompt(messages, chat.systemPrompt),
+          await _prepareMessagesWithSystemPrompt(messages, chat.systemPrompt),
       "options": chat.options.toMap(),
       "stream": true,
     });
@@ -193,16 +193,16 @@ class OllamaService {
   }
 
   // Serializes chat messages with a system prompt.
-  List<Map<String, dynamic>> _serializeChatMessagesWithSystemPrompt(
+  Future<List<Map<String, dynamic>>> _prepareMessagesWithSystemPrompt(
     List<OllamaMessage> messages,
     String? systemPrompt,
-  ) {
-    final jsonMessages = messages.map((m) => m.toChatJson()).toList();
+  ) async {
+    final jsonMessages =
+        await Future.wait(messages.map((m) async => await m.toChatJson()));
 
     if (systemPrompt != null && systemPrompt.isNotEmpty) {
-      final systemPromptMessage =
-          OllamaMessage(systemPrompt, role: OllamaMessageRole.system);
-      jsonMessages.insert(0, systemPromptMessage.toChatJson());
+      final sp = OllamaMessage(systemPrompt, role: OllamaMessageRole.system);
+      jsonMessages.insert(0, await sp.toChatJson());
     }
 
     return jsonMessages;

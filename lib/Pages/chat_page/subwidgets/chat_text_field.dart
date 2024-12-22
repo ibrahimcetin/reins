@@ -4,12 +4,14 @@ class ChatTextField extends StatefulWidget {
   final TextEditingController? controller;
   final void Function(String)? onChanged;
 
+  final Widget? prefixIcon;
   final Widget? suffixIcon;
 
   const ChatTextField({
     super.key,
     this.controller,
     this.onChanged,
+    this.prefixIcon,
     this.suffixIcon,
   });
 
@@ -48,6 +50,7 @@ class _ChatTextFieldState extends State<ChatTextField> {
           borderRadius: BorderRadius.circular(30.0),
         ),
         labelText: 'Prompt',
+        prefixIcon: widget.prefixIcon,
         suffixIcon: widget.suffixIcon,
       ),
       minLines: 1,

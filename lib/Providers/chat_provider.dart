@@ -168,12 +168,16 @@ class ChatProvider extends ChangeNotifier {
     await _databaseService.deleteChat(chat.id);
   }
 
-  Future<void> sendPrompt(String text) async {
+  Future<void> sendPrompt(String text, {List<File>? images}) async {
     // Save the chat where the prompt was sent
     final associatedChat = currentChat!;
 
     // Create a user prompt message and add it to the chat
-    final prompt = OllamaMessage(text.trim(), role: OllamaMessageRole.user);
+    final prompt = OllamaMessage(
+      text.trim(),
+      images: images,
+      role: OllamaMessageRole.user,
+    );
     _messages.add(prompt);
 
     notifyListeners();

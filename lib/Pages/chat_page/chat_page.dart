@@ -1,5 +1,13 @@
+import 'dart:io';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
+import 'package:flutter_image_compress/flutter_image_compress.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:reins/Models/ollama_model.dart';
+import 'package:reins/Pages/chat_page/subwidgets/chat_attachment_list_view.dart';
 import 'package:reins/Providers/chat_provider.dart';
 import 'package:reins/Widgets/chat_app_bar.dart';
 import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
@@ -21,12 +29,18 @@ class _ChatPageState extends State<ChatPage> {
   // This is for empty chat state to select a model
   OllamaModel? _selectedModel;
 
+  // This is for the image attachment
+  final List<File> _imageFiles = [];
+
   // Text field controller for the chat prompt
   final _textFieldController = TextEditingController();
 
   // These are for the welcome screen animation
   var _crossFadeState = CrossFadeState.showFirst;
   double _scale = 1.0;
+
+  // This is for the exit request listener
+  late final AppLifecycleListener _appLifecycleListener;
 
   @override
   void initState() {
@@ -36,6 +50,20 @@ class _ChatPageState extends State<ChatPage> {
     Hive.box('settings').watch(key: 'serverAddress').listen((event) {
       _selectedModel = null;
     });
+
+    // Listen exit request to delete the unused attached images
+    _appLifecycleListener = AppLifecycleListener(onExitRequested: () async {
+      for (final imageFile in _imageFiles) {
+        await imageFile.delete();
+      }
+      return AppExitResponse.exit;
+    });
+  }
+
+  @override
+  void dispose() {
+    _appLifecycleListener.dispose();
+    super.dispose();
   }
 
   @override
@@ -50,6 +78,14 @@ class _ChatPageState extends State<ChatPage> {
             Expanded(
               child: _buildChatBody(chatProvider),
             ),
+            if (_imageFiles.isNotEmpty)
+              SizedBox(
+                height: 100,
+                child: ChatAttachmentListView(
+                  imageFiles: _imageFiles,
+                  onRemove: _handleImageRemove,
+                ),
+              ),
             // TODO: Wrap with ConstrainedBox to limit the height
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -57,6 +93,10 @@ class _ChatPageState extends State<ChatPage> {
                 key: ValueKey(chatProvider.currentChat?.id),
                 controller: _textFieldController,
                 onChanged: (_) => setState(() {}),
+                prefixIcon: IconButton(
+                  icon: Icon(Icons.add),
+                  onPressed: _handleAttachmentButton,
+                ),
                 suffixIcon: _buildTextFieldSuffixIcon(chatProvider),
               ),
             ),
@@ -141,12 +181,26 @@ class _ChatPageState extends State<ChatPage> {
       if (_selectedModel != null) {
         await chatProvider.createNewChat(_selectedModel!);
 
-        chatProvider.sendPrompt(_textFieldController.text);
-        _textFieldController.clear();
+        chatProvider.sendPrompt(
+          _textFieldController.text,
+          images: _imageFiles.toList(),
+        );
+
+        setState(() {
+          _textFieldController.clear();
+          _imageFiles.clear();
+        });
       }
     } else {
-      chatProvider.sendPrompt(_textFieldController.text);
-      _textFieldController.clear();
+      chatProvider.sendPrompt(
+        _textFieldController.text,
+        images: _imageFiles.toList(),
+      );
+
+      setState(() {
+        _textFieldController.clear();
+        _imageFiles.clear();
+      });
     }
   }
 
@@ -164,5 +218,44 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       _selectedModel = selectedModel;
     });
+  }
+
+  Future<void> _handleAttachmentButton() async {
+    final picker = ImagePicker();
+    final sPickedImage = await picker.pickImage(source: ImageSource.gallery);
+    // await picker.pickMultiImage(limit: 4);
+    final pickedImages = sPickedImage == null ? [] : [sPickedImage];
+
+    if (pickedImages.isEmpty) return;
+
+    // Create images directory if it doesn't exist
+    final documentsDirectory = await getApplicationDocumentsDirectory();
+    final imagesPath = path.join(documentsDirectory.path, 'images');
+    await Directory(imagesPath).create(recursive: true);
+
+    // Compress and save the images
+    var imageFiles = <File>[];
+    for (final image in pickedImages) {
+      final imageFilePath = path.join(
+        imagesPath,
+        '${DateTime.now().microsecondsSinceEpoch}${path.extension(image.path)}',
+      );
+
+      final imageFile = await FlutterImageCompress.compressAndGetFile(
+        image.path,
+        imageFilePath,
+        quality: 10,
+      );
+
+      // Add an empty path if the image could not be compressed to show error
+      imageFiles.add(File(imageFile?.path ?? ''));
+    }
+
+    setState(() => _imageFiles.addAll(imageFiles));
+  }
+
+  Future<void> _handleImageRemove(File imageFile) async {
+    await imageFile.delete();
+    setState(() => _imageFiles.remove(imageFile));
   }
 }

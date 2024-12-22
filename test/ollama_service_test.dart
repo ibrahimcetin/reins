@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:path/path.dart' as path;
 import 'package:reins/Models/ollama_chat.dart';
 import 'package:reins/Services/ollama_service.dart';
 import 'package:reins/Models/ollama_message.dart';
@@ -18,6 +21,18 @@ void main() {
 
   const ollamaChatResponseText =
       '''*nods* Alright then...\n\n```dart\nprint('Hello, world!');\n```\n\n*hands over a piece of parchment with the code on it*''';
+
+  final assetsPath = path.join(Directory.current.path, 'test', 'assets');
+  final imageFile = File(path.join(assetsPath, 'ollama.png'));
+
+  final chatForImage = OllamaChat(
+    model: 'llama3.2-vision:latest',
+    title: "Test chat",
+    systemPrompt:
+        "You are a pirate who don't talk too much, acting as an assistant.",
+  );
+  chatForImage.options.temperature = 0;
+  chatForImage.options.seed = 1453;
 
   test("Test Ollama generate endpoint (non-stream)", () async {
     final message = await service.generate("Hello", chat: chat);
@@ -84,6 +99,33 @@ void main() {
 
     expect(ollamaMessages.join(), ollamaChatResponseText);
   });
+
+  test('Test Ollama chat endpoint with images (stream)', () async {
+    final stream = service.chatStream(
+      [
+        OllamaMessage(
+          "Hello!, What is in the image?",
+          images: [imageFile],
+          role: OllamaMessageRole.user,
+        ),
+      ],
+      chat: chatForImage,
+    );
+
+    List<String> ollamaMessages = [];
+    await for (final message in stream) {
+      ollamaMessages.add(message.content);
+    }
+
+    final message = ollamaMessages.join();
+
+    expect(
+      message,
+      '* The image features a simple black and white line drawing of an alpaca\'s head.\n'
+      '* The alpaca has two small ears on top of its head, large eyes, and a small nose.\n'
+      '* Its mouth is closed, giving it a calm expression.',
+    );
+  }, timeout: Timeout.none);
 
   test("Test Ollama tags endpoint", () async {
     final models = await service.listModels();
