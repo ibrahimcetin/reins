@@ -26,6 +26,8 @@ void main() async {
 
   await Hive.openBox('settings');
 
+  await PathManager.initialize();
+
   runApp(
     MultiProvider(
       providers: [

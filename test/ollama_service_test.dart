@@ -23,7 +23,7 @@ void main() {
       '''*nods* Alright then...\n\n```dart\nprint('Hello, world!');\n```\n\n*hands over a piece of parchment with the code on it*''';
 
   final assetsPath = path.join(Directory.current.path, 'test', 'assets');
-  final imageFile = File(path.join(assetsPath, 'ollama.png'));
+  final imageFile = File(path.join(assetsPath, 'images', 'ollama.png'));
 
   final chatForImage = OllamaChat(
     model: 'llama3.2-vision:latest',

@@ -1,15 +1,22 @@
 import 'dart:io';
 
+import 'package:flutter_test/flutter_test.dart';
+import 'package:reins/Constants/constants.dart';
 import 'package:reins/Models/ollama_chat.dart';
 import 'package:reins/Models/ollama_message.dart';
 import 'package:reins/Services/database_service.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
-import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
+
+import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
+import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 void main() async {
   sqfliteFfiInit();
   databaseFactory = databaseFactoryFfi;
+
+  PathProviderPlatform.instance = FakePathProviderPlatform();
+  await PathManager.initialize();
 
   final databasePath = path.join(await getDatabasesPath(), 'test_database.db');
   await databaseFactoryFfi.deleteDatabase(databasePath);
@@ -20,7 +27,7 @@ void main() async {
   const model = "llama3.2";
 
   final assetsPath = path.join(Directory.current.path, 'test', 'assets');
-  final imageFile = File(path.join(assetsPath, 'ollama.png'));
+  final imageFile = File(path.join(assetsPath, 'images', 'ollama.png'));
 
   test("Test database open", () async {
     await service.open('test_database.db');
@@ -121,7 +128,7 @@ void main() async {
   test('Test database delete chat with images', () async {
     List<File> images = [];
     for (var i = 0; i < 10; i++) {
-      final image = File(path.join(assetsPath, 'test_image$i.png'));
+      final image = File(path.join(assetsPath, 'images', 'test_image$i.png'));
       await imageFile.copy(image.path);
 
       images.add(image);
@@ -261,7 +268,7 @@ void main() async {
   });
 
   test('Test database delete message with images', () async {
-    final testImagePath = path.join(assetsPath, 'test_image.png');
+    final testImagePath = path.join(assetsPath, 'images', 'test_image.png');
     await imageFile.copy(testImagePath);
     final testImageFile = File(testImagePath);
 
@@ -316,7 +323,7 @@ void main() async {
   test('Test database delete messages with images', () async {
     List<File> images = [];
     for (var i = 0; i < 10; i++) {
-      final image = File(path.join(assetsPath, 'test_image$i.png'));
+      final image = File(path.join(assetsPath, 'images', 'test_image$i.png'));
       await imageFile.copy(image.path);
 
       images.add(image);
@@ -347,4 +354,13 @@ void main() async {
       expect(await image.exists(), isFalse);
     }
   });
+}
+
+class FakePathProviderPlatform extends Fake
+    with MockPlatformInterfaceMixin
+    implements PathProviderPlatform {
+  @override
+  Future<String?> getApplicationDocumentsPath() async {
+    return path.join(Directory.current.path, 'test', 'assets');
+  }
 }

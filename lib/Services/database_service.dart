@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:reins/Constants/constants.dart';
 import 'package:reins/Models/ollama_chat.dart';
 import 'package:reins/Models/ollama_message.dart';
 import 'package:sqflite/sqflite.dart';
@@ -220,11 +221,12 @@ ORDER BY last_update DESC;''');
 
     for (final result in results) {
       try {
-        final imagePaths = List<String>.from(jsonDecode(result['image_paths']));
-        for (final imagePath in imagePaths) {
-          final file = File(imagePath);
-          if (await file.exists()) {
-            await file.delete();
+        final images = _constructImages(result['image_paths']);
+        if (images == null) continue;
+
+        for (final image in images) {
+          if (await image.exists()) {
+            await image.delete();
           }
         }
 
@@ -236,5 +238,19 @@ ORDER BY last_update DESC;''');
         );
       } catch (_) {}
     }
+  }
+
+  static List<File>? _constructImages(String? raw) {
+    if (raw != null) {
+      final List<dynamic> decoded = jsonDecode(raw);
+      return decoded.map((imageRelativePath) {
+        return File(path.join(
+          PathManager.instance.documentsDirectory.path,
+          imageRelativePath,
+        ));
+      }).toList();
+    }
+
+    return null;
   }
 }

@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as path;
+import 'package:reins/Constants/constants.dart';
 import 'package:uuid/uuid.dart';
 
 class OllamaMessage {
@@ -81,11 +83,7 @@ class OllamaMessage {
       map['content'],
       id: map['message_id'],
       role: OllamaMessageRole.fromString(map['role']),
-      images: map['images'] != null
-          ? jsonDecode(map['images'])
-              .map<File>((e) => File(e as String))
-              .toList()
-          : null,
+      images: _constructImages(map['images']),
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
       model: map['model'],
     );
@@ -97,11 +95,7 @@ class OllamaMessage {
         "message": {
           "role": role.toCaseString(),
           "content": content,
-          "images": images != null
-              ? await Future.wait(
-                  images!.map((e) async => base64Encode(await e.readAsBytes())),
-                )
-              : null,
+          "images": await _base64EncodeImages(),
         },
         "done": done,
         "done_reason": doneReason,
@@ -118,19 +112,13 @@ class OllamaMessage {
   Future<Map<String, dynamic>> toChatJson() async => {
         "role": role.toCaseString(),
         "content": content,
-        "images": images != null
-            ? await Future.wait(
-                images!.map((e) async => base64Encode(await e.readAsBytes())),
-              )
-            : null,
+        "images": await _base64EncodeImages(),
       };
 
   Map<String, dynamic> toDatabaseMap() => {
         'message_id': id,
         'content': content,
-        'images': images != null
-            ? jsonEncode(images!.map((e) => e.path).toList())
-            : null,
+        'images': _breakImages(images),
         'role': role.toCaseString(),
         'timestamp': createdAt.millisecondsSinceEpoch,
       };
@@ -145,6 +133,45 @@ class OllamaMessage {
     promptEvalDuration = message.promptEvalDuration;
     evalCount = message.evalCount;
     evalDuration = message.evalDuration;
+  }
+
+  Future<List<String>?> _base64EncodeImages() async {
+    if (images != null) {
+      return await Future.wait(images!.map(
+        (file) async => base64Encode(await file.readAsBytes()),
+      ));
+    }
+
+    return null;
+  }
+
+  static List<File>? _constructImages(String? raw) {
+    if (raw != null) {
+      final List<dynamic> decoded = jsonDecode(raw);
+      return decoded.map((imageRelativePath) {
+        return File(path.join(
+          PathManager.instance.documentsDirectory.path,
+          imageRelativePath,
+        ));
+      }).toList();
+    }
+
+    return null;
+  }
+
+  String? _breakImages(List<File>? images) {
+    if (images != null) {
+      final relativePathImages = images.map((file) {
+        return path.relative(
+          file.path,
+          from: PathManager.instance.documentsDirectory.path,
+        );
+      }).toList();
+
+      return jsonEncode(relativePathImages);
+    }
+
+    return null;
   }
 }
 
