@@ -133,4 +133,37 @@ void main() {
     expect(models, isNotEmpty);
     expect(models.map((e) => e.model).contains(model), true);
   });
+
+  test("Test Ollama create endpoint without messages", () async {
+    await service.createModel("test_model", chat: chat);
+  });
+
+  test("Test Ollama create endpoint", () async {
+    final messages = [
+      OllamaMessage(
+        "Hello!",
+        role: OllamaMessageRole.user,
+      ),
+      OllamaMessage(
+        "*grunts* Ye be lookin' fer somethin', matey?",
+        role: OllamaMessageRole.assistant,
+      ),
+      OllamaMessage(
+        "Write me a dart code which prints 'Hello, world!'.",
+        role: OllamaMessageRole.user,
+      ),
+    ];
+
+    await service.createModel(
+      "test_model_with_messages",
+      chat: chat,
+      messages: messages,
+    );
+  });
+
+  test("Test Ollama delete endpoint", () async {
+    await service.deleteModel("test_model:latest");
+
+    await service.deleteModel("test_model_with_messages:latest");
+  });
 }

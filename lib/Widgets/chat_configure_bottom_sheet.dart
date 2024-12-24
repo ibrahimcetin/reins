@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:reins/Models/chat_configure_arguments.dart';
 import 'package:reins/Models/ollama_chat.dart';
+import 'package:reins/Models/ollama_exception.dart';
 import 'package:reins/Providers/chat_provider.dart';
 import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
 import 'package:provider/provider.dart';
@@ -81,11 +82,7 @@ class __ChatConfigureBottomSheetContentState
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _RenameButton(),
-            _BottomSheetButton(
-              icon: const Icon(Icons.save_as_outlined),
-              title: 'Save as a new model',
-              onPressed: () {},
-            ),
+            _SaveAsNewModelButton(),
             _DeleteButton(),
           ],
         ),
@@ -331,6 +328,90 @@ class _RenameButton extends StatelessWidget {
                 }
               },
               child: const Text('Rename'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SaveAsNewModelButton extends StatelessWidget {
+  const _SaveAsNewModelButton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return _BottomSheetButton(
+      icon: const Icon(Icons.save_as_outlined),
+      title: 'Save as a new model',
+      onPressed: () async {
+        final chatProvider = Provider.of<ChatProvider>(context, listen: false);
+
+        final newModelName = await _showSaveAsNewModelDialog(context);
+
+        if (newModelName != null) {
+          bool success = false;
+          String errorMessage = '';
+
+          try {
+            await chatProvider.saveAsNewModel(newModelName);
+            success = true;
+          } on OllamaException catch (error) {
+            success = false;
+            errorMessage = '\n${error.message}';
+          }
+
+          final snackBarText = success
+              ? 'Model "$newModelName" saved successfully!'
+              : 'Failed to save model "$newModelName".$errorMessage';
+
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(snackBarText),
+                showCloseIcon: true,
+                backgroundColor: success ? Colors.green : Colors.red,
+              ),
+            );
+
+            Navigator.of(context).pop();
+          }
+        }
+      },
+    );
+  }
+
+  Future<String?> _showSaveAsNewModelDialog(BuildContext context) async {
+    String? newModel;
+
+    return await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Save As New Model'),
+          content: TextField(
+            decoration: const InputDecoration(
+              labelText: 'New Model Name',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) => newModel = value,
+            onTapOutside: (PointerDownEvent event) {
+              FocusManager.instance.primaryFocus?.unfocus();
+            },
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (newModel != null && newModel!.trim().isNotEmpty) {
+                  Navigator.of(context).pop(newModel!.trim());
+                }
+              },
+              child: const Text('Save'),
             ),
           ],
         );

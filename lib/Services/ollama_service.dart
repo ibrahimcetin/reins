@@ -5,6 +5,7 @@ import 'package:reins/Models/ollama_chat.dart';
 import 'package:reins/Models/ollama_exception.dart';
 import 'package:reins/Models/ollama_message.dart';
 import 'package:reins/Models/ollama_model.dart';
+import 'package:reins/Services/ollama_modelfile_generator.dart';
 
 class OllamaService {
   /// The base URL for the Ollama service API.
@@ -20,6 +21,9 @@ class OllamaService {
 
   /// The headers to include in all network requests.
   final headers = {'Content-Type': 'application/json'};
+
+  /// The modelfile generator used to generate modelfiles for the Ollama service.
+  static final _modelfileGenerator = OllamaModelfileGenerator();
 
   /// Creates a new instance of the Ollama service.
   OllamaService({String? baseUrl})
@@ -219,6 +223,53 @@ class OllamaService {
       return List<OllamaModel>.from(
         jsonBody["models"].map((m) => OllamaModel.fromJson(m)),
       );
+    } else if (response.statusCode == 500) {
+      throw OllamaException("Internal server error.");
+    } else {
+      throw OllamaException("Something went wrong.");
+    }
+  }
+
+  Future<void> createModel(
+    String model, {
+    required OllamaChat chat,
+    List<OllamaMessage>? messages,
+  }) async {
+    final url = Uri.parse("$baseUrl/api/create");
+
+    final modelfile = await _modelfileGenerator.generate(chat, messages ?? []);
+
+    final response = await http.post(
+      url,
+      headers: headers,
+      body: json.encode({
+        "model": model,
+        "modelfile": modelfile,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else if (response.statusCode == 500) {
+      throw OllamaException("Internal server error.");
+    } else {
+      throw OllamaException("Something went wrong.");
+    }
+  }
+
+  Future<void> deleteModel(String model) async {
+    final url = Uri.parse("$baseUrl/api/delete");
+
+    final response = await http.delete(
+      url,
+      headers: headers,
+      body: json.encode({"model": model}),
+    );
+
+    if (response.statusCode == 200) {
+      return;
+    } else if (response.statusCode == 404) {
+      throw OllamaException("$model not found on the server.");
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
