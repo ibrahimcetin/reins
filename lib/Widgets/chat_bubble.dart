@@ -12,6 +12,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:reins/Widgets/chat_image.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ChatBubble extends StatelessWidget {
   final OllamaMessage message;
@@ -217,6 +218,7 @@ class _ChatBubbleBody extends StatelessWidget {
                   ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
                 ],
               ),
+              onTapLink: (text, href, title) => launchUrlString(href!),
             ),
           ),
           Text(
