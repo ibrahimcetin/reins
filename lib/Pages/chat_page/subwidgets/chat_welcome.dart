@@ -75,8 +75,10 @@ class _ChatWelcomeText extends StatelessWidget {
           speed: const Duration(milliseconds: 100),
         ),
       ],
+      displayFullTextOnTap: true,
       isRepeatingAnimation: false,
       pause: Duration(milliseconds: 1500),
+      stopPauseOnTap: true,
       onFinished: onFinished,
     );
   }
