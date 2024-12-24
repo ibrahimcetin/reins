@@ -203,14 +203,16 @@ class ChatProvider extends ChangeNotifier {
     // Update the chat list to show the latest chat at the top
     _moveCurrentChatToTop();
 
-    // Stream the Ollama message
+    // Add the chat to the active chat streams to show the thinking indicator
     _activeChatStreams[associatedChat.id] = null;
-
     // Notify the listeners to show the thinking indicator
     notifyListeners();
 
+    // Stream the Ollama message
+    OllamaMessage? ollamaMessage;
+
     try {
-      await _streamOllamaMessage(associatedChat);
+      ollamaMessage = await _streamOllamaMessage(associatedChat);
     } on OllamaException catch (error) {
       _chatErrors[associatedChat.id] = error;
     } on SocketException catch (_) {
@@ -219,15 +221,11 @@ class ChatProvider extends ChangeNotifier {
       );
     } catch (error) {
       _chatErrors[associatedChat.id] = OllamaException("Something went wrong.");
+    } finally {
+      // Remove the chat from the active chat streams
+      _activeChatStreams.remove(associatedChat.id);
+      notifyListeners();
     }
-
-    // We get the Ollama message from the active chat streams to save it to the database.
-    // Because _streamOllamaMessage only returns if it is succeeded.
-    // _activeChatStreams holds the latest message.
-    final ollamaMessage = _activeChatStreams[associatedChat.id];
-
-    _activeChatStreams.remove(associatedChat.id);
-    notifyListeners();
 
     // Save the Ollama message to the database
     if (ollamaMessage != null) {
@@ -247,7 +245,7 @@ class ChatProvider extends ChangeNotifier {
       // If the chat id is not in the active chat streams, it means the stream
       // is cancelled by the user. So, we need to break the loop.
       if (_activeChatStreams.containsKey(associatedChat.id) == false) {
-        break;
+        return streamingMessage;
       }
 
       if (streamingMessage == null) {
