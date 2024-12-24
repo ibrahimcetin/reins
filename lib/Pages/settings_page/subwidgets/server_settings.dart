@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
 import 'package:reins/Models/ollama_request_state.dart';
+import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class ServerSettings extends StatefulWidget {
   final bool autoFocusServerAddress;
@@ -70,8 +73,8 @@ class _ServerSettingsState extends State<ServerSettings> {
             border: OutlineInputBorder(),
             errorText: _serverAddressErrorText,
             suffixIcon: IconButton(
-              onPressed: () {},
               icon: Icon(Icons.info_outline),
+              onPressed: () => _showOllamaInfoBottomSheet(context),
             ),
           ),
           onTapOutside: (PointerDownEvent event) {
@@ -206,5 +209,38 @@ class _ServerSettingsState extends State<ServerSettings> {
       case OllamaRequestState.uninitialized:
         return Colors.grey;
     }
+  }
+
+  void _showOllamaInfoBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (BuildContext context) {
+        return SafeArea(
+          bottom: false,
+          minimum: EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              OllamaBottomSheetHeader(title: 'What is Ollama?'),
+              Divider(),
+              Expanded(
+                child: ListView(
+                  children: [
+                    MarkdownBody(
+                      data:
+                          "Ollama is a free platform that enables you to run advanced large language models (LLMs) like Llama 3.3, Phi 3, Mistral, Gemma 2, and more directly on your local machine. This setup enhances privacy, security, and control over your AI interactions. Ollama also allows you to customize and create your own models.\n\nTo get started with Ollama, visit their official website: [ollama.com](https://ollama.com). Here, you can explore various models and download the platform to begin using Ollama.",
+                      styleSheet: MarkdownStyleSheet(
+                        textScaler: TextScaler.linear(1.18),
+                      ),
+                      onTapLink: (_, href, __) => launchUrlString(href!),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 }

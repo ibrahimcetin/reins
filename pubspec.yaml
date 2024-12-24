@@ -66,6 +66,7 @@ dependencies:
   # Markdown rendering
   flutter_markdown: ^0.7.4+3
   markdown: any
+  url_launcher: ^6.3.1
 
   # Image support
   image_picker: ^1.1.2
