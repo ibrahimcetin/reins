@@ -359,6 +359,8 @@ class _SaveAsNewModelButton extends StatelessWidget {
           } on OllamaException catch (error) {
             success = false;
             errorMessage = '\n${error.message}';
+          } catch (error) {
+            success = false;
           }
 
           final snackBarText = success
