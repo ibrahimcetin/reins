@@ -74,6 +74,9 @@ dependencies:
   flutter_image_compress: ^2.3.0
   photo_view: ^0.15.0
 
+  # In-app review
+  in_app_review: ^2.0.10
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

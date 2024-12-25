@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:in_app_review/in_app_review.dart';
 import 'package:reins/Constants/constants.dart';
 import 'package:reins/Models/settings_route_arguments.dart';
 import 'package:reins/Pages/main_page.dart';
@@ -9,6 +10,7 @@ import 'package:reins/Services/ollama_service.dart';
 import 'package:reins/Utils/material_color_adapter.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:reins/Utils/request_review_helper.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 import 'dart:io' show Platform;
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -27,6 +29,14 @@ void main() async {
   await Hive.openBox('settings');
 
   await PathManager.initialize();
+  final reviewHelper = await RequestReviewHelper.initialize();
+
+  await reviewHelper.incrementCount(isLaunch: true);
+
+  final inAppReview = InAppReview.instance;
+  if (await inAppReview.isAvailable() && reviewHelper.shouldRequestReview()) {
+    await inAppReview.requestReview();
+  }
 
   runApp(
     MultiProvider(
