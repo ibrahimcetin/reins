@@ -460,7 +460,7 @@ class _DeleteButton extends StatelessWidget {
 
                 Navigator.of(context)
                   ..pop()
-                  ..pop();
+                  ..pop(ChatConfigureBottomSheetAction.delete);
               },
               style: TextButton.styleFrom(
                 foregroundColor: Colors.red,
@@ -674,4 +674,8 @@ enum _BottomSheetTextFieldType {
   number,
   decimal,
   decimalBetween0And1,
+}
+
+enum ChatConfigureBottomSheetAction {
+  delete,
 }

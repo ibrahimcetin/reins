@@ -73,7 +73,7 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
 
     final arguments = chatProvider.currentChatConfiguration;
 
-    await showModalBottomSheet(
+    final ChatConfigureBottomSheetAction? action = await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
@@ -83,6 +83,9 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
         );
       },
     );
+
+    // If the user deletes the chat, we don't need to update the chat.
+    if (action == ChatConfigureBottomSheetAction.delete) return;
 
     await chatProvider.updateCurrentChat(
       newSystemPrompt: arguments.systemPrompt,
