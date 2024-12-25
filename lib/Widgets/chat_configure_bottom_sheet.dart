@@ -79,6 +79,7 @@ class __ChatConfigureBottomSheetContentState
       children: [
         // The buttons to rename, save as a new model, and delete the chat
         Row(
+          spacing: 16.0,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _RenameButton(),
