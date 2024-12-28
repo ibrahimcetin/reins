@@ -93,6 +93,12 @@ class _ChatPageState extends State<ChatPage> {
                 key: ValueKey(chatProvider.currentChat?.id),
                 controller: _textFieldController,
                 onChanged: (_) => setState(() {}),
+                onEditingComplete: () async {
+                  if (_textFieldController.text.trim().isNotEmpty &&
+                      chatProvider.isCurrentChatStreaming == false) {
+                    await _handleSendButton(chatProvider);
+                  }
+                },
                 prefixIcon: IconButton(
                   icon: Icon(Icons.add),
                   onPressed: _handleAttachmentButton,

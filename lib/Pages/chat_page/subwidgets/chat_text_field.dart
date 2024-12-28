@@ -1,8 +1,13 @@
+import 'dart:io' show Platform;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ChatTextField extends StatefulWidget {
   final TextEditingController? controller;
+
   final void Function(String)? onChanged;
+  final void Function()? onEditingComplete;
 
   final Widget? prefixIcon;
   final Widget? suffixIcon;
@@ -11,6 +16,7 @@ class ChatTextField extends StatefulWidget {
     super.key,
     this.controller,
     this.onChanged,
+    this.onEditingComplete,
     this.prefixIcon,
     this.suffixIcon,
   });
@@ -42,24 +48,39 @@ class _ChatTextFieldState extends State<ChatTextField> {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
-      controller: widget.controller,
-      onChanged: widget.onChanged,
-      decoration: InputDecoration(
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(30.0),
-        ),
-        labelText: 'Prompt',
-        prefixIcon: widget.prefixIcon,
-        suffixIcon: widget.suffixIcon,
-      ),
-      minLines: 1,
-      maxLines: 5,
-      textCapitalization: TextCapitalization.sentences,
-      onTapOutside: (PointerDownEvent event) {
-        FocusManager.instance.primaryFocus?.unfocus();
+    return CallbackShortcuts(
+      bindings: <ShortcutActivator, VoidCallback>{
+        SingleActivator(LogicalKeyboardKey.enter, shift: true): () {
+          widget.controller?.text += '\n';
+        },
       },
+      child: TextField(
+        controller: widget.controller,
+        onChanged: widget.onChanged,
+        onEditingComplete: widget.onEditingComplete,
+        decoration: InputDecoration(
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(30.0),
+          ),
+          labelText: 'Prompt',
+          prefixIcon: widget.prefixIcon,
+          suffixIcon: widget.suffixIcon,
+        ),
+        minLines: 1,
+        maxLines: 5,
+        textCapitalization: TextCapitalization.sentences,
+        textInputAction: _textInputAction,
+        onTapOutside: (PointerDownEvent event) {
+          FocusManager.instance.primaryFocus?.unfocus();
+        },
+      ),
     );
+  }
+
+  TextInputAction get _textInputAction {
+    return Platform.isIOS || Platform.isAndroid
+        ? TextInputAction.newline
+        : TextInputAction.send;
   }
 
   String _readTextFieldState() {
