@@ -34,6 +34,7 @@ class _ChatPageState extends State<ChatPage> {
 
   // Text field controller for the chat prompt
   final _textFieldController = TextEditingController();
+  bool get _isTextFieldHasText => _textFieldController.text.trim().isNotEmpty;
 
   // These are for the welcome screen animation
   var _crossFadeState = CrossFadeState.showFirst;
@@ -93,12 +94,7 @@ class _ChatPageState extends State<ChatPage> {
                 key: ValueKey(chatProvider.currentChat?.id),
                 controller: _textFieldController,
                 onChanged: (_) => setState(() {}),
-                onEditingComplete: () async {
-                  if (_textFieldController.text.trim().isNotEmpty &&
-                      chatProvider.isCurrentChatStreaming == false) {
-                    await _handleSendButton(chatProvider);
-                  }
-                },
+                onEditingComplete: () => _handleOnEditingComplete(chatProvider),
                 prefixIcon: IconButton(
                   icon: Icon(Icons.add),
                   onPressed: _handleAttachmentButton,
@@ -162,7 +158,7 @@ class _ChatPageState extends State<ChatPage> {
           chatProvider.cancelCurrentStreaming();
         },
       );
-    } else if (_textFieldController.text.trim().isNotEmpty) {
+    } else if (_isTextFieldHasText) {
       return IconButton(
         icon: const Icon(Icons.arrow_upward_rounded),
         color: Theme.of(context).colorScheme.onSurface,
@@ -207,6 +203,12 @@ class _ChatPageState extends State<ChatPage> {
         _textFieldController.clear();
         _imageFiles.clear();
       });
+    }
+  }
+
+  Future<void> _handleOnEditingComplete(ChatProvider chatProvider) async {
+    if (_isTextFieldHasText && chatProvider.isCurrentChatStreaming == false) {
+      await _handleSendButton(chatProvider);
     }
   }
 
