@@ -1,7 +1,11 @@
+import 'dart:io';
+import 'dart:isolate';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
+import 'package:reins/Models/ollama_exception.dart';
 import 'package:reins/Models/ollama_request_state.dart';
 import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
 import 'package:url_launcher/url_launcher_string.dart';
@@ -19,7 +23,9 @@ class _ServerSettingsState extends State<ServerSettings> {
   final _settingsBox = Hive.box('settings');
 
   final _serverAddressController = TextEditingController();
+
   OllamaRequestState _requestState = OllamaRequestState.uninitialized;
+  get _isLoading => _requestState == OllamaRequestState.loading;
 
   String? _serverAddressErrorText;
 
@@ -83,119 +89,22 @@ class _ServerSettingsState extends State<ServerSettings> {
         ),
         const SizedBox(height: 16),
         Row(
-          mainAxisAlignment: MainAxisAlignment.end,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            // TODO: Add search local network button
             ElevatedButton(
-              onPressed: _requestState == OllamaRequestState.loading
-                  ? null
-                  : _handleConnectButton,
-              child: Row(
-                children: [
-                  const Text('Connect'),
-                  const SizedBox(width: 10),
-                  Container(
-                    width: 10,
-                    height: 10,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: _connectionStatusColor,
-                    ),
-                  ),
-                ],
+              onPressed: _isLoading ? null : _handleSearchLocalNetwork,
+              child: const Text('Search Local Network'),
+            ),
+            ElevatedButton(
+              onPressed: _isLoading ? null : _handleConnectButton,
+              child: _ConnectionStatusIndicator(
+                color: _connectionStatusColor,
               ),
             ),
           ],
         ),
       ],
     );
-  }
-
-  _handleConnectButton() async {
-    setState(() {
-      _requestState = OllamaRequestState.loading;
-    });
-
-    try {
-      final newAddress = _validateServerAddress(_serverAddressController.text);
-
-      final state = await _establishServerConnection(Uri.parse(newAddress));
-
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _requestState = state;
-      });
-
-      final currentAddress = _settingsBox.get('serverAddress');
-      if (state == OllamaRequestState.success && newAddress != currentAddress) {
-        _settingsBox.put('serverAddress', newAddress);
-      }
-    } on String catch (error) {
-      setState(() {
-        _serverAddressErrorText = error;
-        _requestState = OllamaRequestState.error;
-      });
-    } catch (_) {
-      setState(() {
-        _serverAddressErrorText =
-            'Invalid URL format. Use: http(s)://<host>:<port>.';
-        _requestState = OllamaRequestState.error;
-      });
-    }
-  }
-
-  Future<OllamaRequestState> _establishServerConnection(
-    Uri serverAddress,
-  ) async {
-    try {
-      final response =
-          await http.get(serverAddress).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200 && response.body == "Ollama is running") {
-        return OllamaRequestState.success;
-      } else {
-        return OllamaRequestState.error;
-      }
-    } catch (e) {
-      return OllamaRequestState.error;
-    }
-  }
-
-  String _validateServerAddress(String address) {
-    if (address.isEmpty) {
-      throw 'Please enter a server address.';
-    }
-
-    final url = Uri.parse(address);
-
-    if (url.scheme.isEmpty) {
-      throw 'Please include the scheme. e.g. http://localhost:11434';
-    }
-
-    // If user don't include the scheme and just enter host and port like 'localhost:11434'.
-    // The parser will consider the host as the scheme, so host will be empty. But actually the scheme is empty.
-    if (url.scheme != 'http' && url.scheme != 'https' && url.host.isEmpty) {
-      throw 'Please include the scheme. e.g. http://localhost:11434';
-    }
-
-    if (url.host.isEmpty) {
-      throw 'Please include the host. e.g. http://localhost:11434';
-    }
-
-    if (url.scheme != 'http' && url.scheme != 'https') {
-      throw 'Invalid scheme. Only http and https are supported.';
-    }
-
-    String formattedAddress = "${url.scheme}://${url.host}";
-
-    if (url.hasPort) {
-      formattedAddress += ":${url.port}";
-    }
-
-    return formattedAddress;
   }
 
   Color get _connectionStatusColor {
@@ -209,6 +118,106 @@ class _ServerSettingsState extends State<ServerSettings> {
       case OllamaRequestState.uninitialized:
         return Colors.grey;
     }
+  }
+
+  _handleConnectButton() async {
+    setState(() {
+      _serverAddressErrorText = null;
+      _requestState = OllamaRequestState.loading;
+    });
+
+    try {
+      // Validate the server address.
+      final newAddress = _validateServerAddress(_serverAddressController.text);
+      // Establish a connection to the server.
+      final result = await _establishServerConnection(Uri.parse(newAddress));
+
+      if (!mounted) return;
+
+      _requestState = result.$1;
+      _saveServerAddressWith(result);
+    } on OllamaException catch (error) {
+      _serverAddressErrorText = error.message;
+      _requestState = OllamaRequestState.error;
+    } catch (_) {
+      _serverAddressErrorText =
+          'Invalid URL format. Use: http(s)://<host>:<port>';
+      _requestState = OllamaRequestState.error;
+    } finally {
+      setState(() {});
+    }
+  }
+
+  void _saveServerAddressWith((OllamaRequestState, Uri) result) {
+    final state = result.$1;
+    final newAddress = result.$2.toString();
+
+    final currentAddress = _settingsBox.get('serverAddress');
+    if (state == OllamaRequestState.success && newAddress != currentAddress) {
+      _settingsBox.put('serverAddress', newAddress);
+    }
+  }
+
+  /// Establishes a connection to the Ollama server.
+  ///
+  /// Returns a tuple of the request state and the given server address.
+  static Future<(OllamaRequestState, Uri)> _establishServerConnection(
+    Uri serverAddress,
+  ) async {
+    try {
+      final response =
+          await http.get(serverAddress).timeout(const Duration(seconds: 2));
+
+      if (response.statusCode == 200 && response.body == "Ollama is running") {
+        return (OllamaRequestState.success, serverAddress);
+      } else {
+        return (OllamaRequestState.error, serverAddress);
+      }
+    } catch (e) {
+      return (OllamaRequestState.error, serverAddress);
+    }
+  }
+
+  String _validateServerAddress(String address) {
+    if (address.isEmpty) {
+      throw OllamaException('Please enter a server address.');
+    }
+
+    final url = Uri.parse(address);
+
+    if (url.scheme.isEmpty) {
+      throw OllamaException(
+        'Please include the scheme. e.g. http://localhost:11434',
+      );
+    }
+
+    // If user don't include the scheme and just enter host and port like 'localhost:11434'.
+    // The parser will consider the host as the scheme, so host will be empty. But actually the scheme is empty.
+    if (url.scheme != 'http' && url.scheme != 'https' && url.host.isEmpty) {
+      throw OllamaException(
+        'Please include the scheme. e.g. http://localhost:11434',
+      );
+    }
+
+    if (url.host.isEmpty) {
+      throw OllamaException(
+        'Please include the host. e.g. http://localhost:11434',
+      );
+    }
+
+    if (url.scheme != 'http' && url.scheme != 'https') {
+      throw OllamaException(
+        'Invalid scheme. Only http and https are supported.',
+      );
+    }
+
+    String formattedAddress = "${url.scheme}://${url.host}";
+
+    if (url.hasPort) {
+      formattedAddress += ":${url.port}";
+    }
+
+    return formattedAddress;
   }
 
   void _showOllamaInfoBottomSheet(BuildContext context) {
@@ -241,6 +250,96 @@ class _ServerSettingsState extends State<ServerSettings> {
           ),
         );
       },
+    );
+  }
+
+  void _handleSearchLocalNetwork() async {
+    setState(() {
+      _serverAddressErrorText = null;
+      _requestState = OllamaRequestState.loading;
+    });
+
+    try {
+      final result = await Isolate.run(() => _searchLocalNetwork());
+      final foundAddress = result.$2.toString();
+
+      if (!mounted) return;
+
+      // Update the server address text field with the found address.
+      _serverAddressController.text = foundAddress;
+
+      _requestState = result.$1;
+      _saveServerAddressWith(result);
+    } on OllamaException catch (e) {
+      _serverAddressErrorText = e.message;
+      _requestState = OllamaRequestState.error;
+    } catch (e) {
+      _serverAddressErrorText = 'Something went wrong while searching.';
+      _requestState = OllamaRequestState.error;
+    } finally {
+      setState(() {});
+    }
+  }
+
+  static Future<(OllamaRequestState, Uri)> _searchLocalNetwork() async {
+    final networkInterfaces = await NetworkInterface.list(
+      includeLoopback: true,
+      type: InternetAddressType.IPv4,
+    );
+
+    final futures = <Future<(OllamaRequestState, Uri)>>[];
+    for (var interface in networkInterfaces) {
+      for (var address in interface.addresses) {
+        if (address.isLoopback) {
+          final url = Uri.parse('http://${address.address}:11434');
+          futures.add(_establishServerConnection(url));
+        } else {
+          final segments = address.address.split('.');
+          for (int i = 1; i < 255; i++) {
+            final url = Uri.parse(
+              'http://${segments[0]}.${segments[1]}.${segments[2]}.$i:11434',
+            );
+            futures.add(_establishServerConnection(url));
+          }
+        }
+      }
+    }
+
+    final results = await Future.wait(futures);
+
+    final result = results.firstWhere(
+      (result) => result.$1 == OllamaRequestState.success,
+      orElse: () =>
+          throw OllamaException('No Ollama server found on the local network.'),
+    );
+
+    return result;
+  }
+}
+
+class _ConnectionStatusIndicator extends StatelessWidget {
+  final Color color;
+
+  const _ConnectionStatusIndicator({
+    super.key,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        const Text('Connect'),
+        const SizedBox(width: 10),
+        Container(
+          width: 10,
+          height: 10,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: color,
+          ),
+        ),
+      ],
     );
   }
 }
