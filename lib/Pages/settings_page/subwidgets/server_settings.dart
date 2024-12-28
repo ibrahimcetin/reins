@@ -224,31 +224,7 @@ class _ServerSettingsState extends State<ServerSettings> {
     showModalBottomSheet(
       context: context,
       builder: (BuildContext context) {
-        return SafeArea(
-          bottom: false,
-          minimum: EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              OllamaBottomSheetHeader(title: 'What is Ollama?'),
-              Divider(),
-              Expanded(
-                child: ListView(
-                  children: [
-                    MarkdownBody(
-                      data:
-                          "Ollama is a free platform that enables you to run advanced large language models (LLMs) like Llama 3.3, Phi 3, Mistral, Gemma 2, and more directly on your local machine. This setup enhances privacy, security, and control over your AI interactions. Ollama also allows you to customize and create your own models.\n\nTo get started with Ollama, visit their official website: [ollama.com](https://ollama.com). Here, you can explore various models and download the platform to begin using Ollama.",
-                      styleSheet: MarkdownStyleSheet(
-                        textScaler: TextScaler.linear(1.18),
-                      ),
-                      onTapLink: (_, href, __) => launchUrlString(href!),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        );
+        return _OllamaInfoBottomSheet();
       },
     );
   }
@@ -340,6 +316,41 @@ class _ConnectionStatusIndicator extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _OllamaInfoBottomSheet extends StatelessWidget {
+  const _OllamaInfoBottomSheet({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      minimum: EdgeInsets.all(16.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          OllamaBottomSheetHeader(title: 'What is Ollama?'),
+          Divider(),
+          Expanded(
+            child: ListView(
+              children: [
+                MarkdownBody(
+                  data:
+                      "Ollama is a free platform that enables you to run advanced large language models (LLMs) like Llama 3.3, Phi 3, Mistral, Gemma 2, and more directly on your local machine. This setup enhances privacy, security, and control over your AI interactions. Ollama also allows you to customize and create your own models.\n\nTo get started with Ollama, visit their official website: [ollama.com](https://ollama.com). Here, you can explore various models and download the platform to begin using Ollama.",
+                  styleSheet: MarkdownStyleSheet(
+                    textScaler: TextScaler.linear(1.18),
+                  ),
+                  onTapLink: (_, href, __) => launchUrlString(href!),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
