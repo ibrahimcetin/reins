@@ -57,13 +57,13 @@ void main() async {
           ),
         ),
       ],
-      child: const OllamaChatApp(),
+      child: const ReinsApp(),
     ),
   );
 }
 
-class OllamaChatApp extends StatelessWidget {
-  const OllamaChatApp({super.key});
+class ReinsApp extends StatelessWidget {
+  const ReinsApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +93,7 @@ class OllamaChatApp extends StatelessWidget {
           onGenerateRoute: (settings) {
             if (settings.name == '/') {
               return MaterialPageRoute(
-                builder: (context) => const OllamaChatMainPage(),
+                builder: (context) => const ReinsMainPage(),
               );
             }
 

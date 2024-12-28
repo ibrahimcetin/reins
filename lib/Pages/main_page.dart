@@ -4,8 +4,8 @@ import 'package:reins/Widgets/chat_app_bar.dart';
 import 'package:reins/Widgets/chat_drawer.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
-class OllamaChatMainPage extends StatelessWidget {
-  const OllamaChatMainPage({super.key});
+class ReinsMainPage extends StatelessWidget {
+  const ReinsMainPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,13 +16,13 @@ class OllamaChatMainPage extends StatelessWidget {
         drawer: ChatDrawer(),
       );
     } else {
-      return _OllamaChatLargeMainPage();
+      return _ReinsLargeMainPage();
     }
   }
 }
 
-class _OllamaChatLargeMainPage extends StatelessWidget {
-  const _OllamaChatLargeMainPage({super.key});
+class _ReinsLargeMainPage extends StatelessWidget {
+  const _ReinsLargeMainPage({super.key});
 
   @override
   Widget build(BuildContext context) {
