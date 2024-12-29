@@ -7,12 +7,14 @@ class ChatListView extends StatefulWidget {
   final List<OllamaMessage> messages;
   final bool isAwaitingReply;
   final Widget? error;
+  final double? bottomPadding;
 
   const ChatListView({
     super.key,
     required this.messages,
     required this.isAwaitingReply,
     this.error,
+    this.bottomPadding,
   });
 
   @override
@@ -74,6 +76,10 @@ class _ChatListViewState extends State<ChatListView> {
           controller: _scrollController,
           reverse: true,
           slivers: [
+            if (widget.bottomPadding != null)
+              SliverPadding(
+                padding: EdgeInsets.only(bottom: widget.bottomPadding!),
+              ),
             if (widget.error != null)
               SliverToBoxAdapter(
                 child: widget.error,

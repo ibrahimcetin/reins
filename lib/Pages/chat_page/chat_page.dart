@@ -6,8 +6,8 @@ import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:reins/Constants/constants.dart';
 import 'package:reins/Models/ollama_model.dart';
-import 'package:reins/Pages/chat_page/subwidgets/chat_attachment_list_view.dart';
 import 'package:reins/Providers/chat_provider.dart';
 import 'package:reins/Widgets/chat_app_bar.dart';
 import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
@@ -77,16 +77,14 @@ class _ChatPageState extends State<ChatPage> {
             if (!ResponsiveBreakpoints.of(context).isMobile)
               ChatAppBar(), // If the screen is large, show the app bar
             Expanded(
-              child: _buildChatBody(chatProvider),
-            ),
-            if (_imageFiles.isNotEmpty)
-              SizedBox(
-                height: 100,
-                child: ChatAttachmentListView(
-                  imageFiles: _imageFiles,
-                  onRemove: _handleImageRemove,
-                ),
+              child: Stack(
+                alignment: Alignment.bottomLeft,
+                children: [
+                  _buildChatBody(chatProvider),
+                  _buildChatFooter(chatProvider),
+                ],
               ),
+            ),
             // TODO: Wrap with ConstrainedBox to limit the height
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -145,7 +143,41 @@ class _ChatPageState extends State<ChatPage> {
                 onRetry: () => chatProvider.retryLastPrompt(),
               )
             : null,
+        bottomPadding: _imageFiles.isNotEmpty
+            ? MediaQuery.of(context).size.height * 0.15
+            : null, // TODO: Calculate the height of attachments row
       );
+    }
+  }
+
+  Widget _buildChatFooter(ChatProvider chatProvider) {
+    if (_imageFiles.isNotEmpty) {
+      return ChatAttachmentRow(
+        itemCount: _imageFiles.length,
+        itemBuilder: (context, index) {
+          return ChatAttachmentImage(
+            imageFile: _imageFiles[index],
+            onRemove: _handleImageRemove,
+          );
+        },
+      );
+    } else if (chatProvider.messages.isEmpty) {
+      final presets = ChatPresets.randomPresets;
+      return ChatAttachmentRow(
+        itemCount: presets.length,
+        itemBuilder: (context, index) {
+          final preset = presets[index];
+          return ChatAttachmentPreset(
+            preset: preset,
+            onPressed: () async {
+              setState(() => _textFieldController.text = preset.prompt);
+              await _handleSendButton(chatProvider);
+            },
+          );
+        },
+      );
+    } else {
+      return const SizedBox();
     }
   }
 
