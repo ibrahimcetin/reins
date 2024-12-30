@@ -51,6 +51,7 @@ class OllamaService {
       body: json.encode({
         "model": chat.model,
         "prompt": prompt,
+        "system": chat.systemPrompt,
         "options": chat.options.toMap(),
         "stream": false,
       }),
@@ -79,6 +80,7 @@ class OllamaService {
     request.body = json.encode({
       "model": chat.model,
       "prompt": prompt,
+      "system": chat.systemPrompt,
       "options": chat.options.toMap(),
       "stream": true,
     });

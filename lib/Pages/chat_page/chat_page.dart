@@ -223,6 +223,8 @@ class _ChatPageState extends State<ChatPage> {
           images: _imageFiles.toList(),
         );
 
+        chatProvider.generateTitleForCurrentChat();
+
         setState(() {
           _textFieldController.clear();
           _imageFiles.clear();

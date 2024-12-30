@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:reins/Constants/constants.dart';
 import 'package:reins/Models/chat_configure_arguments.dart';
 import 'package:reins/Models/ollama_chat.dart';
 import 'package:reins/Models/ollama_exception.dart';
@@ -135,8 +136,25 @@ class ChatProvider extends ChangeNotifier {
     String? newSystemPrompt,
     OllamaChatOptions? newOptions,
   }) async {
-    final chat = currentChat;
+    await updateChat(
+      currentChat,
+      newModel: newModel,
+      newTitle: newTitle,
+      newSystemPrompt: newSystemPrompt,
+      newOptions: newOptions,
+    );
+  }
 
+  /// Updates the chat with the given parameters.
+  ///
+  /// If the chat is `null`, it updates the empty chat configuration.
+  Future<void> updateChat(
+    OllamaChat? chat, {
+    String? newModel,
+    String? newTitle,
+    String? newSystemPrompt,
+    OllamaChatOptions? newOptions,
+  }) async {
     if (chat == null) {
       _emptyChatConfiguration = ChatConfigureArguments(
         systemPrompt: newSystemPrompt,
@@ -151,8 +169,14 @@ class ChatProvider extends ChangeNotifier {
         newOptions: newOptions,
       );
 
-      _chats[_currentChatIndex] = (await _databaseService.getChat(chat.id))!;
-      notifyListeners();
+      final chatIndex = _chats.indexWhere((c) => c.id == chat.id);
+
+      if (chatIndex != -1) {
+        _chats[chatIndex] = (await _databaseService.getChat(chat.id))!;
+        notifyListeners();
+      } else {
+        throw OllamaException("Chat not found.");
+      }
     }
   }
 
@@ -372,5 +396,32 @@ class ChatProvider extends ChangeNotifier {
       chat: associatedChat,
       messages: _messages.toList(),
     );
+  }
+
+  Future<void> generateTitleForCurrentChat() async {
+    final associatedChat = currentChat;
+    final message = _messages.firstOrNull;
+    if (associatedChat == null || message == null) return;
+
+    // Create a temp chat with necessary system prompt
+    final chat = OllamaChat(
+      model: associatedChat.model,
+      systemPrompt: GenerateTitleConstants.systemPrompt,
+    );
+
+    // Generate a title for the message
+    final stream = _ollamaService.generateStream(
+      GenerateTitleConstants.prompt + message.content,
+      chat: chat,
+    );
+
+    var title = "";
+    await for (final titleMessage in stream) {
+      title += titleMessage.content;
+      await updateChat(associatedChat, newTitle: title);
+    }
+
+    // Save the title as the chat title
+    await updateChat(associatedChat, newTitle: title.trim());
   }
 }

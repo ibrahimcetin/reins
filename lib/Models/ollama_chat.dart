@@ -11,10 +11,11 @@ class OllamaChat {
   OllamaChat({
     String? id,
     required this.model,
-    required this.title,
+    String? title,
     this.systemPrompt,
     OllamaChatOptions? options,
   })  : id = id ?? Uuid().v4(),
+        title = title ?? 'New Chat',
         options = options ?? OllamaChatOptions();
 
   factory OllamaChat.fromMap(Map<String, dynamic> map) {
