@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -186,9 +187,7 @@ class _ChatBubbleBody extends StatelessWidget {
               spacing: 8,
               runSpacing: 8,
               children: message.images!
-                  .map(
-                    (imageFile) => _ChatBubbleImage(imageFile: imageFile),
-                  )
+                  .map((imageFile) => _ChatBubbleImage(imageFile: imageFile))
                   .toList(),
             ),
           Container(
@@ -206,6 +205,7 @@ class _ChatBubbleBody extends StatelessWidget {
             ),
             child: MarkdownBody(
               data: message.content,
+              selectable: true,
               softLineBreak: true,
               styleSheet: MarkdownStyleSheet(
                 textScaler: TextScaler.linear(1.18),
@@ -259,7 +259,10 @@ class _ChatBubbleImage extends StatelessWidget {
         child: ChatImage(
           image: FileImage(imageFile),
           aspectRatio: 1.5,
-          width: MediaQuery.of(context).size.height * 0.2,
+          width: max(
+            MediaQuery.of(context).size.width * 0.35,
+            MediaQuery.of(context).size.height * 0.25,
+          ),
         ),
       ),
     );
@@ -338,7 +341,11 @@ class __ChatBubbleMenuState extends State<_ChatBubbleMenu> {
             controller.open(position: details.localPosition);
           },
           onDoubleTapDown: (details) {
-            controller.open(position: details.localPosition);
+            if (controller.isOpen) {
+              controller.close();
+            } else {
+              controller.open(position: details.localPosition);
+            }
           },
           onSecondaryTapDown: (details) {
             controller.open(position: details.localPosition);
