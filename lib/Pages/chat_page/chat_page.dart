@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:reins/Constants/constants.dart';
+import 'package:reins/Models/chat_preset.dart';
 import 'package:reins/Models/ollama_model.dart';
 import 'package:reins/Providers/chat_provider.dart';
 import 'package:reins/Widgets/chat_app_bar.dart';
@@ -31,6 +32,9 @@ class _ChatPageState extends State<ChatPage> {
 
   // This is for the image attachment
   final List<File> _imageFiles = [];
+
+  // This is for the chat presets
+  List<ChatPreset> _presets = ChatPresets.randomPresets;
 
   // Text field controller for the chat prompt
   final _textFieldController = TextEditingController();
@@ -162,11 +166,10 @@ class _ChatPageState extends State<ChatPage> {
         },
       );
     } else if (chatProvider.messages.isEmpty) {
-      final presets = ChatPresets.randomPresets;
       return ChatAttachmentRow(
-        itemCount: presets.length,
+        itemCount: _presets.length,
         itemBuilder: (context, index) {
-          final preset = presets[index];
+          final preset = _presets[index];
           return ChatAttachmentPreset(
             preset: preset,
             onPressed: () async {
@@ -223,6 +226,7 @@ class _ChatPageState extends State<ChatPage> {
         setState(() {
           _textFieldController.clear();
           _imageFiles.clear();
+          _presets = ChatPresets.randomPresets;
         });
       }
     } else {
