@@ -156,9 +156,10 @@ class ChatProvider extends ChangeNotifier {
     OllamaChatOptions? newOptions,
   }) async {
     if (chat == null) {
+      final chatOptions = newOptions ?? _emptyChatConfiguration?.chatOptions;
       _emptyChatConfiguration = ChatConfigureArguments(
-        systemPrompt: newSystemPrompt,
-        chatOptions: newOptions ?? OllamaChatOptions(),
+        systemPrompt: newSystemPrompt ?? _emptyChatConfiguration?.systemPrompt,
+        chatOptions: chatOptions ?? OllamaChatOptions(),
       );
     } else {
       await _databaseService.updateChat(
