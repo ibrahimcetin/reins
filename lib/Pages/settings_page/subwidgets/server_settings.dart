@@ -173,8 +173,10 @@ class _ServerSettingsState extends State<ServerSettings> {
       } else {
         return (OllamaRequestState.error, serverAddress);
       }
-    } catch (e) {
-      return (OllamaRequestState.error, serverAddress);
+    } catch (_) {
+      throw OllamaException(
+        'Failed to connect to the server. Please check the server address or the internet connection.',
+      );
     }
   }
 
