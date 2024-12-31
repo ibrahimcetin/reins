@@ -270,6 +270,7 @@ class ChatProvider extends ChangeNotifier {
       // If the chat id is not in the active chat streams, it means the stream
       // is cancelled by the user. So, we need to break the loop.
       if (_activeChatStreams.containsKey(associatedChat.id) == false) {
+        streamingMessage?.createdAt = DateTime.now();
         return streamingMessage;
       }
 
@@ -297,6 +298,9 @@ class ChatProvider extends ChangeNotifier {
       // Update the metadata of the streaming message with the last received message
       streamingMessage?.updateMetadataFrom(receivedMessage);
     }
+
+    // Update created at time to the current time when the stream is finished
+    streamingMessage?.createdAt = DateTime.now();
 
     return streamingMessage;
   }
