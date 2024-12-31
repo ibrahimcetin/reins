@@ -68,13 +68,15 @@ class ReinsApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
-      valueListenable: Hive.box('settings').listenable(keys: ['color']),
+      valueListenable: Hive.box('settings').listenable(
+        keys: ['color', 'brightness'],
+      ),
       builder: (context, box, _) {
         return MaterialApp(
           title: AppConstants.appName,
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(
-              brightness: MediaQuery.platformBrightnessOf(context),
+              brightness: _brightness ?? MediaQuery.platformBrightnessOf(context),
               dynamicSchemeVariant: DynamicSchemeVariant.neutral,
               seedColor: box.get('color', defaultValue: Colors.grey),
             ),
@@ -111,5 +113,11 @@ class ReinsApp extends StatelessWidget {
         );
       },
     );
+  }
+
+  Brightness? get _brightness {
+    final brightnessValue = Hive.box('settings').get('brightness');
+    if (brightnessValue == null) return null;
+    return brightnessValue == 1 ? Brightness.light : Brightness.dark;
   }
 }

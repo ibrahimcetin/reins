@@ -28,19 +28,27 @@ class _ThemesSettingsState extends State<ThemesSettings> {
         ),
         const SizedBox(height: 16),
         Container(
-          padding: EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
           decoration: ShapeDecoration(
             shape: StadiumBorder(),
             color: Theme.of(context).colorScheme.primaryContainer,
           ),
           child: Row(
             children: [
-              CircleAvatar(
-                backgroundImage: AssetImage(AppConstants.appIconPng),
-                radius: 16,
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: CircleAvatar(
+                  backgroundImage: AssetImage(AppConstants.appIconPng),
+                  radius: 16,
+                ),
               ),
-              const SizedBox(width: 12),
-              Text("Here is your theme"),
+              Text("Here is your current theme"),
+              const Spacer(),
+              IconButton(
+                icon: Icon(_brightnessIcon),
+                onPressed: () {
+                  setState(() => _toggleBrightness());
+                },
+              ),
             ],
           ),
         ),
@@ -77,6 +85,22 @@ class _ThemesSettingsState extends State<ThemesSettings> {
         ),
       ],
     );
+  }
+
+  void _toggleBrightness() {
+    final currentBrightness = _settingsBox.get('brightness');
+    // Brightness: 1 = light, 0 = dark, null = auto
+    // Toggle between light, dark, and auto. 1 > 0 > null > 1 > ...
+    final nb = currentBrightness == 1 ? 0 : (currentBrightness == 0 ? null : 1);
+    _settingsBox.put('brightness', nb);
+  }
+
+  IconData get _brightnessIcon {
+    final brightness = _settingsBox.get('brightness');
+    if (brightness == null) return Icons.radio_button_off;
+    return brightness == 1
+        ? Icons.light_mode_outlined
+        : Icons.dark_mode_outlined;
   }
 }
 
