@@ -60,18 +60,18 @@ class ChatWelcome extends StatelessWidget {
 class _ChatWelcomeText extends StatelessWidget {
   final void Function()? onFinished;
 
-  const _ChatWelcomeText({super.key, this.onFinished});
+  const _ChatWelcomeText({this.onFinished});
 
   @override
   Widget build(BuildContext context) {
     return AnimatedTextKit(
       animatedTexts: [
         TyperAnimatedText(
-          'Welcome to Ollama Chat!',
+          'Welcome to Reins!',
           speed: const Duration(milliseconds: 100),
         ),
         TyperAnimatedText(
-          'Configure the server address to start.',
+          'Configure a server address to start.',
           speed: const Duration(milliseconds: 100),
         ),
       ],
@@ -85,8 +85,6 @@ class _ChatWelcomeText extends StatelessWidget {
 }
 
 class _ChatConfigureServerAddressButton extends StatelessWidget {
-  const _ChatConfigureServerAddressButton({super.key});
-
   @override
   Widget build(BuildContext context) {
     return OutlinedButton.icon(
@@ -94,7 +92,7 @@ class _ChatConfigureServerAddressButton extends StatelessWidget {
         Icons.warning_amber_rounded,
         color: Colors.amber,
       ),
-      label: Text('Tap to configure the server address'),
+      label: Text('Tap to configure a server address'),
       iconAlignment: IconAlignment.start,
       onPressed: () {
         Navigator.pushNamed(
