@@ -16,7 +16,7 @@ class ChatAttachmentPreset extends StatelessWidget {
     return InkWell(
       onTap: onPressed,
       borderRadius: BorderRadius.circular(16),
-      child: Container(
+      child: Ink(
         decoration: BoxDecoration(
           color: Theme.of(context).colorScheme.surfaceContainer,
           borderRadius: BorderRadius.circular(16),
