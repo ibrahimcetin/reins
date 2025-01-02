@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:reins/Models/chat_configure_arguments.dart';
 import 'package:reins/Models/ollama_chat.dart';
 import 'package:reins/Models/ollama_exception.dart';
 import 'package:reins/Providers/chat_provider.dart';
-import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
-import 'package:provider/provider.dart';
+
+import 'ollama_bottom_sheet_header.dart';
 
 class ChatConfigureBottomSheet extends StatelessWidget {
   final ChatConfigureArguments arguments;
