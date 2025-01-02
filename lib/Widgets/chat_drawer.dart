@@ -4,6 +4,8 @@ import 'package:reins/Providers/chat_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
+import 'title_divider.dart';
+
 class ChatDrawer extends StatelessWidget {
   const ChatDrawer({super.key});
 
@@ -68,17 +70,7 @@ class ChatNavigationDrawer extends StatelessWidget {
             ),
             const Padding(
               padding: EdgeInsets.fromLTRB(28, 16, 28, 10),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Expanded(child: Divider()),
-                  Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 8),
-                    child: Text('Chats'),
-                  ),
-                  Expanded(child: Divider())
-                ],
-              ),
+              child: TitleDivider(title: "Chats"),
             ),
             ...chatProvider.chats.map((chat) {
               return NavigationDrawerDestination(
