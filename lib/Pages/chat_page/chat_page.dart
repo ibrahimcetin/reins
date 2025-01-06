@@ -268,7 +268,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _handleAttachmentButton() async {
-    if (Platform.isIOS || Platform.isAndroid) {
+    if (Platform.isIOS) {
       final photosPermission = await Permission.photos
           .onDeniedCallback(_showPhotosDeniedAlert)
           .onPermanentlyDeniedCallback(_showPhotosDeniedAlert)
