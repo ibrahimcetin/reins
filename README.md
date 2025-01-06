@@ -4,6 +4,10 @@ Reins is a multi-platform, open-source, privacy-first app designed for Ollama us
 
 If you like the project, don't forget to give a ⭐️!
 
+<a href="https://apps.apple.com/tr/app/reins-chat-for-ollama/id6739738501">
+  <img src=https://github.com/user-attachments/assets/fd7d615d-46c1-4266-b558-fb8e42555b04 alt="Download on the App Store" height=100>
+</a>
+
 ## Key Features
 - **Customizable Chat Configurations**: Configure system prompt, model, and options (e.g., temperature, seed, context size, max tokens) for each conversation.
 - **Model Selection & Switching**: Change the model of the current chat without interruption.
