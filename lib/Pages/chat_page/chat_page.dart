@@ -7,6 +7,7 @@ import 'package:hive_flutter/hive_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
 import 'package:reins/Constants/constants.dart';
 import 'package:reins/Models/chat_preset.dart';
@@ -267,6 +268,14 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _handleAttachmentButton() async {
+    if (Platform.isIOS || Platform.isAndroid) {
+      final photosPermission = await Permission.photos
+          .onDeniedCallback(_showPhotosDeniedAlert)
+          .onPermanentlyDeniedCallback(_showPhotosDeniedAlert)
+          .request();
+      if (!photosPermission.isGranted && !photosPermission.isLimited) return;
+    }
+
     final picker = ImagePicker();
     final sPickedImage = await picker.pickImage(source: ImageSource.gallery);
     // await picker.pickMultiImage(limit: 4);
@@ -298,6 +307,24 @@ class _ChatPageState extends State<ChatPage> {
     }
 
     setState(() => _imageFiles.addAll(imageFiles));
+  }
+
+  Future<void> _showPhotosDeniedAlert() async {
+    await showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          title: const Text('Photos Permission Denied'),
+          content: const Text('Please allow access to photos in the settings.'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _handleImageRemove(File imageFile) async {
