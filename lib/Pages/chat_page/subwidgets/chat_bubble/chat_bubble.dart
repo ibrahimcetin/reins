@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'chat_bubble_actions.dart';
 import 'chat_bubble_image.dart';
 import 'chat_bubble_menu.dart';
+import 'chat_bubble_think_block.dart';
 
 class ChatBubble extends StatelessWidget {
   final OllamaMessage message;
@@ -99,8 +100,12 @@ class _ChatBubbleBody extends StatelessWidget {
                 textScaler: TextScaler.linear(1.18),
                 code: GoogleFonts.sourceCodePro(),
               ),
+              builders: {'think': ThinkBlockBuilder()},
               extensionSet: md.ExtensionSet(
-                md.ExtensionSet.gitHubFlavored.blockSyntaxes,
+                <md.BlockSyntax>[
+                  ThinkBlockSyntax(),
+                  ...md.ExtensionSet.gitHubFlavored.blockSyntaxes
+                ],
                 <md.InlineSyntax>[
                   md.EmojiSyntax(),
                   ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes

@@ -423,7 +423,18 @@ class ChatProvider extends ChangeNotifier {
     var title = "";
     await for (final titleMessage in stream) {
       title += titleMessage.content;
-      await updateChat(associatedChat, newTitle: title);
+
+      // If <think> tag exists, do not stream chat title
+      if (title.startsWith("<think>")) {
+        await updateChat(associatedChat, newTitle: "Thinking for a title...");
+      } else {
+        await updateChat(associatedChat, newTitle: title);
+      }
+    }
+
+    // Remove <think> tag and its content
+    if (title.startsWith("<think>")) {
+      title = title.replaceAll(RegExp(r'<think>.*?</think>', dotAll: true), '');
     }
 
     // Save the title as the chat title
