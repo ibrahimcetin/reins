@@ -145,6 +145,10 @@ flutter_launcher_icons:
   macos:
     generate: true
     image_path: "assets/images/icons/reins-macos.png"
+  windows:
+    generate: true
+    image_path: "assets/images/icons/reins-windows.png"
+    icon_size: 256
 
 flutter_native_splash:
   color: "#ffffff"
