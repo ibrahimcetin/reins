@@ -8,7 +8,7 @@ If you like the project, don't forget to give a ⭐️!
   <img src=https://github.com/user-attachments/assets/fd7d615d-46c1-4266-b558-fb8e42555b04 alt="Download on the App Store" height=100>
 </a>
 
-You can find Android and macOS releases from [here](https://github.com/ibrahimcetin/reins/releases).
+You can find Android, Windows and macOS releases from [here](https://github.com/ibrahimcetin/reins/releases).
 
 ## Key Features
 - **Customizable Chat Configurations**: Configure system prompt, model, and options (e.g., temperature, seed, context size, max tokens) for each conversation.
