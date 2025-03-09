@@ -211,7 +211,7 @@ class _ServerSettingsState extends State<ServerSettings> {
       );
     }
 
-    final String formattedAddress = "${url.scheme}://${url.host}${url.hasPort ? ":${url.port}" : ""}/${url.path}";
+    final String formattedAddress = "${url.scheme}://${url.host}${url.hasPort ? ":${url.port}" : ""}${url.path}";
     return formattedAddress;
   }
 
