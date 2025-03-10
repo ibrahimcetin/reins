@@ -166,4 +166,57 @@ void main() {
 
     await service.deleteModel("test_model_with_messages:latest");
   });
+
+  test("Test constructUrl with various base URLs", () {
+    // Test with trailing slash
+    var service = OllamaService(baseUrl: "http://localhost:11434/");
+    expect(service.constructUrl("/api/chat").toString(),
+        "http://localhost:11434/api/chat");
+    expect(service.constructUrl("api/generate").toString(),
+        "http://localhost:11434/api/generate");
+
+    // Test without trailing slash
+    service = OllamaService(baseUrl: "http://localhost:11434");
+    expect(service.constructUrl("/api/tags").toString(),
+        "http://localhost:11434/api/tags");
+    expect(service.constructUrl("api/models").toString(),
+        "http://localhost:11434/api/models");
+
+    // Test with path component
+    service = OllamaService(baseUrl: "http://localhost:11434/ollama");
+    expect(service.constructUrl("/api/chat").toString(),
+        "http://localhost:11434/ollama/api/chat");
+    expect(service.constructUrl("api/generate").toString(),
+        "http://localhost:11434/ollama/api/generate");
+
+    // Test with path component and trailing slash
+    service = OllamaService(baseUrl: "http://localhost:11434/ollama/");
+    expect(service.constructUrl("/api/chat").toString(),
+        "http://localhost:11434/ollama/api/chat");
+    expect(service.constructUrl("api/generate").toString(),
+        "http://localhost:11434/ollama/api/generate");
+
+    // Test with IP address
+    service = OllamaService(baseUrl: "http://192.168.1.100:11434");
+    expect(service.constructUrl("/api/chat").toString(),
+        "http://192.168.1.100:11434/api/chat");
+    expect(service.constructUrl("api/generate").toString(),
+        "http://192.168.1.100:11434/api/generate");
+
+    // Test with subdomain
+    service = OllamaService(baseUrl: "http://ollama.mydomain.com/");
+    expect(service.constructUrl("/api/chat").toString(),
+        "http://ollama.mydomain.com/api/chat");
+
+    // Test with HTTPS
+    service = OllamaService(baseUrl: "https://ollama.mydomain.com");
+    expect(service.constructUrl("/api/chat").toString(),
+        "https://ollama.mydomain.com/api/chat");
+
+    // Test setting baseUrl after initialization
+    service = OllamaService();
+    service.baseUrl = "http://newhost:11434/";
+    expect(service.constructUrl("/api/chat").toString(),
+        "http://newhost:11434/api/chat");
+  });
 }

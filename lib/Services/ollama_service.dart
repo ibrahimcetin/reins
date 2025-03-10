@@ -16,8 +16,8 @@ class OllamaService {
   ///
   /// The default value is "http://localhost:11434".
   String _baseUrl;
-  get baseUrl => _baseUrl;
-  set baseUrl(value) => _baseUrl = value ?? "http://localhost:11434";
+  String get baseUrl => _baseUrl;
+  set baseUrl(String? value) => _baseUrl = value ?? "http://localhost:11434";
 
   /// The headers to include in all network requests.
   final headers = {'Content-Type': 'application/json'};
@@ -28,6 +28,20 @@ class OllamaService {
   /// Creates a new instance of the Ollama service.
   OllamaService({String? baseUrl})
       : _baseUrl = baseUrl ?? "http://localhost:11434";
+
+  /// Constructs a URL by resolving the provided path against the base URL.
+  Uri constructUrl(String path) {
+    final baseUri = Uri.parse(baseUrl);
+
+    // Split the base URI path into segments, filtering out empty strings
+    final segments = baseUri.pathSegments.where((s) => s.isNotEmpty).toList();
+
+    // Split the provided path into segments, filtering out empty strings
+    final extraSegments = path.split('/').where((s) => s.isNotEmpty).toList();
+
+    // Combine both sets of segments and create a new URI
+    return baseUri.replace(pathSegments: [...segments, ...extraSegments]);
+  }
 
   /// Generates an OllamaMessage.
   ///
@@ -43,7 +57,7 @@ class OllamaService {
     String prompt, {
     required OllamaChat chat,
   }) async {
-    final url = Uri.parse("$baseUrl/api/generate");
+    final url = constructUrl("/api/generate");
 
     final response = await http.post(
       url,
@@ -73,7 +87,7 @@ class OllamaService {
     String prompt, {
     required OllamaChat chat,
   }) async* {
-    final url = Uri.parse("$baseUrl/api/generate");
+    final url = constructUrl('/api/generate');
 
     final request = http.Request("POST", url);
     request.headers.addAll(headers);
@@ -114,7 +128,7 @@ class OllamaService {
     List<OllamaMessage> messages, {
     required OllamaChat chat,
   }) async {
-    final url = Uri.parse("$baseUrl/api/chat");
+    final url = constructUrl("/api/chat");
 
     final response = await http.post(
       url,
@@ -144,7 +158,7 @@ class OllamaService {
     List<OllamaMessage> messages, {
     required OllamaChat chat,
   }) async* {
-    final url = Uri.parse("$baseUrl/api/chat");
+    final url = constructUrl('/api/chat');
 
     final request = http.Request("POST", url);
     request.headers.addAll(headers);
@@ -216,7 +230,7 @@ class OllamaService {
 
   /// Lists the available models on the Ollama service.
   Future<List<OllamaModel>> listModels() async {
-    final url = Uri.parse("$baseUrl/api/tags");
+    final url = constructUrl("/api/tags");
 
     final response = await http.get(url, headers: headers);
 
@@ -237,7 +251,7 @@ class OllamaService {
     required OllamaChat chat,
     List<OllamaMessage>? messages,
   }) async {
-    final url = Uri.parse("$baseUrl/api/create");
+    final url = constructUrl("/api/create");
 
     final modelfile = await _modelfileGenerator.generate(chat, messages ?? []);
 
@@ -260,7 +274,7 @@ class OllamaService {
   }
 
   Future<void> deleteModel(String model) async {
-    final url = Uri.parse("$baseUrl/api/delete");
+    final url = constructUrl("/api/delete");
 
     final response = await http.delete(
       url,
