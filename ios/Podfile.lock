@@ -89,7 +89,7 @@ EXTERNAL SOURCES:
 SPEC CHECKSUMS:
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   flutter_image_compress_common: ec1d45c362c9d30a3f6a0426c297f47c52007e3e
-  flutter_native_splash: e8a1e01082d97a8099d973f919f57904c925008a
+  flutter_native_splash: df59bb2e1421aa0282cb2e95618af4dcb0c56c29
   image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
   in_app_review: a31b5257259646ea78e0e35fc914979b0031d011
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
@@ -104,4 +104,4 @@ SPEC CHECKSUMS:
 
 PODFILE CHECKSUM: 992124382e9b9dafac8a2229977728d4c5836c03
 
-COCOAPODS: 1.15.2
+COCOAPODS: 1.16.2
