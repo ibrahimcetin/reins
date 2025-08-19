@@ -168,7 +168,7 @@ class _ServerSettingsState extends State<ServerSettings> {
       final response =
           await http.get(serverAddress).timeout(const Duration(seconds: 2));
 
-      if (response.statusCode == 200 && response.body == "Ollama is running") {
+      if (response.statusCode == 200) {
         return (OllamaRequestState.success, serverAddress);
       } else {
         return (OllamaRequestState.error, serverAddress);
