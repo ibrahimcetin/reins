@@ -136,7 +136,7 @@ class ChatPresets {
         title: "Solve a puzzle",
         subtitle: "to test your problem-solving skills",
         prompt:
-            "Can you help me solve this Sudoku puzzle? Here’s the current grid: [provide grid]."),
+            "Can you help me solve this Sudoku puzzle? Here's the current grid: [provide grid]."),
     ChatPreset(
         title: "Get travel tips",
         subtitle: "for a destination",
@@ -225,10 +225,10 @@ class ChatPresets {
         title: "Get workout motivation",
         subtitle: "to achieve your fitness goals",
         prompt:
-            "I’ve been struggling to stay consistent with workouts. Can you provide motivational tips and a simple routine to get back on track?"),
+            "I've been struggling to stay consistent with workouts. Can you provide motivational tips and a simple routine to get back on track?"),
     ChatPreset(
         title: "Write a job description",
-        subtitle: "for your team’s new role",
+        subtitle: "for your team's new role",
         prompt:
             "Draft a job description for a junior web developer position, focusing on required skills and job responsibilities."),
     ChatPreset(
@@ -255,7 +255,7 @@ class ChatPresets {
         title: "Host a themed party",
         subtitle: "with creative ideas and details",
         prompt:
-            "I want to organize a ‘Roaring Twenties’ themed party. Can you suggest decor, costumes, and activities?"),
+            "I want to organize a 'Roaring Twenties' themed party. Can you suggest decor, costumes, and activities?"),
     ChatPreset(
         title: "Write a business pitch",
         subtitle: "to attract investors",
