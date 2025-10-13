@@ -139,7 +139,7 @@ class _ChatPageState extends State<ChatPage> {
       }
     } else {
       return ChatListView(
-        key: ValueKey(chatProvider.currentChat?.id),
+        key: PageStorageKey<String>(chatProvider.currentChat?.id ?? 'empty'),
         messages: chatProvider.messages,
         isAwaitingReply: chatProvider.isCurrentChatThinking,
         error: chatProvider.currentChatError != null

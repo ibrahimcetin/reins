@@ -23,18 +23,12 @@ class ChatListView extends StatefulWidget {
 }
 
 class _ChatListViewState extends State<ChatListView> {
-  static final _scrollOffsetBucket = PageStorageBucket();
-
-  late final ScrollController _scrollController;
+  final ScrollController _scrollController = ScrollController();
   bool _isScrollToBottomButtonVisible = false;
 
   @override
   void initState() {
     super.initState();
-
-    _scrollController = ScrollController(
-      initialScrollOffset: _readScrollOffset(),
-    );
 
     _scrollController.addListener(() {
       _updateScrollToBottomButtonVisibility();
@@ -52,13 +46,6 @@ class _ChatListViewState extends State<ChatListView> {
       // regenerates a message or delete a message.
       _updateScrollToBottomButtonVisibility();
     });
-  }
-
-  @override
-  void deactivate() {
-    _writeScrollOffset();
-
-    super.deactivate();
   }
 
   @override
@@ -145,21 +132,6 @@ class _ChatListViewState extends State<ChatListView> {
       0.0,
       duration: const Duration(milliseconds: 150),
       curve: Curves.easeOut,
-    );
-  }
-
-  double _readScrollOffset() {
-    return _scrollOffsetBucket.readState(context, identifier: widget.key) ??
-        0.0;
-  }
-
-  void _writeScrollOffset() {
-    if (widget.key == null) return;
-
-    _scrollOffsetBucket.writeState(
-      context,
-      _scrollController.offset,
-      identifier: widget.key,
     );
   }
 }
