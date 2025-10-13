@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:convert';
 
 import 'package:reins/Constants/constants.dart';
 import 'package:reins/Models/chat_configure_arguments.dart';
@@ -381,10 +382,46 @@ class ChatProvider extends ChangeNotifier {
     final settingsBox = Hive.box('settings');
     _ollamaService.baseUrl = settingsBox.get('serverAddress');
 
+    final headersRaw = settingsBox.get('customHeaders');
+    if (headersRaw is String && headersRaw.trim().isNotEmpty) {
+      try {
+        final decoded = Map<String, dynamic>.from(jsonDecode(headersRaw));
+        _ollamaService.customHeaders =
+            decoded.map((k, v) => MapEntry(k, v.toString()));
+      } catch (_) {
+        _ollamaService.customHeaders = {};
+      }
+    } else if (headersRaw is Map) {
+      _ollamaService.customHeaders =
+          headersRaw.map((k, v) => MapEntry(k.toString(), v.toString()));
+    } else {
+      _ollamaService.customHeaders = {};
+    }
+
     settingsBox.listenable(keys: ["serverAddress"]).addListener(() {
       _ollamaService.baseUrl = settingsBox.get('serverAddress');
 
       // This will update empty chat state to dismiss "Tap to configure server address" message
+      notifyListeners();
+    });
+
+
+    settingsBox.listenable(keys: ["customHeaders"]).addListener(() {
+      final headersRaw = settingsBox.get('customHeaders');
+      if (headersRaw is String && headersRaw.trim().isNotEmpty) {
+        try {
+          final decoded = Map<String, dynamic>.from(jsonDecode(headersRaw));
+          _ollamaService.customHeaders =
+              decoded.map((k, v) => MapEntry(k, v.toString()));
+        } catch (_) {
+          _ollamaService.customHeaders = {};
+        }
+      } else if (headersRaw is Map) {
+        _ollamaService.customHeaders =
+            headersRaw.map((k, v) => MapEntry(k.toString(), v.toString()));
+      } else {
+        _ollamaService.customHeaders = {};
+      }
       notifyListeners();
     });
   }
