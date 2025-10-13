@@ -10,14 +10,23 @@ class ReinsMainPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (ResponsiveBreakpoints.of(context).isMobile) {
-      return const Scaffold(
-        appBar: ChatAppBar(),
-        body: SafeArea(child: ChatPage()),
-        drawer: ChatDrawer(),
-      );
+      return _ReinsMobileMainPage();
     } else {
       return _ReinsLargeMainPage();
     }
+  }
+}
+
+class _ReinsMobileMainPage extends StatelessWidget {
+  const _ReinsMobileMainPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return const Scaffold(
+      appBar: ChatAppBar(),
+      body: SafeArea(child: ChatPage()),
+      drawer: ChatDrawer(),
+    );
   }
 }
 
