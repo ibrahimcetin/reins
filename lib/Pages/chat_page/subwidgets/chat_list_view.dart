@@ -3,6 +3,8 @@ import 'package:reins/Models/ollama_message.dart';
 import 'package:shimmer/shimmer.dart';
 
 import 'chat_bubble/chat_bubble.dart';
+import 'package:reins/Utils/observe_size.dart';
+import 'package:reins/Utils/retained_position_scroll_physics.dart';
 
 class ChatListView extends StatefulWidget {
   final List<OllamaMessage> messages;
@@ -25,6 +27,8 @@ class ChatListView extends StatefulWidget {
 class _ChatListViewState extends State<ChatListView> {
   final ScrollController _scrollController = ScrollController();
   bool _isScrollToBottomButtonVisible = false;
+
+  final _messageSizeProxy = WidgetSizeProxy();
 
   @override
   void initState() {
@@ -63,6 +67,9 @@ class _ChatListViewState extends State<ChatListView> {
         CustomScrollView(
           controller: _scrollController,
           reverse: true,
+          physics: RetainedPositionScrollPhysics(
+            widgetSizeProxy: _messageSizeProxy,
+          ),
           slivers: [
             if (widget.bottomPadding != null)
               SliverPadding(
@@ -78,8 +85,8 @@ class _ChatListViewState extends State<ChatListView> {
                   // TODO: Play with the colors to make it look better
                   baseColor: Theme.of(context).colorScheme.onPrimary,
                   highlightColor: Theme.of(context).colorScheme.onSurface,
-                  period: Duration(milliseconds: 2500),
-                  child: ListTile(
+                  period: const Duration(milliseconds: 2500),
+                  child: const ListTile(
                     title: Padding(
                       padding: EdgeInsets.all(10.0),
                       child: Text("Thinking"),
@@ -93,6 +100,14 @@ class _ChatListViewState extends State<ChatListView> {
               itemBuilder: (context, index) {
                 final message =
                     widget.messages[widget.messages.length - index - 1];
+
+                if (index == 0) {
+                  return ObserveSize(
+                    key: Key(message.id),
+                    onSizeChanged: _onMessageSizeChanged,
+                    child: ChatBubble(message: message),
+                  );
+                }
 
                 return ChatBubble(message: message);
               },
@@ -109,6 +124,12 @@ class _ChatListViewState extends State<ChatListView> {
           ),
       ],
     );
+  }
+
+  void _onMessageSizeChanged(Size? previousSize, Size currentSize) {
+    final currentHeight = currentSize.height;
+    final previousHeight = (previousSize ?? currentSize).height;
+    _messageSizeProxy.deltaHeight = currentHeight - previousHeight;
   }
 
   void _updateScrollToBottomButtonVisibility() {
