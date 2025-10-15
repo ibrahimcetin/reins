@@ -5,3 +5,7 @@ class AppConstants {
 
   static const String ollamaIconPng = 'assets/images/ollama.png';
 }
+
+class NotificationNames {
+  static const String generationBegin = "generation_begin_notification";
+}

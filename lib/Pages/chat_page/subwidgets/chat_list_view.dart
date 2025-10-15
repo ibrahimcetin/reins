@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:reins/Models/ollama_message.dart';
 import 'package:shimmer/shimmer.dart';
+import 'package:notification_centre/notification_centre.dart';
 
 import 'chat_bubble/chat_bubble.dart';
+import 'package:reins/Constants/constants.dart';
 import 'package:reins/Utils/observe_size.dart';
 import 'package:reins/Utils/retained_position_scroll_physics.dart';
 
@@ -37,6 +39,12 @@ class _ChatListViewState extends State<ChatListView> {
     _scrollController.addListener(() {
       _updateScrollToBottomButtonVisibility();
     });
+
+    NotificationCenter().addObserver(
+      NotificationNames.generationBegin,
+      this,
+      (n) => _scrollToBottom(),
+    );
   }
 
   @override
@@ -55,6 +63,9 @@ class _ChatListViewState extends State<ChatListView> {
   @override
   void dispose() {
     _scrollController.dispose();
+
+    NotificationCenter()
+        .removeObserver(NotificationNames.generationBegin, this);
 
     super.dispose();
   }

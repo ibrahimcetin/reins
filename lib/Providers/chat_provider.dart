@@ -1,5 +1,9 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
+import 'package:notification_centre/notification_centre.dart';
+
 import 'package:reins/Constants/constants.dart';
 import 'package:reins/Models/chat_configure_arguments.dart';
 import 'package:reins/Models/ollama_chat.dart';
@@ -8,8 +12,6 @@ import 'package:reins/Models/ollama_message.dart';
 import 'package:reins/Models/ollama_model.dart';
 import 'package:reins/Services/database_service.dart';
 import 'package:reins/Services/ollama_service.dart';
-import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 
 class ChatProvider extends ChangeNotifier {
   final OllamaService _ollamaService;
@@ -215,6 +217,9 @@ class ChatProvider extends ChangeNotifier {
   }
 
   Future<void> _initializeChatStream(OllamaChat associatedChat) async {
+    // Send a notification to inform generation begin
+    NotificationCenter().postNotification(NotificationNames.generationBegin);
+
     // Clear the active chat streams to cancel the previous stream
     _activeChatStreams.remove(associatedChat.id);
 

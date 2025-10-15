@@ -80,6 +80,8 @@ dependencies:
 
   share_plus: ^10.1.4
 
+  notification_centre: ^0.0.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
