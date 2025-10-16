@@ -29,9 +29,7 @@ class _RenderObserveSize extends RenderProxyBox {
 
     final newSize = (child?.size ?? size);
 
-    if (_previousSize != newSize) {
-      onSizeChanged(_previousSize, newSize);
-      _previousSize = newSize;
-    }
+    onSizeChanged(_previousSize, newSize);
+    _previousSize = newSize;
   }
 }

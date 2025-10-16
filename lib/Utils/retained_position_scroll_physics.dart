@@ -34,12 +34,7 @@ class RetainedPositionScrollPhysics extends ScrollPhysics {
       velocity: velocity,
     );
 
-    if (isScrolling && velocity.abs() > 1) {
-      // If the user really wants to scroll, return the original position
-      // the velocity will be 0 when the user holds the screen and scrolls
-      // but when the user scrolls fast, the velocity will be greater than 1
-      return adjustPosition;
-    } else if (adjustPosition <= 44) {
+    if (adjustPosition <= 44) {
       // 44 is just a threshold to adjust the position when the user scrolls to the bottom
       // if the user scrolls to the bottom, the adjustPosition is 0
       // so we need to return the original position
