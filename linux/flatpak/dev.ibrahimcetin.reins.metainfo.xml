@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>dev.ibrahimcetin.reins</id>
+
+  <name>Reins: Chat for Ollama</name>
+  <summary>Private AI Chat</summary>
+
+  <description>
+    <p>
+    Reins is a powerful chat client for your self-hosted Ollama AI models. Connect remotely, customize prompts, adjust parameters, and manage multiple conversations with ease.
+    </p>
+    <p>
+    Key Features:
+    </p>
+    <ul>
+      <li>Connect to remote Ollama servers</li>
+      <li>Custom system prompts per chat</li>
+      <li>Edit and regenerate responses</li>
+      <li>Send images</li>
+      <li>Fine-tune model parameters (temperature, context size, etc.) for each chat</li>
+      <li>Switch models mid-conversation</li>
+      <li>Create custom models from chats</li>
+      <li>Real-time message streaming</li>
+    </ul>
+    <p>
+    Requires a self-hosted Ollama Server.
+    </p>
+  </description>
+
+  <icon type="stock">dev.ibrahimcetin.reins</icon>
+  <launchable type="desktop-id">dev.ibrahimcetin.reins.desktop</launchable>
+
+  <developer id="dev.ibrahimcetin">
+     <name>İbrahim Çetin</name>
+  </developer>
+
+  <categories>
+    <category>Utility</category>
+    <category>Development</category>
+    <category>Chat</category>
+  </categories>
+
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-only</project_license>
+
+  <supports>
+    <control>pointing</control>
+    <control>keyboard</control>
+    <control>touch</control>
+  </supports>
+
+  <content_rating type="oars-1.1" />
+
+  <url type="homepage">https://reins.ibrahimcetin.dev</url>
+  <url type="vcs-browser">https://github.com/ibrahimcetin/reins</url>
+  <url type="bugtracker">https://github.com/ibrahimcetin/reins/issues</url>
+
+  <screenshots>
+    <screenshot type="default">
+      <image>https://reins.ibrahimcetin.dev/assets/screenshots/desktop/1.png</image>
+      <caption>Chatting with a model using Reins</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://reins.ibrahimcetin.dev/assets/screenshots/desktop/2.png</image>
+      <caption>Configure your chat's options</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://reins.ibrahimcetin.dev/assets/screenshots/desktop/3.png</image>
+      <caption>Advanced chat options</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://reins.ibrahimcetin.dev/assets/screenshots/desktop/4.png</image>
+      <caption>Dynamically switch LLM models</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://reins.ibrahimcetin.dev/assets/screenshots/desktop/5.png</image>
+      <caption>Select a model for the chat</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://reins.ibrahimcetin.dev/assets/screenshots/desktop/6.png</image>
+      <caption>Edit and regenerate prompt</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://reins.ibrahimcetin.dev/assets/screenshots/desktop/7.png</image>
+      <caption>Customize app theme as you want</caption>
+    </screenshot>
+    <screenshot>
+      <image>https://reins.ibrahimcetin.dev/assets/screenshots/desktop/8.png</image>
+      <caption>Open source and privacy prioritized</caption>
+    </screenshot>
+  </screenshots>
+
+  <releases>
+    <release version="1.3.2" date="2025-10-19">
+      <url type="details">https://github.com/ibrahimcetin/reins/releases/tag/v1.3.2</url>
+      <description>
+        <p>Fixes</p>
+        <ul>
+          <li>Fixed an issue where the chat could scroll up automatically while generating a response.</li>
+        </ul>
+      </description>
+    </release>
+  </releases>
+</component>

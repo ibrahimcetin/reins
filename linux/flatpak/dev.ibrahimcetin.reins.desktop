@@ -1,0 +1,12 @@
+[Desktop Entry]
+Type=Application
+
+Name=Reins
+Comment=Private AI Chat
+Categories=Utility;Development;Chat;
+Keywords=ai;chat;private;ollama;llm
+
+Icon=dev.ibrahimcetin.reins
+Exec=reins
+Terminal=false
+StartupNotify=true
