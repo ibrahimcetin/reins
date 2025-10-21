@@ -72,6 +72,7 @@ dependencies:
   image_picker: ^1.1.2
   path_provider: ^2.1.5
   flutter_image_compress: ^2.3.0
+  image_compression: ^1.0.5
   photo_view: ^0.15.0
   permission_handler: ^11.3.1
 

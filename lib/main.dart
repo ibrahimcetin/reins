@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'package:reins/Constants/constants.dart';
 import 'package:reins/Models/settings_route_arguments.dart';
+import 'package:reins/Pages/chat_page/chat_page_view_model.dart';
 import 'package:reins/Pages/main_page.dart';
 import 'package:reins/Pages/settings_page/settings_page.dart';
 import 'package:reins/Providers/chat_provider.dart';
-import 'package:reins/Services/database_service.dart';
-import 'package:reins/Services/ollama_service.dart';
+import 'package:reins/Services/services.dart';
 import 'package:reins/Utils/material_color_adapter.dart';
 import 'package:provider/provider.dart';
 import 'package:hive_flutter/hive_flutter.dart';
@@ -50,10 +50,20 @@ void main() async {
       providers: [
         Provider(create: (_) => OllamaService()),
         Provider(create: (_) => DatabaseService()),
+        Provider(create: (_) => PermissionService()),
+        Provider(create: (_) => ImageService()),
         ChangeNotifierProvider(
           create: (context) => ChatProvider(
             ollamaService: context.read(),
             databaseService: context.read(),
+          ),
+        ),
+        Provider(
+          create: (context) => ChatPageViewModel(
+            ollamaService: context.read(),
+            databaseService: context.read(),
+            permissionService: context.read(),
+            imageService: context.read(),
           ),
         ),
       ],

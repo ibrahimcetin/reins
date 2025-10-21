@@ -2,13 +2,10 @@ import 'dart:io';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:hive_flutter/hive_flutter.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
-import 'package:permission_handler/permission_handler.dart';
 import 'package:provider/provider.dart';
+import 'package:responsive_framework/responsive_framework.dart';
+
 import 'package:reins/Constants/constants.dart';
 import 'package:reins/Models/chat_preset.dart';
 import 'package:reins/Models/ollama_model.dart';
@@ -16,8 +13,8 @@ import 'package:reins/Providers/chat_provider.dart';
 import 'package:reins/Widgets/chat_app_bar.dart';
 import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
 import 'package:reins/Widgets/selection_bottom_sheet.dart';
-import 'package:responsive_framework/responsive_framework.dart';
 
+import 'chat_page_view_model.dart';
 import 'subwidgets/subwidgets.dart';
 
 class ChatPage extends StatefulWidget {
@@ -28,6 +25,8 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  late final ChatPageViewModel _viewModel;
+
   // This is for empty chat state to select a model
   OllamaModel? _selectedModel;
 
@@ -52,6 +51,9 @@ class _ChatPageState extends State<ChatPage> {
   void initState() {
     super.initState();
 
+    // Initialize the view model
+    _viewModel = Provider.of<ChatPageViewModel>(context, listen: false);
+
     // If the server address changes, reset the selected model
     Hive.box('settings').watch(key: 'serverAddress').listen((event) {
       _selectedModel = null;
@@ -59,9 +61,7 @@ class _ChatPageState extends State<ChatPage> {
 
     // Listen exit request to delete the unused attached images
     _appLifecycleListener = AppLifecycleListener(onExitRequested: () async {
-      for (final imageFile in _imageFiles) {
-        await imageFile.delete();
-      }
+      await _viewModel.deleteImages(_imageFiles);
       return AppExitResponse.exit;
     });
   }
@@ -162,7 +162,7 @@ class _ChatPageState extends State<ChatPage> {
         itemBuilder: (context, index) {
           return ChatAttachmentImage(
             imageFile: _imageFiles[index],
-            onRemove: _handleImageRemove,
+            onRemove: _handleImageDelete,
           );
         },
       );
@@ -268,45 +268,11 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _handleAttachmentButton() async {
-    if (Platform.isIOS) {
-      final photosPermission = await Permission.photos
-          .onDeniedCallback(_showPhotosDeniedAlert)
-          .onPermanentlyDeniedCallback(_showPhotosDeniedAlert)
-          .request();
-      if (!photosPermission.isGranted && !photosPermission.isLimited) return;
-    }
+    final images = await _viewModel.pickImages(
+      onPermissionDenied: _showPhotosDeniedAlert,
+    );
 
-    final picker = ImagePicker();
-    final sPickedImage = await picker.pickImage(source: ImageSource.gallery);
-    // await picker.pickMultiImage(limit: 4);
-    final pickedImages = sPickedImage == null ? [] : [sPickedImage];
-
-    if (pickedImages.isEmpty) return;
-
-    // Create images directory if it doesn't exist
-    final documentsDirectory = await getApplicationDocumentsDirectory();
-    final imagesPath = path.join(documentsDirectory.path, 'images');
-    await Directory(imagesPath).create(recursive: true);
-
-    // Compress and save the images
-    var imageFiles = <File>[];
-    for (final image in pickedImages) {
-      final imageFilePath = path.join(
-        imagesPath,
-        '${DateTime.now().microsecondsSinceEpoch}${path.extension(image.path)}',
-      );
-
-      final imageFile = await FlutterImageCompress.compressAndGetFile(
-        image.path,
-        imageFilePath,
-        quality: 10,
-      );
-
-      // Add an empty path if the image could not be compressed to show error
-      imageFiles.add(File(imageFile?.path ?? ''));
-    }
-
-    setState(() => _imageFiles.addAll(imageFiles));
+    setState(() => _imageFiles.addAll(images));
   }
 
   Future<void> _showPhotosDeniedAlert() async {
@@ -327,8 +293,8 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
-  Future<void> _handleImageRemove(File imageFile) async {
-    await imageFile.delete();
+  Future<void> _handleImageDelete(File imageFile) async {
+    await _viewModel.deleteImage(imageFile);
     setState(() => _imageFiles.remove(imageFile));
   }
 }
