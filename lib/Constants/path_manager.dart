@@ -9,8 +9,13 @@ class PathManager {
   PathManager._internal();
 
   static Future<void> initialize() async {
-    final directory = await getApplicationDocumentsDirectory();
-    _instance.documentsDirectory = directory;
+    if (Platform.isLinux) {
+      final directory = await getApplicationSupportDirectory();
+      _instance.documentsDirectory = directory;
+    } else {
+      final directory = await getApplicationDocumentsDirectory();
+      _instance.documentsDirectory = directory;
+    }
   }
 
   static PathManager get instance => _instance;

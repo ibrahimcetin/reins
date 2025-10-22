@@ -2,12 +2,12 @@ import 'dart:io';
 import 'package:flutter_image_compress/flutter_image_compress.dart';
 import 'package:image_compression/image_compression.dart' as img_compress;
 import 'package:path/path.dart' as path;
-import 'package:path_provider/path_provider.dart';
+import 'package:reins/Constants/constants.dart';
 
 /// Handles all image storage and compression operations
 class ImageService {
   Future<Directory> getImagesDirectory() async {
-    final documentsDirectory = await getApplicationDocumentsDirectory();
+    final documentsDirectory = PathManager.instance.documentsDirectory;
     final imagesPath = path.join(documentsDirectory.path, 'images');
     return await Directory(imagesPath).create(recursive: true);
   }

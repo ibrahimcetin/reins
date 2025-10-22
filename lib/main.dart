@@ -23,23 +23,25 @@ void main() async {
     databaseFactory = databaseFactoryFfi;
   }
 
-  // Initialize Hive
-  await Hive.initFlutter();
+  // Initialize PathManager
+  await PathManager.initialize();
 
-  // Register the MaterialColorAdapter
+  // Initialize Hive
+  if (Platform.isLinux) {
+    Hive.init(PathManager.instance.documentsDirectory.path);
+  } else {
+    await Hive.initFlutter();
+  }
+
   Hive.registerAdapter(MaterialColorAdapter());
 
-  // Open the settings box
   await Hive.openBox('settings');
 
-  // Initialize singleton instances
-  await PathManager.initialize();
+  // Initialize RequestReviewHelper and request review if needed
   final reviewHelper = await RequestReviewHelper.initialize();
 
-  // Increment the launch count
   await reviewHelper.incrementCount(isLaunch: true);
 
-  // Request a review if available
   final inAppReview = InAppReview.instance;
   if (await inAppReview.isAvailable() && reviewHelper.shouldRequestReview()) {
     await inAppReview.requestReview();

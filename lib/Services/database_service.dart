@@ -11,9 +11,17 @@ import 'package:path/path.dart' as path;
 class DatabaseService {
   late Database _db;
 
+  Future<String> getDatabasesPathForPlatform() async {
+    if (Platform.isLinux) {
+      return PathManager.instance.documentsDirectory.path;
+    } else {
+      return await getDatabasesPath();
+    }
+  }
+
   Future<void> open(String databaseFile) async {
     _db = await openDatabase(
-      path.join(await getDatabasesPath(), databaseFile),
+      path.join(await getDatabasesPathForPlatform(), databaseFile),
       version: 1,
       onCreate: (Database db, int version) async {
         await db.execute('''CREATE TABLE IF NOT EXISTS chats (
