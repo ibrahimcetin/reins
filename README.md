@@ -5,10 +5,14 @@ Reins is a multi-platform, open-source, privacy-first app designed for Ollama us
 If you like the project, don't forget to give a ⭐️!
 
 <a href="https://apps.apple.com/tr/app/reins-chat-for-ollama/id6739738501">
-  <img src=https://github.com/user-attachments/assets/fd7d615d-46c1-4266-b558-fb8e42555b04 alt="Download on the App Store" height=100>
+  <img src=https://github.com/user-attachments/assets/fd7d615d-46c1-4266-b558-fb8e42555b04 alt="Download on the App Store" height=80 />
 </a>
 
-You can download it for iOS and macOS on the App Store.
+<a href='https://flathub.org/apps/dev.ibrahimcetin.reins'>
+  <img src='https://github.com/user-attachments/assets/2c902ab8-bef6-44a7-ae50-40da9ead3a13' alt='Get it on Flathub' height=80 />
+</a>
+
+You can download it for iOS and macOS on the App Store and for Linux on Flathub.
 
 You can find Android and Windows releases from [here](https://github.com/ibrahimcetin/reins/releases).
 
