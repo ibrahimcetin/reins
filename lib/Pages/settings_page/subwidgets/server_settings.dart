@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
@@ -23,11 +24,13 @@ class _ServerSettingsState extends State<ServerSettings> {
   final _settingsBox = Hive.box('settings');
 
   final _serverAddressController = TextEditingController();
+  final _headersController = TextEditingController();
 
   OllamaRequestState _requestState = OllamaRequestState.uninitialized;
   get _isLoading => _requestState == OllamaRequestState.loading;
 
   String? _serverAddressErrorText;
+  String? _headersErrorText; // For header validation errors
 
   @override
   void initState() {
@@ -38,16 +41,22 @@ class _ServerSettingsState extends State<ServerSettings> {
 
   _initialize() {
     final serverAddress = _settingsBox.get('serverAddress');
+    final customHeaders = _settingsBox.get('customHeaders');
 
     if (serverAddress != null) {
       _serverAddressController.text = serverAddress;
       _handleConnectButton();
+    }
+
+    if (customHeaders != null) {
+      _headersController.text = customHeaders;
     }
   }
 
   @override
   void dispose() {
     _serverAddressController.dispose();
+    _headersController.dispose();
 
     super.dispose();
   }
@@ -86,6 +95,25 @@ class _ServerSettingsState extends State<ServerSettings> {
           onTapOutside: (PointerDownEvent event) {
             FocusManager.instance.primaryFocus?.unfocus();
           },
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _headersController,
+          keyboardType: TextInputType.text,
+          onChanged: (_) {
+            setState(() {
+              _headersErrorText = null;
+            });
+            _settingsBox.put('customHeaders', _headersController.text);
+          },
+          decoration: InputDecoration(
+            labelText: 'Custom Headers (JSON format)',
+            border: OutlineInputBorder(),
+            errorText: _headersErrorText,
+            suffixIcon: Icon(Icons.code),
+          ),
+          minLines: 1,
+          maxLines: 3,
         ),
         const SizedBox(height: 16),
         Row(
@@ -130,7 +158,7 @@ class _ServerSettingsState extends State<ServerSettings> {
       // Validate the server address.
       final newAddress = _validateServerAddress(_serverAddressController.text);
       // Establish a connection to the server.
-      final result = await _establishServerConnection(Uri.parse(newAddress));
+      final result = await _establishServerConnection(Uri.parse(newAddress), customHeaders);
 
       if (!mounted) return;
 
@@ -155,6 +183,23 @@ class _ServerSettingsState extends State<ServerSettings> {
     final currentAddress = _settingsBox.get('serverAddress');
     if (state == OllamaRequestState.success && newAddress != currentAddress) {
       _settingsBox.put('serverAddress', newAddress);
+      _settingsBox.put('customHeaders', _headersController.text);
+    }
+  }
+
+  Map<String, String>? get customHeaders {
+    final text = _headersController.text.trim();
+    if (text.isEmpty) return null;
+    try {
+      final map = Map<String, dynamic>.from(
+        text.startsWith('{') ? (Uri.decodeFull(text)).isNotEmpty ? jsonDecode(text) : {} : jsonDecode('{$text}'),
+      );
+      return map.map((k, v) => MapEntry(k, v.toString()));
+    } catch (_) {
+      setState(() {
+        _headersErrorText = 'Invalid JSON format for headers.';
+      });
+      return null;
     }
   }
 
@@ -163,10 +208,11 @@ class _ServerSettingsState extends State<ServerSettings> {
   /// Returns a tuple of the request state and the given server address.
   static Future<(OllamaRequestState, Uri)> _establishServerConnection(
     Uri serverAddress,
+    Map<String, String>? headers,
   ) async {
     try {
       final response =
-          await http.get(serverAddress).timeout(const Duration(seconds: 2));
+          await http.get(serverAddress, headers: headers).timeout(const Duration(seconds: 2));
 
       if (response.statusCode == 200) {
         return (OllamaRequestState.success, serverAddress);
@@ -231,7 +277,7 @@ class _ServerSettingsState extends State<ServerSettings> {
     });
 
     try {
-      final result = await Isolate.run(() => _searchLocalNetwork());
+      final result = await Isolate.run(() => _searchLocalNetwork(customHeaders));
       final foundAddress = result.$2.toString();
 
       if (!mounted) return;
@@ -252,7 +298,7 @@ class _ServerSettingsState extends State<ServerSettings> {
     }
   }
 
-  static Future<(OllamaRequestState, Uri)> _searchLocalNetwork() async {
+  static Future<(OllamaRequestState, Uri)> _searchLocalNetwork(Map<String, String>? headers) async {
     final networkInterfaces = await NetworkInterface.list(
       includeLoopback: true,
       type: InternetAddressType.IPv4,
@@ -263,14 +309,14 @@ class _ServerSettingsState extends State<ServerSettings> {
       for (var address in interface.addresses) {
         if (address.isLoopback) {
           final url = Uri.parse('http://${address.address}:11434');
-          futures.add(_establishServerConnection(url));
+          futures.add(_establishServerConnection(url, headers));
         } else {
           final segments = address.address.split('.');
           for (int i = 1; i < 255; i++) {
             final url = Uri.parse(
               'http://${segments[0]}.${segments[1]}.${segments[2]}.$i:11434',
             );
-            futures.add(_establishServerConnection(url));
+            futures.add(_establishServerConnection(url, headers));
           }
         }
       }

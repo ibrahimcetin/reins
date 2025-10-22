@@ -19,15 +19,22 @@ class OllamaService {
   String get baseUrl => _baseUrl;
   set baseUrl(String? value) => _baseUrl = value ?? "http://localhost:11434";
 
+  Map<String, String> _customHeaders = {};
+  Map<String, String> get customHeaders => _customHeaders;
+  set customHeaders(Map<String, String>? value) => _customHeaders = value ?? {};
+
   /// The headers to include in all network requests.
-  final headers = {'Content-Type': 'application/json'};
+  final Map<String, String> _defaultHeaders = {'Content-Type': 'application/json'};
+
+  Map<String, String> get headers => {..._defaultHeaders, ..._customHeaders};
 
   /// The modelfile generator used to generate modelfiles for the Ollama service.
   static final _modelfileGenerator = OllamaModelfileGenerator();
 
   /// Creates a new instance of the Ollama service.
-  OllamaService({String? baseUrl})
-      : _baseUrl = baseUrl ?? "http://localhost:11434";
+  OllamaService({String? baseUrl, Map<String, String>? customHeaders})
+      : _baseUrl = baseUrl ?? "http://localhost:11434",
+        _customHeaders = customHeaders ?? {};
 
   /// Constructs a URL by resolving the provided path against the base URL.
   Uri constructUrl(String path) {
