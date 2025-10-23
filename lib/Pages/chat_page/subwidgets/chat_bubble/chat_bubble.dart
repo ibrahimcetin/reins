@@ -94,7 +94,26 @@ class _ChatBubbleBody extends StatelessWidget {
             ),
             child: Column(
               children: [
-                message.thinking != null ? ThinkBlockWidget(message.thinking) : null,
+                message.thinking != null
+                  ? ThinkBlockSyntax(
+                      content: MarkdownBody(
+                        data: message.thinking,
+                        selectable: true,
+                        softLineBreak: true,
+                        styleSheet: MarkdownStyleSheet(
+                          textScaler: TextScaler.linear(1.18),
+                          code: GoogleFonts.sourceCodePro(),
+                        ),
+                        extensionSet: md.ExtensionSet(
+                          <md.InlineSyntax>[
+                            md.EmojiSyntax(),
+                            ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
+                          ],
+                        ),
+                        onTapLink: (text, href, title) => launchUrlString(href!),
+                      ),
+                    )
+                  : null,
                 MarkdownBody(
                   data: message.content,
                   selectable: true,
