@@ -92,26 +92,50 @@ class _ChatBubbleBody extends StatelessWidget {
                   : Theme.of(context).colorScheme.surface,
               borderRadius: BorderRadius.circular(10.0),
             ),
-            child: MarkdownBody(
-              data: message.content,
-              selectable: true,
-              softLineBreak: true,
-              styleSheet: MarkdownStyleSheet(
-                textScaler: TextScaler.linear(1.18),
-                code: GoogleFonts.sourceCodePro(),
-              ),
-              builders: {'think': ThinkBlockBuilder()},
-              extensionSet: md.ExtensionSet(
-                <md.BlockSyntax>[
-                  ThinkBlockSyntax(),
-                  ...md.ExtensionSet.gitHubFlavored.blockSyntaxes
-                ],
-                <md.InlineSyntax>[
-                  md.EmojiSyntax(),
-                  ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
-                ],
-              ),
-              onTapLink: (text, href, title) => launchUrlString(href!),
+            child: Column(
+              children: [
+                message.thinking != null
+                  ? ThinkBlockSyntax(
+                      content: MarkdownBody(
+                        data: message.thinking,
+                        selectable: true,
+                        softLineBreak: true,
+                        styleSheet: MarkdownStyleSheet(
+                          textScaler: TextScaler.linear(1.18),
+                          code: GoogleFonts.sourceCodePro(),
+                        ),
+                        extensionSet: md.ExtensionSet(
+                          <md.InlineSyntax>[
+                            md.EmojiSyntax(),
+                            ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
+                          ],
+                        ),
+                        onTapLink: (text, href, title) => launchUrlString(href!),
+                      ),
+                    )
+                  : null,
+                MarkdownBody(
+                  data: message.content,
+                  selectable: true,
+                  softLineBreak: true,
+                  styleSheet: MarkdownStyleSheet(
+                    textScaler: TextScaler.linear(1.18),
+                    code: GoogleFonts.sourceCodePro(),
+                  ),
+                  builders: {'think': ThinkBlockBuilder()},
+                  extensionSet: md.ExtensionSet(
+                    <md.BlockSyntax>[
+                      ThinkBlockSyntax(),
+                      ...md.ExtensionSet.gitHubFlavored.blockSyntaxes
+                    ],
+                    <md.InlineSyntax>[
+                      md.EmojiSyntax(),
+                      ...md.ExtensionSet.gitHubFlavored.inlineSyntaxes
+                    ],
+                  ),
+                  onTapLink: (text, href, title) => launchUrlString(href!),
+                ),
+              ],
             ),
           ),
           Text(

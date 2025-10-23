@@ -12,6 +12,9 @@ class OllamaMessage {
   /// The text content of the message.
   String content;
 
+  /// The thinking text content of the message.
+  String? thinking;
+
   /// The image content of the message.
   List<File>? images;
 
@@ -42,6 +45,7 @@ class OllamaMessage {
     this.images,
     DateTime? createdAt,
     this.model,
+    this.thinking,
     this.done,
     this.doneReason,
     this.context,
@@ -95,6 +99,7 @@ class OllamaMessage {
         "message": {
           "role": role.toCaseString(),
           "content": content,
+          "thinking": thinking,
           "images": await _base64EncodeImages(),
         },
         "done": done,
@@ -112,12 +117,14 @@ class OllamaMessage {
   Future<Map<String, dynamic>> toChatJson() async => {
         "role": role.toCaseString(),
         "content": content,
+        "thinking": thinking,
         "images": await _base64EncodeImages(),
       };
 
   Map<String, dynamic> toDatabaseMap() => {
         'message_id': id,
         'content': content,
+        'thinking': thinking,
         'images': _breakImages(images),
         'role': role.toCaseString(),
         'timestamp': createdAt.millisecondsSinceEpoch,
