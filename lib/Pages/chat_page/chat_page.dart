@@ -33,6 +33,9 @@ class _ChatPageState extends State<ChatPage> {
   // This is for the image attachment
   final List<File> _imageFiles = [];
 
+  // This is for the document attachment
+  final List<File> _documentFiles = [];
+
   // This is for the chat presets
   List<ChatPreset> _presets = ChatPresets.randomPresets;
 
@@ -59,9 +62,10 @@ class _ChatPageState extends State<ChatPage> {
       _selectedModel = null;
     });
 
-    // Listen exit request to delete the unused attached images
+    // Listen exit request to delete the unused attached files
     _appLifecycleListener = AppLifecycleListener(onExitRequested: () async {
       await _viewModel.deleteImages(_imageFiles);
+      await _viewModel.deleteDocuments(_documentFiles);
       return AppExitResponse.exit;
     });
   }
@@ -100,7 +104,7 @@ class _ChatPageState extends State<ChatPage> {
                 onEditingComplete: () => _handleOnEditingComplete(chatProvider),
                 prefixIcon: IconButton(
                   icon: Icon(Icons.add),
-                  onPressed: _handleAttachmentButton,
+                  onPressed: _showAttachmentOptions,
                 ),
                 suffixIcon: _buildTextFieldSuffixIcon(chatProvider),
               ),
@@ -148,22 +152,32 @@ class _ChatPageState extends State<ChatPage> {
                 onRetry: () => chatProvider.retryLastPrompt(),
               )
             : null,
-        bottomPadding: _imageFiles.isNotEmpty
+        bottomPadding: (_imageFiles.isNotEmpty || _documentFiles.isNotEmpty)
             ? MediaQuery.of(context).size.height * 0.15
-            : null, // TODO: Calculate the height of attachments row
+            : null,
       );
     }
   }
 
   Widget _buildChatFooter(ChatProvider chatProvider) {
-    if (_imageFiles.isNotEmpty) {
+    final totalAttachments = _imageFiles.length + _documentFiles.length;
+    
+    if (totalAttachments > 0) {
       return ChatAttachmentRow(
-        itemCount: _imageFiles.length,
+        itemCount: totalAttachments,
         itemBuilder: (context, index) {
-          return ChatAttachmentImage(
-            imageFile: _imageFiles[index],
-            onRemove: _handleImageDelete,
-          );
+          if (index < _imageFiles.length) {
+            return ChatAttachmentImage(
+              imageFile: _imageFiles[index],
+              onRemove: _handleImageDelete,
+            );
+          } else {
+            final docIndex = index - _imageFiles.length;
+            return ChatAttachmentDocument(
+              documentFile: _documentFiles[docIndex],
+              onRemove: _handleDocumentDelete,
+            );
+          }
         },
       );
     } else if (chatProvider.messages.isEmpty) {
@@ -222,6 +236,7 @@ class _ChatPageState extends State<ChatPage> {
         chatProvider.sendPrompt(
           _textFieldController.text,
           images: _imageFiles.toList(),
+          documents: _documentFiles.toList(),
         );
 
         chatProvider.generateTitleForCurrentChat();
@@ -229,6 +244,7 @@ class _ChatPageState extends State<ChatPage> {
         setState(() {
           _textFieldController.clear();
           _imageFiles.clear();
+          _documentFiles.clear();
           _presets = ChatPresets.randomPresets;
         });
       }
@@ -236,11 +252,13 @@ class _ChatPageState extends State<ChatPage> {
       chatProvider.sendPrompt(
         _textFieldController.text,
         images: _imageFiles.toList(),
+        documents: _documentFiles.toList(),
       );
 
       setState(() {
         _textFieldController.clear();
         _imageFiles.clear();
+        _documentFiles.clear();
       });
     }
   }
@@ -293,8 +311,45 @@ class _ChatPageState extends State<ChatPage> {
     );
   }
 
+  Future<void> _showAttachmentOptions() async {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            leading: Icon(Icons.image),
+            title: Text('Image'),
+            onTap: () {
+              Navigator.pop(context);
+              _handleAttachmentButton();
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.description),
+            title: Text('Document'),
+            onTap: () {
+              Navigator.pop(context);
+              _handleDocumentButton();
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleDocumentButton() async {
+    final documents = await _viewModel.pickDocuments();
+    setState(() => _documentFiles.addAll(documents));
+  }
+
   Future<void> _handleImageDelete(File imageFile) async {
     await _viewModel.deleteImage(imageFile);
     setState(() => _imageFiles.remove(imageFile));
+  }
+
+  Future<void> _handleDocumentDelete(File documentFile) async {
+    await _viewModel.deleteDocument(documentFile);
+    setState(() => _documentFiles.remove(documentFile));
   }
 }

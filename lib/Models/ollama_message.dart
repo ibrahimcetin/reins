@@ -15,6 +15,9 @@ class OllamaMessage {
   /// The image content of the message.
   List<File>? images;
 
+  /// The document content of the message.
+  List<File>? documents;
+
   /// The date and time the message was created.
   DateTime createdAt;
 
@@ -40,6 +43,7 @@ class OllamaMessage {
     String? id,
     required this.role,
     this.images,
+    this.documents,
     DateTime? createdAt,
     this.model,
     this.done,
@@ -83,7 +87,8 @@ class OllamaMessage {
       map['content'],
       id: map['message_id'],
       role: OllamaMessageRole.fromString(map['role']),
-      images: _constructImages(map['images']),
+      images: _constructFiles(map['images']),
+      documents: _constructFiles(map['documents']),
       createdAt: DateTime.fromMillisecondsSinceEpoch(map['timestamp']),
       model: map['model'],
     );
@@ -118,7 +123,8 @@ class OllamaMessage {
   Map<String, dynamic> toDatabaseMap() => {
         'message_id': id,
         'content': content,
-        'images': _breakImages(images),
+        'images': _breakFiles(images),
+        'documents': _breakFiles(documents),
         'role': role.toCaseString(),
         'timestamp': createdAt.millisecondsSinceEpoch,
       };
@@ -145,13 +151,13 @@ class OllamaMessage {
     return null;
   }
 
-  static List<File>? _constructImages(String? raw) {
+  static List<File>? _constructFiles(String? raw) {
     if (raw != null) {
       final List<dynamic> decoded = jsonDecode(raw);
-      return decoded.map((imageRelativePath) {
+      return decoded.map((fileRelativePath) {
         return File(path.join(
           PathManager.instance.documentsDirectory.path,
-          imageRelativePath,
+          fileRelativePath,
         ));
       }).toList();
     }
@@ -159,16 +165,16 @@ class OllamaMessage {
     return null;
   }
 
-  String? _breakImages(List<File>? images) {
-    if (images != null) {
-      final relativePathImages = images.map((file) {
+  String? _breakFiles(List<File>? files) {
+    if (files != null) {
+      final relativePathFiles = files.map((file) {
         return path.relative(
           file.path,
           from: PathManager.instance.documentsDirectory.path,
         );
       }).toList();
 
-      return jsonEncode(relativePathImages);
+      return jsonEncode(relativePathFiles);
     }
 
     return null;

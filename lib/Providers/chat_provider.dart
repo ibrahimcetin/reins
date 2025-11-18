@@ -11,11 +11,13 @@ import 'package:reins/Models/ollama_exception.dart';
 import 'package:reins/Models/ollama_message.dart';
 import 'package:reins/Models/ollama_model.dart';
 import 'package:reins/Services/database_service.dart';
+import 'package:reins/Services/file_service.dart';
 import 'package:reins/Services/ollama_service.dart';
 
 class ChatProvider extends ChangeNotifier {
   final OllamaService _ollamaService;
   final DatabaseService _databaseService;
+  final FileService _fileService;
 
   List<OllamaMessage> _messages = [];
   List<OllamaMessage> get messages => _messages;
@@ -66,8 +68,10 @@ class ChatProvider extends ChangeNotifier {
   ChatProvider({
     required OllamaService ollamaService,
     required DatabaseService databaseService,
+    required FileService fileService,
   })  : _ollamaService = ollamaService,
-        _databaseService = databaseService {
+        _databaseService = databaseService,
+        _fileService = fileService {
     _initialize();
   }
 
@@ -195,14 +199,30 @@ class ChatProvider extends ChangeNotifier {
     await _databaseService.deleteChat(chat.id);
   }
 
-  Future<void> sendPrompt(String text, {List<File>? images}) async {
+  Future<void> sendPrompt(String text, {List<File>? images, List<File>? documents}) async {
     // Save the chat where the prompt was sent
     final associatedChat = currentChat!;
 
+    // Process document content if any
+    String finalText = text.trim();
+    if (documents != null && documents.isNotEmpty) {
+      final documentContents = <String>[];
+      for (final doc in documents) {
+        final content = await _fileService.extractTextContent(doc);
+        if (content != null) {
+          documentContents.add('Document: ${doc.path.split('/').last}\n$content');
+        }
+      }
+      if (documentContents.isNotEmpty) {
+        finalText = '$finalText\n\n${documentContents.join('\n\n')}';
+      }
+    }
+
     // Create a user prompt message and add it to the chat
     final prompt = OllamaMessage(
-      text.trim(),
+      finalText,
       images: images,
+      documents: documents,
       role: OllamaMessageRole.user,
     );
     _messages.add(prompt);
