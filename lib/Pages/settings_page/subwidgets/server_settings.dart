@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:http/http.dart' as http;
 import 'package:hive/hive.dart';
+import 'package:reins/Extensions/markdown_stylesheet_extension.dart';
 import 'package:reins/Models/ollama_exception.dart';
 import 'package:reins/Models/ollama_request_state.dart';
 import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
@@ -336,9 +337,7 @@ class _OllamaInfoBottomSheet extends StatelessWidget {
                 MarkdownBody(
                   data:
                       "Ollama is a free platform that enables you to run advanced large language models (LLMs) like Llama 3.3, Phi 3, Mistral, Gemma 2, and more directly on your local machine. This setup enhances privacy, security, and control over your AI interactions. Ollama also allows you to customize and create your own models.\n\nTo get started with Ollama, visit their official website: [ollama.com](https://ollama.com). Here, you can explore various models and download the platform to begin using Ollama.",
-                  styleSheet: MarkdownStyleSheet(
-                    textScaler: TextScaler.linear(1.18),
-                  ),
+                  styleSheet: context.markdownStyleSheet,
                   onTapLink: (_, href, __) => launchUrlString(href!),
                 ),
               ],

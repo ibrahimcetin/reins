@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:markdown/markdown.dart' as md;
+import 'package:reins/Extensions/markdown_stylesheet_extension.dart';
 import 'package:reins/Models/ollama_message.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
@@ -96,8 +97,7 @@ class _ChatBubbleBody extends StatelessWidget {
               data: message.content,
               selectable: true,
               softLineBreak: true,
-              styleSheet: MarkdownStyleSheet(
-                textScaler: TextScaler.linear(1.18),
+              styleSheet: context.markdownStyleSheet.copyWith(
                 code: GoogleFonts.sourceCodePro(),
               ),
               builders: {'think': ThinkBlockBuilder()},
