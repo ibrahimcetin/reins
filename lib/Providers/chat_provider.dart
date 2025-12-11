@@ -279,6 +279,11 @@ class ChatProvider extends ChangeNotifier {
         return streamingMessage;
       }
 
+      // Ignore empty initial messages, preventing disruption of the thinking indicator
+      if (receivedMessage.content.isEmpty && streamingMessage == null) {
+        continue;
+      }
+
       if (streamingMessage == null) {
         // Keep the first received message to add the content of the following messages
         streamingMessage = receivedMessage;
