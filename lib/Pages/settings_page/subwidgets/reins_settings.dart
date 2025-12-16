@@ -4,6 +4,8 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:in_app_review/in_app_review.dart';
 import 'dart:io' show Platform;
 
+import 'package:reins/Widgets/flexible_text.dart';
+
 class ReinsSettings extends StatelessWidget {
   const ReinsSettings({super.key});
 
@@ -79,7 +81,10 @@ class ReinsSettings extends StatelessWidget {
           spacing: 5,
           children: [
             Icon(Icons.favorite, color: Colors.red, size: 16),
-            Text("Thanks for using Reins!"),
+            FlexibleText(
+              "Thanks for using Reins!",
+              textAlign: TextAlign.center,
+            ),
           ],
         ),
       ],

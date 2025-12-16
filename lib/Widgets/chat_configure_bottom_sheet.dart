@@ -4,6 +4,7 @@ import 'package:reins/Models/chat_configure_arguments.dart';
 import 'package:reins/Models/ollama_chat.dart';
 import 'package:reins/Models/ollama_exception.dart';
 import 'package:reins/Providers/chat_provider.dart';
+import 'package:reins/Widgets/flexible_text.dart';
 
 import 'ollama_bottom_sheet_header.dart';
 
@@ -83,9 +84,9 @@ class __ChatConfigureBottomSheetContentState
           spacing: 16.0,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _RenameButton(),
-            _SaveAsNewModelButton(),
-            _DeleteButton(),
+            Expanded(child: _RenameButton()),
+            Expanded(child: _SaveAsNewModelButton()),
+            Expanded(child: _DeleteButton()),
           ],
         ),
         // The chat configurations section
@@ -244,7 +245,7 @@ class __ChatConfigureBottomSheetContentState
             children: [
               Icon(Icons.info_outline_rounded),
               const SizedBox(width: 8),
-              Text('Leave empty to use the default value'),
+              FlexibleText('Leave empty to use the default value'),
             ],
           ),
           TextButton.icon(
@@ -506,9 +507,15 @@ class _BottomSheetButton extends StatelessWidget {
         ),
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           icon,
-          Text(title),
+          FlexibleText(
+            title,
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );

@@ -77,10 +77,12 @@ class _SelectionBottomSheetState<T> extends State<SelectionBottomSheet<T>> {
         children: [
           Row(
             children: [
-              widget.header,
-              const Spacer(),
+              Expanded(child: widget.header),
               if (_items.isNotEmpty && _state == OllamaRequestState.loading)
-                const CircularProgressIndicator()
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16.0),
+                  child: CircularProgressIndicator(),
+                ),
             ],
           ),
           const Divider(),

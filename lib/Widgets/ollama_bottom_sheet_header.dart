@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:reins/Constants/constants.dart';
+import 'package:reins/Widgets/flexible_text.dart';
 
 class OllamaBottomSheetHeader extends StatelessWidget {
   final String title;
@@ -17,7 +18,7 @@ class OllamaBottomSheetHeader extends StatelessWidget {
             child: Image.asset(AppConstants.appIconPng, height: 48),
           ),
         ),
-        Text(
+        FlexibleText(
           title,
           style: TextStyle(fontWeight: FontWeight.bold),
         ),

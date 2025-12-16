@@ -38,13 +38,13 @@ class _ThemesSettingsState extends State<ThemesSettings> {
                 padding: const EdgeInsets.all(8.0),
                 child: CircleAvatar(
                   backgroundImage: AssetImage(AppConstants.appIconPng),
-                  radius: 16,
+                  radius: MediaQuery.of(context).textScaler.scale(16),
                 ),
               ),
-              Text("Here is your current theme"),
-              const Spacer(),
+              Expanded(child: Text("Here is your current theme")),
               IconButton(
                 icon: Icon(_brightnessIcon),
+                iconSize: MediaQuery.of(context).textScaler.scale(16),
                 onPressed: () {
                   setState(() => _toggleBrightness());
                 },

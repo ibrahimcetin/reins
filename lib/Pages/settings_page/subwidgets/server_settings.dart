@@ -89,20 +89,25 @@ class _ServerSettingsState extends State<ServerSettings> {
           },
         ),
         const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            ElevatedButton(
-              onPressed: _isLoading ? null : _handleSearchLocalNetwork,
-              child: const Text('Search Local Network'),
-            ),
-            ElevatedButton(
-              onPressed: _isLoading ? null : _handleConnectButton,
-              child: _ConnectionStatusIndicator(
-                color: _connectionStatusColor,
+        SizedBox(
+          width: double.infinity,
+          child: Wrap(
+            spacing: 8.0,
+            runSpacing: 8.0,
+            alignment: WrapAlignment.spaceEvenly,
+            children: [
+              ElevatedButton(
+                onPressed: _isLoading ? null : _handleSearchLocalNetwork,
+                child: const Text('Search Local Network'),
               ),
-            ),
-          ],
+              ElevatedButton(
+                onPressed: _isLoading ? null : _handleConnectButton,
+                child: _ConnectionStatusIndicator(
+                  color: _connectionStatusColor,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -300,12 +305,13 @@ class _ConnectionStatusIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         const Text('Connect'),
         const SizedBox(width: 10),
         Container(
-          width: 10,
-          height: 10,
+          width: MediaQuery.of(context).textScaler.scale(10),
+          height: MediaQuery.of(context).textScaler.scale(10),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: color,
