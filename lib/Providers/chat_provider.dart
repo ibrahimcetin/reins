@@ -432,6 +432,11 @@ class ChatProvider extends ChangeNotifier {
 
     var title = "";
     await for (final titleMessage in stream) {
+      // Ignore empty initial messages, preventing empty title
+      if (title.isEmpty && titleMessage.content.isEmpty) {
+        continue;
+      }
+
       title += titleMessage.content;
 
       // If <think> tag exists, do not stream chat title
