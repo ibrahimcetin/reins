@@ -32,17 +32,15 @@ class ReinsSettings extends StatelessWidget {
             }
           },
         ),
-        ListTile(
-          leading: Icon(Icons.share),
-          title: Text('Share Reins'),
-          subtitle: Text('Share Reins with your friends'),
-          onTap: () {
-            SharePlus.instance.share(
-              ShareParams(
-                text: 'Check out Reins: https://reins.ibrahimcetin.dev',
-              ),
-            );
-          },
+        Builder(
+          builder: (builderContext) => ListTile(
+            leading: Icon(Icons.share),
+            title: Text('Share Reins'),
+            subtitle: Text('Share Reins with your friends'),
+            onTap: () {
+              _openShareSheet(builderContext);
+            },
+          ),
         ),
         if (Platform.isAndroid || Platform.isIOS)
           ListTile(
@@ -91,5 +89,17 @@ class ReinsSettings extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  void _openShareSheet(BuildContext context) {
+    final box = context.findRenderObject() as RenderBox?;
+    if (box != null) {
+      SharePlus.instance.share(
+        ShareParams(
+          text: 'Check out Reins: https://reins.ibrahimcetin.dev',
+          sharePositionOrigin: box.localToGlobal(Offset.zero) & box.size,
+        ),
+      );
+    }
   }
 }
