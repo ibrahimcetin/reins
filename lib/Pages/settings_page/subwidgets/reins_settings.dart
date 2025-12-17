@@ -37,8 +37,10 @@ class ReinsSettings extends StatelessWidget {
           title: Text('Share Reins'),
           subtitle: Text('Share Reins with your friends'),
           onTap: () {
-            Share.share(
-              'Check out Reins: https://github.com/ibrahimcetin/reins',
+            SharePlus.instance.share(
+              ShareParams(
+                text: 'Check out Reins: https://reins.ibrahimcetin.dev',
+              ),
             );
           },
         ),
