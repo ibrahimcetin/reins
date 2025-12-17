@@ -94,7 +94,9 @@ class _ServerSettingsState extends State<ServerSettings> {
           child: Wrap(
             spacing: 8.0,
             runSpacing: 8.0,
-            alignment: WrapAlignment.spaceEvenly,
+            alignment: (Platform.isAndroid || Platform.isIOS)
+                ? WrapAlignment.spaceEvenly
+                : WrapAlignment.spaceBetween,
             children: [
               ElevatedButton(
                 onPressed: _isLoading ? null : _handleSearchLocalNetwork,
@@ -217,7 +219,8 @@ class _ServerSettingsState extends State<ServerSettings> {
       );
     }
 
-    final String formattedAddress = "${url.scheme}://${url.host}${url.hasPort ? ":${url.port}" : ""}${url.path}";
+    final String formattedAddress =
+        "${url.scheme}://${url.host}${url.hasPort ? ":${url.port}" : ""}${url.path}";
     return formattedAddress;
   }
 
