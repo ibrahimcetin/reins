@@ -44,7 +44,7 @@ class _ThemesSettingsState extends State<ThemesSettings> {
               Expanded(child: Text("Here is your current theme")),
               IconButton(
                 icon: Icon(_brightnessIcon),
-                iconSize: MediaQuery.of(context).textScaler.scale(16),
+                iconSize: MediaQuery.of(context).textScaler.scale(24),
                 onPressed: () {
                   setState(() => _toggleBrightness());
                 },
