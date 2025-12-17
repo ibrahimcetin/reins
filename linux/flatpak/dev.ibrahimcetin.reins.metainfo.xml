@@ -91,6 +91,17 @@
   </screenshots>
 
   <releases>
+    <release version="1.3.3" date="2025-12-17">
+      <url type="details">https://github.com/ibrahimcetin/reins/releases/tag/v1.3.3</url>
+      <description>
+        <p>Fixes</p>
+        <ul>
+          <li>Improved accessibility: all UI now respects system font size settings.</li>
+          <li>Fixed issue where thinking indicator would disappear unexpectedly.</li>
+          <li>Fixed issue where chat titles appeared empty while generating.</li>
+        </ul>
+      </description>
+    </release>
     <release version="1.3.2" date="2025-10-19">
       <url type="details">https://github.com/ibrahimcetin/reins/releases/tag/v1.3.2</url>
       <description>
