@@ -46,18 +46,18 @@ class ReinsSettings extends StatelessWidget {
           ListTile(
             leading: Icon(Icons.desktop_mac_outlined),
             title: Text('Try Desktop App'),
-            subtitle: Text('Available on macOS and Windows'),
+            subtitle: Text('Available on macOS and Linux'),
             onTap: () {
-              launchUrlString('https://github.com/ibrahimcetin/reins/releases');
+              launchUrlString('https://reins.ibrahimcetin.dev');
             },
           ),
         if (Platform.isMacOS || Platform.isLinux || Platform.isWindows)
           ListTile(
             leading: Icon(Icons.phone_iphone_outlined),
             title: Text('Try Mobile App'),
-            subtitle: Text('Available on Android and iOS'),
+            subtitle: Text('Available on iOS'),
             onTap: () {
-              launchUrlString('https://github.com/ibrahimcetin/reins');
+              launchUrlString('https://reins.ibrahimcetin.dev');
             },
           ),
         ListTile(
