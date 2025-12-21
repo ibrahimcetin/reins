@@ -76,6 +76,10 @@ dependencies:
   photo_view: ^0.15.0
   permission_handler: ^11.3.1
 
+  # File support
+  file_picker: ^8.1.2
+  syncfusion_flutter_pdf: ^27.1.58
+
   # In-app review
   in_app_review: ^2.0.10
 

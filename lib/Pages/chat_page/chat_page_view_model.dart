@@ -9,16 +9,19 @@ class ChatPageViewModel {
   final DatabaseService _databaseService;
   final PermissionService _permissionService;
   final ImageService _imageService;
+  final FileService _fileService;
 
   ChatPageViewModel({
     required OllamaService ollamaService,
     required DatabaseService databaseService,
     required PermissionService permissionService,
     required ImageService imageService,
+    required FileService fileService,
   })  : _ollamaService = ollamaService,
         _databaseService = databaseService,
         _permissionService = permissionService,
-        _imageService = imageService;
+        _imageService = imageService,
+        _fileService = fileService;
 
   /// Handles image picking and compression
   Future<List<File>> pickImages({
@@ -58,5 +61,20 @@ class ChatPageViewModel {
   /// Deletes multiple images
   Future<void> deleteImages(List<File> imageFiles) async {
     await _imageService.deleteImages(imageFiles);
+  }
+
+  /// Handles document picking
+  Future<List<File>> pickDocuments() async {
+    return await _fileService.pickDocuments();
+  }
+
+  /// Deletes a single document
+  Future<void> deleteDocument(File documentFile) async {
+    await _fileService.deleteDocument(documentFile);
+  }
+
+  /// Deletes multiple documents
+  Future<void> deleteDocuments(List<File> documentFiles) async {
+    await _fileService.deleteDocuments(documentFiles);
   }
 }

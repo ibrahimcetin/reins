@@ -54,10 +54,12 @@ void main() async {
         Provider(create: (_) => DatabaseService()),
         Provider(create: (_) => PermissionService()),
         Provider(create: (_) => ImageService()),
+        Provider(create: (_) => FileService()),
         ChangeNotifierProvider(
           create: (context) => ChatProvider(
             ollamaService: context.read(),
             databaseService: context.read(),
+            fileService: context.read(),
           ),
         ),
         Provider(
@@ -66,6 +68,7 @@ void main() async {
             databaseService: context.read(),
             permissionService: context.read(),
             imageService: context.read(),
+            fileService: context.read(),
           ),
         ),
       ],
