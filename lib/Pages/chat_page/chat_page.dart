@@ -1,15 +1,8 @@
-import 'dart:io';
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
-import 'package:reins/Constants/constants.dart';
-import 'package:reins/Models/chat_preset.dart';
-import 'package:reins/Models/ollama_model.dart';
-import 'package:reins/Providers/chat_provider.dart';
 import 'package:reins/Widgets/chat_app_bar.dart';
 import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
 import 'package:reins/Widgets/selection_bottom_sheet.dart';
@@ -25,101 +18,63 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
+  // ViewModel reference
   late final ChatPageViewModel _viewModel;
 
-  // This is for empty chat state to select a model
-  OllamaModel? _selectedModel;
-
-  // This is for the image attachment
-  final List<File> _imageFiles = [];
-
-  // This is for the chat presets
-  List<ChatPreset> _presets = ChatPresets.randomPresets;
-
-  // Text field controller for the chat prompt
-  final _textFieldController = TextEditingController();
-  bool get _isTextFieldHasText => _textFieldController.text.trim().isNotEmpty;
-
-  // These are for the welcome screen animation
+  // Welcome screen animation state
   var _crossFadeState = CrossFadeState.showFirst;
   double _scale = 1.0;
-
-  // This is for the exit request listener
-  late final AppLifecycleListener _appLifecycleListener;
 
   @override
   void initState() {
     super.initState();
-
-    // Initialize the view model
-    _viewModel = Provider.of<ChatPageViewModel>(context, listen: false);
-
-    // If the server address changes, reset the selected model
-    Hive.box('settings').watch(key: 'serverAddress').listen((event) {
-      _selectedModel = null;
-    });
-
-    // Listen exit request to delete the unused attached images
-    _appLifecycleListener = AppLifecycleListener(onExitRequested: () async {
-      await _viewModel.deleteImages(_imageFiles);
-      return AppExitResponse.exit;
-    });
-  }
-
-  @override
-  void dispose() {
-    _appLifecycleListener.dispose();
-    super.dispose();
+    _viewModel = context.read<ChatPageViewModel>();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ChatProvider>(
-      builder: (BuildContext context, ChatProvider chatProvider, _) {
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            if (!ResponsiveBreakpoints.of(context).isMobile)
-              ChatAppBar(), // If the screen is large, show the app bar
-            Expanded(
-              child: Stack(
-                alignment: Alignment.bottomLeft,
-                children: [
-                  _buildChatBody(chatProvider),
-                  _buildChatFooter(chatProvider),
-                ],
-              ),
+    // Subscribe to ViewModel changes
+    context.watch<ChatPageViewModel>();
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        if (!ResponsiveBreakpoints.of(context).isMobile) ChatAppBar(), // If the screen is large, show the app bar
+        Expanded(
+          child: Stack(
+            alignment: Alignment.bottomLeft,
+            children: [
+              _buildChatBody(),
+              _buildChatFooter(),
+            ],
+          ),
+        ),
+        // TODO: Wrap with ConstrainedBox to limit the height
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: ChatTextField(
+            key: ValueKey(_viewModel.currentChat?.id),
+            controller: _viewModel.textFieldController,
+            onEditingComplete: _sendMessage,
+            prefixIcon: IconButton(
+              icon: Icon(Icons.add),
+              onPressed: _handleAttachmentButton,
             ),
-            // TODO: Wrap with ConstrainedBox to limit the height
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ChatTextField(
-                key: ValueKey(chatProvider.currentChat?.id),
-                controller: _textFieldController,
-                onChanged: (_) => setState(() {}),
-                onEditingComplete: () => _handleOnEditingComplete(chatProvider),
-                prefixIcon: IconButton(
-                  icon: Icon(Icons.add),
-                  onPressed: _handleAttachmentButton,
-                ),
-                suffixIcon: _buildTextFieldSuffixIcon(chatProvider),
-              ),
-            ),
-          ],
-        );
-      },
+            suffixIcon: _buildTextFieldSuffixIcon(),
+          ),
+        ),
+      ],
     );
   }
 
-  Widget _buildChatBody(ChatProvider chatProvider) {
-    if (chatProvider.messages.isEmpty) {
-      if (chatProvider.currentChat == null) {
-        if (Hive.box('settings').get('serverAddress') == null) {
+  Widget _buildChatBody() {
+    if (_viewModel.messages.isEmpty) {
+      if (_viewModel.currentChat == null) {
+        if (!_viewModel.isServerConfigured) {
           return ChatEmpty(
             child: ChatWelcome(
               showingState: _crossFadeState,
-              onFirstChildFinished: () =>
-                  setState(() => _crossFadeState = CrossFadeState.showSecond),
+              onFirstChildFinished: () => setState(() => _crossFadeState = CrossFadeState.showSecond),
               secondChildScale: _scale,
               onSecondChildScaleEnd: () => setState(() => _scale = 1.0),
             ),
@@ -127,8 +82,8 @@ class _ChatPageState extends State<ChatPage> {
         } else {
           return ChatEmpty(
             child: ChatSelectModelButton(
-              currentModelName: _selectedModel?.name,
-              onPressed: () => _showModelSelectionBottomSheet(context),
+              currentModelName: _viewModel.selectedModel?.name,
+              onPressed: _showModelSelectionBottomSheet,
             ),
           );
         }
@@ -139,43 +94,43 @@ class _ChatPageState extends State<ChatPage> {
       }
     } else {
       return ChatListView(
-        key: PageStorageKey<String>(chatProvider.currentChat?.id ?? 'empty'),
-        messages: chatProvider.messages,
-        isAwaitingReply: chatProvider.isCurrentChatThinking,
-        error: chatProvider.currentChatError != null
+        key: PageStorageKey<String>(_viewModel.currentChat?.id ?? 'empty'),
+        messages: _viewModel.messages,
+        isAwaitingReply: _viewModel.isThinking,
+        error: _viewModel.currentError != null
             ? ChatError(
-                message: chatProvider.currentChatError!.message,
-                onRetry: () => chatProvider.retryLastPrompt(),
+                message: _viewModel.currentError!.message,
+                onRetry: () => _viewModel.retryLastPrompt(),
               )
             : null,
-        bottomPadding: _imageFiles.isNotEmpty
+        bottomPadding: _viewModel.hasImageAttachments
             ? MediaQuery.of(context).size.height * 0.15
             : null, // TODO: Calculate the height of attachments row
       );
     }
   }
 
-  Widget _buildChatFooter(ChatProvider chatProvider) {
-    if (_imageFiles.isNotEmpty) {
+  Widget _buildChatFooter() {
+    if (_viewModel.hasImageAttachments) {
       return ChatAttachmentRow(
-        itemCount: _imageFiles.length,
+        itemCount: _viewModel.imageFiles.length,
         itemBuilder: (context, index) {
           return ChatAttachmentImage(
-            imageFile: _imageFiles[index],
-            onRemove: _handleImageDelete,
+            imageFile: _viewModel.imageFiles[index],
+            onRemove: (imageFile) => _viewModel.removeImage(imageFile),
           );
         },
       );
-    } else if (chatProvider.messages.isEmpty) {
+    } else if (_viewModel.messages.isEmpty) {
       return ChatAttachmentRow(
-        itemCount: _presets.length,
+        itemCount: _viewModel.presets.length,
         itemBuilder: (context, index) {
-          final preset = _presets[index];
+          final preset = _viewModel.presets[index];
           return ChatAttachmentPreset(
             preset: preset,
             onPressed: () async {
-              setState(() => _textFieldController.text = preset.prompt);
-              await _handleSendButton(chatProvider);
+              _viewModel.setTextFieldValue(preset.prompt);
+              await _sendMessage();
             },
           );
         },
@@ -185,94 +140,54 @@ class _ChatPageState extends State<ChatPage> {
     }
   }
 
-  Widget? _buildTextFieldSuffixIcon(ChatProvider chatProvider) {
-    if (chatProvider.isCurrentChatStreaming) {
+  Widget? _buildTextFieldSuffixIcon() {
+    if (_viewModel.isStreaming) {
       return IconButton(
         icon: const Icon(Icons.stop_rounded),
         color: Theme.of(context).colorScheme.onSurface,
-        onPressed: () {
-          chatProvider.cancelCurrentStreaming();
-        },
+        onPressed: _viewModel.cancelStreaming,
       );
-    } else if (_isTextFieldHasText) {
+    } else if (_viewModel.hasText) {
       return IconButton(
         icon: const Icon(Icons.arrow_upward_rounded),
         color: Theme.of(context).colorScheme.onSurface,
-        onPressed: () async {
-          await _handleSendButton(chatProvider);
-        },
+        onPressed: _sendMessage,
       );
     } else {
       return null;
     }
   }
 
-  Future<void> _handleSendButton(ChatProvider chatProvider) async {
-    if (Hive.box('settings').get('serverAddress') == null) {
-      setState(() => _crossFadeState = CrossFadeState.showSecond);
-      setState(() => _scale = _scale == 1.0 ? 1.05 : 1.0);
-    } else if (chatProvider.currentChat == null) {
-      if (_selectedModel == null) {
-        await _showModelSelectionBottomSheet(context);
-      }
-
-      if (_selectedModel != null) {
-        await chatProvider.createNewChat(_selectedModel!);
-
-        chatProvider.sendPrompt(
-          _textFieldController.text,
-          images: _imageFiles.toList(),
-        );
-
-        chatProvider.generateTitleForCurrentChat();
-
-        setState(() {
-          _textFieldController.clear();
-          _imageFiles.clear();
-          _presets = ChatPresets.randomPresets;
-        });
-      }
-    } else {
-      chatProvider.sendPrompt(
-        _textFieldController.text,
-        images: _imageFiles.toList(),
-      );
-
-      setState(() {
-        _textFieldController.clear();
-        _imageFiles.clear();
-      });
-    }
+  Future<void> _sendMessage() async {
+    await _viewModel.sendMessage(
+      onModelSelectionRequired: _showModelSelectionBottomSheet,
+      onServerNotConfigured: _onServerNotConfigured,
+    );
   }
 
-  Future<void> _handleOnEditingComplete(ChatProvider chatProvider) async {
-    if (_isTextFieldHasText && chatProvider.isCurrentChatStreaming == false) {
-      await _handleSendButton(chatProvider);
-    }
-  }
-
-  Future<void> _showModelSelectionBottomSheet(BuildContext context) async {
-    final chatProvider = Provider.of<ChatProvider>(context, listen: false);
-
+  Future<void> _showModelSelectionBottomSheet() async {
     final selectedModel = await showSelectionBottomSheet(
       key: ValueKey(Hive.box('settings').get('serverAddress')),
       context: context,
       header: OllamaBottomSheetHeader(title: "Select a LLM Model"),
-      fetchItems: chatProvider.fetchAvailableModels,
-      currentSelection: _selectedModel,
+      fetchItems: _viewModel.fetchAvailableModels,
+      currentSelection: _viewModel.selectedModel,
     );
 
-    setState(() {
-      _selectedModel = selectedModel;
-    });
+    _viewModel.setSelectedModel(selectedModel);
   }
 
   Future<void> _handleAttachmentButton() async {
-    final images = await _viewModel.pickImages(
+    await _viewModel.pickImages(
       onPermissionDenied: _showPhotosDeniedAlert,
     );
+  }
 
-    setState(() => _imageFiles.addAll(images));
+  void _onServerNotConfigured() {
+    setState(() {
+      _crossFadeState = CrossFadeState.showSecond;
+      _scale = _scale == 1.0 ? 1.05 : 1.0;
+    });
   }
 
   Future<void> _showPhotosDeniedAlert() async {
@@ -291,10 +206,5 @@ class _ChatPageState extends State<ChatPage> {
         );
       },
     );
-  }
-
-  Future<void> _handleImageDelete(File imageFile) async {
-    await _viewModel.deleteImage(imageFile);
-    setState(() => _imageFiles.remove(imageFile));
   }
 }

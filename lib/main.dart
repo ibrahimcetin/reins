@@ -60,10 +60,9 @@ void main() async {
             databaseService: context.read(),
           ),
         ),
-        Provider(
+        ChangeNotifierProvider(
           create: (context) => ChatPageViewModel(
-            ollamaService: context.read(),
-            databaseService: context.read(),
+            chatProvider: context.read(),
             permissionService: context.read(),
             imageService: context.read(),
           ),
