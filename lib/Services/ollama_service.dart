@@ -26,8 +26,7 @@ class OllamaService {
   static final _modelfileGenerator = OllamaModelfileGenerator();
 
   /// Creates a new instance of the Ollama service.
-  OllamaService({String? baseUrl})
-      : _baseUrl = baseUrl ?? "http://localhost:11434";
+  OllamaService({String? baseUrl}) : _baseUrl = baseUrl ?? "http://localhost:11434";
 
   /// Constructs a URL by resolving the provided path against the base URL.
   Uri constructUrl(String path) {
@@ -135,8 +134,7 @@ class OllamaService {
       headers: headers,
       body: json.encode({
         "model": chat.model,
-        "messages":
-            await _prepareMessagesWithSystemPrompt(messages, chat.systemPrompt),
+        "messages": await _prepareMessagesWithSystemPrompt(messages, chat.systemPrompt),
         "options": chat.options.toMap(),
         "stream": false,
       }),
@@ -164,8 +162,7 @@ class OllamaService {
     request.headers.addAll(headers);
     request.body = json.encode({
       "model": chat.model,
-      "messages":
-          await _prepareMessagesWithSystemPrompt(messages, chat.systemPrompt),
+      "messages": await _prepareMessagesWithSystemPrompt(messages, chat.systemPrompt),
       "options": chat.options.toMap(),
       "stream": true,
     });
@@ -217,8 +214,7 @@ class OllamaService {
     List<OllamaMessage> messages,
     String? systemPrompt,
   ) async {
-    final jsonMessages =
-        await Future.wait(messages.map((m) async => await m.toChatJson()));
+    final jsonMessages = await Future.wait(messages.map((m) async => await m.toChatJson()));
 
     if (systemPrompt != null && systemPrompt.isNotEmpty) {
       final sp = OllamaMessage(systemPrompt, role: OllamaMessageRole.system);
