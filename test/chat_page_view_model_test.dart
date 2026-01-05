@@ -227,8 +227,7 @@ void main() {
       expect(result, isFalse);
     });
 
-    test('should call onServerNotConfigured when server not configured',
-        () async {
+    test('should call onServerNotConfigured when server not configured', () async {
       await Hive.box('settings').delete('serverAddress');
       viewModel.setTextFieldValue('Hello');
       var serverNotConfiguredCalled = false;
@@ -242,9 +241,7 @@ void main() {
       expect(serverNotConfiguredCalled, isTrue);
     });
 
-    test(
-        'should call onModelSelectionRequired when no model selected and no current chat',
-        () async {
+    test('should call onModelSelectionRequired when no model selected and no current chat', () async {
       viewModel.setTextFieldValue('Hello');
       var modelSelectionCalled = false;
 
@@ -258,8 +255,7 @@ void main() {
       expect(modelSelectionCalled, isTrue);
     });
 
-    test('should return false if no model selected after selection callback',
-        () async {
+    test('should return false if no model selected after selection callback', () async {
       viewModel.setTextFieldValue('Hello');
 
       final result = await viewModel.sendMessage(
@@ -270,8 +266,7 @@ void main() {
       expect(result, isFalse);
     });
 
-    test('should create new chat and send message when model selected',
-        () async {
+    test('should create new chat and send message when model selected', () async {
       viewModel.setTextFieldValue('Hello');
       final model = createTestModel('llama3.2');
       viewModel.setSelectedModel(model);
@@ -339,14 +334,7 @@ OllamaModel createTestModel(String name) {
     modifiedAt: DateTime.now(),
     size: 1000,
     digest: 'test-digest-$name',
-    details: OllamaModelDetails(
-      parentModel: '',
-      format: 'gguf',
-      family: 'llama',
-      families: ['llama'],
-      parameterSize: '7B',
-      quantizationLevel: 'Q4_0',
-    ),
+    parameterSize: '1B',
   );
 }
 
@@ -500,9 +488,7 @@ class FakeImageService implements ImageService {
   }
 }
 
-class FakePathProviderPlatform extends Fake
-    with MockPlatformInterfaceMixin
-    implements PathProviderPlatform {
+class FakePathProviderPlatform extends Fake with MockPlatformInterfaceMixin implements PathProviderPlatform {
   @override
   Future<String?> getApplicationDocumentsPath() async {
     return path.join(Directory.current.path, 'test', 'assets');
