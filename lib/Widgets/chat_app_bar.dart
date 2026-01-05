@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reins/Constants/constants.dart';
 import 'package:reins/Widgets/chat_configure_bottom_sheet.dart';
-import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
-import 'package:reins/Widgets/selection_bottom_sheet.dart';
+import 'package:reins/Widgets/model_selection_bottom_sheet.dart';
 import 'package:provider/provider.dart';
 import 'package:reins/Providers/chat_provider.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -53,19 +51,15 @@ class ChatAppBar extends StatelessWidget implements PreferredSizeWidget {
   Future<void> _handleModelSelectionButton(BuildContext context) async {
     final chatProvider = Provider.of<ChatProvider>(context, listen: false);
 
-    final selectedModelName = await showSelectionBottomSheet(
-      key: ValueKey("${Hive.box('settings').get('serverAddress')}-string"),
+    final selectedModel = await showModelSelectionBottomSheet(
       context: context,
-      header: OllamaBottomSheetHeader(title: "Change The Model"),
-      fetchItems: () async {
-        final models = await chatProvider.fetchAvailableModels();
-
-        return models.map((model) => model.name).toList();
-      },
-      currentSelection: chatProvider.currentChat!.model,
+      title: "Change The Model",
+      currentModelName: chatProvider.currentChat?.model,
     );
 
-    await chatProvider.updateCurrentChat(newModel: selectedModelName);
+    if (selectedModel != null) {
+      await chatProvider.updateCurrentChat(newModel: selectedModel.name);
+    }
   }
 
   Future<void> _handleConfigureButton(BuildContext context) async {

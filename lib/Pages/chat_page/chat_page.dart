@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hive_flutter/hive_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:responsive_framework/responsive_framework.dart';
 
 import 'package:reins/Widgets/chat_app_bar.dart';
-import 'package:reins/Widgets/ollama_bottom_sheet_header.dart';
-import 'package:reins/Widgets/selection_bottom_sheet.dart';
+import 'package:reins/Widgets/model_selection_bottom_sheet.dart';
 
 import 'chat_page_view_model.dart';
 import 'subwidgets/subwidgets.dart';
@@ -166,15 +164,15 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   Future<void> _showModelSelectionBottomSheet() async {
-    final selectedModel = await showSelectionBottomSheet(
-      key: ValueKey(Hive.box('settings').get('serverAddress')),
+    final selectedModel = await showModelSelectionBottomSheet(
       context: context,
-      header: OllamaBottomSheetHeader(title: "Select a LLM Model"),
-      fetchItems: _viewModel.fetchAvailableModels,
-      currentSelection: _viewModel.selectedModel,
+      title: "Select a Model",
+      currentModelName: _viewModel.selectedModel?.name,
     );
 
-    _viewModel.setSelectedModel(selectedModel);
+    if (selectedModel != null) {
+      _viewModel.setSelectedModel(selectedModel);
+    }
   }
 
   Future<void> _handleAttachmentButton() async {
