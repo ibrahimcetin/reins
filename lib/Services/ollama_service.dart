@@ -1,6 +1,8 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:reins/Models/api/tags_response.dart';
+import 'package:reins/Models/api/show_response.dart';
 import 'package:reins/Models/ollama_chat.dart';
 import 'package:reins/Models/ollama_exception.dart';
 import 'package:reins/Models/ollama_message.dart';
@@ -225,21 +227,62 @@ class OllamaService {
   }
 
   /// Lists the available models on the Ollama service.
+  ///
+  /// Fetches models from /api/tags and enriches each with capabilities
+  /// from /api/show. If /api/show fails for a model, capabilities will be null.
   Future<List<OllamaModel>> listModels() async {
+    final tagsResponse = await _fetchTags();
+
+    // Fetch capabilities for each model in parallel
+    final models = await Future.wait(
+      tagsResponse.models.map((model) async {
+        final showResponse = await _showModel(model.name);
+        return OllamaModel.from(model, showResponse);
+      }),
+    );
+
+    return models;
+  }
+
+  /// Fetches the list of models from /api/tags
+  Future<ApiTagsResponse> _fetchTags() async {
     final url = constructUrl("/api/tags");
 
     final response = await http.get(url, headers: headers);
 
     if (response.statusCode == 200) {
       final jsonBody = json.decode(response.body);
-      return List<OllamaModel>.from(
-        jsonBody["models"].map((m) => OllamaModel.fromJson(m)),
-      );
+      return ApiTagsResponse.fromJson(jsonBody);
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
       throw OllamaException("Something went wrong.");
     }
+  }
+
+  /// Fetches detailed model information from /api/show
+  ///
+  /// Returns null if the endpoint is unavailable or returns an error.
+  /// This ensures graceful degradation for older Ollama versions.
+  Future<ApiShowResponse?> _showModel(String name) async {
+    try {
+      final url = constructUrl("/api/show");
+
+      final response = await http.post(
+        url,
+        headers: headers,
+        body: json.encode({"model": name}),
+      );
+
+      if (response.statusCode == 200) {
+        final jsonBody = json.decode(response.body);
+        return ApiShowResponse.fromJson(jsonBody);
+      }
+    } catch (_) {
+      // Silently ignore - endpoint may not exist on older Ollama versions
+    }
+
+    return null;
   }
 
   Future<void> createModel(
