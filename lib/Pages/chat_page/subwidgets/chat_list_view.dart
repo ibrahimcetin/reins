@@ -64,8 +64,8 @@ class _ChatListViewState extends State<ChatListView> {
   void dispose() {
     _scrollController.dispose();
 
-    NotificationCenter()
-        .removeObserver(NotificationNames.generationBegin, this);
+    // Remove the observer for the generation begin notification
+    NotificationCenter().removeObserver(NotificationNames.generationBegin, this);
 
     super.dispose();
   }
@@ -109,8 +109,7 @@ class _ChatListViewState extends State<ChatListView> {
               key: widget.key,
               itemCount: widget.messages.length,
               itemBuilder: (context, index) {
-                final message =
-                    widget.messages[widget.messages.length - index - 1];
+                final message = widget.messages[widget.messages.length - index - 1];
 
                 if (index == 0) {
                   return ObserveSize(
@@ -144,15 +143,13 @@ class _ChatListViewState extends State<ChatListView> {
   }
 
   void _updateScrollToBottomButtonVisibility() {
-    if (_scrollController.position.pixels > 100 &&
-        !_isScrollToBottomButtonVisible) {
+    if (_scrollController.position.pixels > 100 && !_isScrollToBottomButtonVisible) {
       setState(() {
         _isScrollToBottomButtonVisible = true;
       });
     }
 
-    if (_scrollController.position.pixels < 100 &&
-        _isScrollToBottomButtonVisible) {
+    if (_scrollController.position.pixels < 100 && _isScrollToBottomButtonVisible) {
       setState(() {
         _isScrollToBottomButtonVisible = false;
       });
