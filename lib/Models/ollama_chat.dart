@@ -24,9 +24,7 @@ class OllamaChat {
       model: map['model'],
       title: map['chat_title'],
       systemPrompt: map['system_prompt'],
-      options: map['options'] != null
-          ? OllamaChatOptions.fromJson(map['options'])
-          : null,
+      options: map['options'] != null ? OllamaChatOptions.fromJson(map['options']) : null,
     );
   }
 }
@@ -149,7 +147,7 @@ class OllamaChatOptions {
       'temperature': temperature,
       'seed': seed,
       'tfs_z': tailFreeSampling,
-      'num_predict': maxTokens,
+      if (maxTokens > 0) 'num_predict': maxTokens,
       'top_k': topK,
       'top_p': topP,
       'min_p': minP,
