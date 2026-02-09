@@ -2,8 +2,7 @@ import '../Models/ollama_chat.dart';
 import '../Models/ollama_message.dart';
 
 class OllamaModelfileGenerator {
-  static final Map<String, dynamic> defaultOptions =
-      OllamaChatOptions().toMap();
+  static final Map<String, dynamic> defaultOptions = OllamaChatOptions().toMap();
 
   Future<String> generate(OllamaChat chat, List<OllamaMessage> messages) async {
     final buffer = StringBuffer();
@@ -25,7 +24,7 @@ class OllamaModelfileGenerator {
 
     // Write MESSAGE history
     for (var message in messages) {
-      final role = message.role.toCaseString();
+      final role = message.role.name;
       final content = message.content;
       buffer.writeln('MESSAGE $role $content');
     }

@@ -93,7 +93,7 @@ class OllamaMessage {
         "model": model,
         "created_at": createdAt.toIso8601String(),
         "message": {
-          "role": role.toCaseString(),
+          "role": role.name,
           "content": content,
           "images": await _base64EncodeImages(),
         },
@@ -110,7 +110,7 @@ class OllamaMessage {
       };
 
   Future<Map<String, dynamic>> toChatJson() async => {
-        "role": role.toCaseString(),
+        "role": role.name,
         "content": content,
         "images": await _base64EncodeImages(),
       };
@@ -119,7 +119,7 @@ class OllamaMessage {
         'message_id': id,
         'content': content,
         'images': _breakImages(images),
-        'role': role.toCaseString(),
+        'role': role.name,
         'timestamp': createdAt.millisecondsSinceEpoch,
       };
 
@@ -191,9 +191,5 @@ enum OllamaMessageRole {
       default:
         throw ArgumentError('Unknown role: $role');
     }
-  }
-
-  String toCaseString() {
-    return toString().split('.').last;
   }
 }
