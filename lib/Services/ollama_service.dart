@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
+import 'package:reins/Utils/http_error_formatter.dart';
 import 'package:reins/Models/api/tags_response.dart';
 import 'package:reins/Models/api/show_response.dart';
 import 'package:reins/Models/ollama_chat.dart';
@@ -80,7 +81,7 @@ class OllamaService {
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
-      throw OllamaException("Something went wrong.");
+      throw OllamaException(HttpErrorFormatter.formatHttpError(response.statusCode, body: response.body));
     }
   }
 
@@ -111,7 +112,8 @@ class OllamaService {
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
-      throw OllamaException("Something went wrong.");
+      final body = await response.stream.bytesToString();
+      throw OllamaException(HttpErrorFormatter.formatHttpError(response.statusCode, body: body));
     }
   }
 
@@ -150,7 +152,7 @@ class OllamaService {
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
-      throw OllamaException("Something went wrong.");
+      throw OllamaException(HttpErrorFormatter.formatHttpError(response.statusCode, body: response.body));
     }
   }
 
@@ -180,7 +182,8 @@ class OllamaService {
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
-      throw OllamaException("Something went wrong.");
+      final body = await response.stream.bytesToString();
+      throw OllamaException(HttpErrorFormatter.formatHttpError(response.statusCode, body: body));
     }
   }
 
@@ -256,7 +259,7 @@ class OllamaService {
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
-      throw OllamaException("Something went wrong.");
+      throw OllamaException(HttpErrorFormatter.formatHttpError(response.statusCode, body: response.body));
     }
   }
 
@@ -308,7 +311,7 @@ class OllamaService {
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
-      throw OllamaException("Something went wrong.");
+      throw OllamaException(HttpErrorFormatter.formatHttpError(response.statusCode, body: response.body));
     }
   }
 
@@ -328,7 +331,7 @@ class OllamaService {
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
-      throw OllamaException("Something went wrong.");
+      throw OllamaException(HttpErrorFormatter.formatHttpError(response.statusCode, body: response.body));
     }
   }
 }
