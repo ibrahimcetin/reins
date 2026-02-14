@@ -252,24 +252,55 @@ class OllamaService {
     List<OllamaMessage>? messages,
   }) async {
     final url = constructUrl("/api/create");
-
+  
     final modelfile = await _modelfileGenerator.generate(chat, messages ?? []);
-
-    final response = await http.post(
-      url,
-      headers: headers,
-      body: json.encode({
-        "model": model,
-        "modelfile": modelfile,
-      }),
-    );
-
+  
+    final request = http.Request("POST", url);
+    request.headers.addAll(headers);
+    request.body = json.encode({
+      "model": model,
+      "modelfile": modelfile,
+    });
+  
+    final response = await request.send();
+  
     if (response.statusCode == 200) {
-      return;
+      // Must consume the entire stream to complete the model creation
+      String buffer = '';
+      
+      await for (var chunk in response.stream.transform(utf8.decoder)) {
+        chunk = buffer + chunk;
+        buffer = '';
+  
+        final lines = LineSplitter.split(chunk);
+  
+        for (var line in lines) {
+          try {
+            final jsonBody = json.decode(line);
+            
+            // Check for errors in the response
+            if (jsonBody['error'] != null) {
+              throw OllamaException(jsonBody['error']);
+            }
+            
+          } catch (e) {
+            if (e is OllamaException) rethrow;
+            buffer = line;
+          }
+        }
+      }
+    } else if (response.statusCode == 404) {
+      throw OllamaException("Base model '${chat.model}' not found on the server.");
     } else if (response.statusCode == 500) {
       throw OllamaException("Internal server error.");
     } else {
-      throw OllamaException("Something went wrong.");
+      final errorBody = await response.stream.bytesToString();
+      try {
+        final errorJson = json.decode(errorBody);
+        throw OllamaException(errorJson['error'] ?? "Something went wrong.");
+      } catch (_) {
+        throw OllamaException("Something went wrong. Status: ${response.statusCode}");
+      }
     }
   }
 
