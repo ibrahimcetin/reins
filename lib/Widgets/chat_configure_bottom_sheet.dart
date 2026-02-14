@@ -8,6 +8,19 @@ import 'package:reins/Widgets/flexible_text.dart';
 
 import 'ollama_bottom_sheet_header.dart';
 
+enum _BottomSheetTextFieldType {
+  text,
+  number,
+  decimal,
+  decimalBetween0And1,
+}
+
+enum ChatConfigureBottomSheetAction {
+  save,
+  delete,
+  cancel,
+}
+
 class ChatConfigureBottomSheet extends StatelessWidget {
   final ChatConfigureArguments arguments;
 
@@ -41,16 +54,15 @@ class _ChatConfigureBottomSheetContent extends StatefulWidget {
   final ChatConfigureArguments arguments;
 
   const _ChatConfigureBottomSheetContent({
-    super.key,
     required this.arguments,
   });
 
   @override
   State<_ChatConfigureBottomSheetContent> createState() =>
-      __ChatConfigureBottomSheetContentState();
+      _ChatConfigureBottomSheetContentState();
 }
 
-class __ChatConfigureBottomSheetContentState
+class _ChatConfigureBottomSheetContentState
     extends State<_ChatConfigureBottomSheetContent> {
   late OllamaChatOptions _chatOptions;
 
@@ -79,19 +91,18 @@ class __ChatConfigureBottomSheetContentState
       padding: const EdgeInsets.symmetric(vertical: 16.0),
       keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
       children: [
-        // The buttons to rename, save as a new model, and delete the chat
         Row(
-          spacing: 16.0,
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Expanded(child: _RenameButton()),
-            Expanded(child: _SaveAsNewModelButton()),
-            Expanded(child: _DeleteButton()),
+            Expanded(child: const _RenameButton()),
+            const SizedBox(width: 16.0),
+            Expanded(child: const _SaveAsNewModelButton()),
+            const SizedBox(width: 16.0),
+            Expanded(child: const _DeleteButton()),
           ],
         ),
-        // The chat configurations section
         const SizedBox(height: 16),
-        _BottomSheetTextField(
+        _BottomSheetTextField<String>(
           initialValue: widget.arguments.systemPrompt,
           labelText: 'System Prompt',
           infoText:
@@ -102,7 +113,7 @@ class __ChatConfigureBottomSheetContentState
         const SizedBox(height: 16),
         Divider(),
         const SizedBox(height: 16),
-        _BottomSheetTextField(
+        _BottomSheetTextField<double>(
           initialValue: _chatOptions.temperature,
           labelText: 'Temperature',
           infoText:
@@ -111,7 +122,7 @@ class __ChatConfigureBottomSheetContentState
           onChanged: (v) => _chatOptions.temperature = v ?? 0.8,
         ),
         const SizedBox(height: 16),
-        _BottomSheetTextField(
+        _BottomSheetTextField<int>(
           initialValue: _chatOptions.seed,
           labelText: 'Seed',
           infoText:
@@ -119,7 +130,6 @@ class __ChatConfigureBottomSheetContentState
           type: _BottomSheetTextFieldType.number,
           onChanged: (v) => _chatOptions.seed = v ?? 0,
         ),
-        // The advanced configurations section
         TextButton(
           onPressed: () {
             setState(() {
@@ -141,7 +151,7 @@ class __ChatConfigureBottomSheetContentState
           ),
         ),
         if (_showAdvancedConfigurations) ...[
-          _BottomSheetTextField(
+          _BottomSheetTextField<int>(
             initialValue: _chatOptions.maxTokens,
             labelText: 'Max Tokens',
             infoText:
@@ -150,7 +160,7 @@ class __ChatConfigureBottomSheetContentState
             onChanged: (v) => _chatOptions.maxTokens = v ?? -1,
           ),
           const SizedBox(height: 16),
-          _BottomSheetTextField(
+          _BottomSheetTextField<int>(
             initialValue: _chatOptions.repeatLastN,
             labelText: 'Repeat Last N',
             infoText:
@@ -159,7 +169,7 @@ class __ChatConfigureBottomSheetContentState
             onChanged: (v) => _chatOptions.repeatLastN = v ?? 64,
           ),
           const SizedBox(height: 16),
-          _BottomSheetTextField(
+          _BottomSheetTextField<int>(
             initialValue: _chatOptions.contextSize,
             labelText: 'Context Size',
             infoText:
@@ -168,7 +178,7 @@ class __ChatConfigureBottomSheetContentState
             onChanged: (v) => _chatOptions.contextSize = v ?? 2048,
           ),
           const SizedBox(height: 16),
-          _BottomSheetTextField(
+          _BottomSheetTextField<double>(
             initialValue: _chatOptions.repeatPenalty,
             labelText: 'Repeat Penalty',
             infoText:
@@ -177,7 +187,7 @@ class __ChatConfigureBottomSheetContentState
             onChanged: (v) => _chatOptions.repeatPenalty = v ?? 1.1,
           ),
           const SizedBox(height: 16),
-          _BottomSheetTextField(
+          _BottomSheetTextField<double>(
             initialValue: _chatOptions.tailFreeSampling,
             labelText: 'Tail Free Sampling',
             infoText:
@@ -186,7 +196,7 @@ class __ChatConfigureBottomSheetContentState
             onChanged: (v) => _chatOptions.tailFreeSampling = v ?? 1.0,
           ),
           const SizedBox(height: 16),
-          _BottomSheetTextField(
+          _BottomSheetTextField<int>(
             initialValue: _chatOptions.topK,
             labelText: 'Top K',
             infoText:
@@ -195,7 +205,7 @@ class __ChatConfigureBottomSheetContentState
             onChanged: (v) => _chatOptions.topK = v ?? 40,
           ),
           const SizedBox(height: 16),
-          _BottomSheetTextField(
+          _BottomSheetTextField<double>(
             initialValue: _chatOptions.topP,
             labelText: 'Top P',
             infoText:
@@ -204,7 +214,7 @@ class __ChatConfigureBottomSheetContentState
             onChanged: (v) => _chatOptions.topP = v ?? 0.9,
           ),
           const SizedBox(height: 16),
-          _BottomSheetTextField(
+          _BottomSheetTextField<double>(
             initialValue: _chatOptions.minP,
             labelText: 'Min P',
             infoText:
@@ -213,7 +223,7 @@ class __ChatConfigureBottomSheetContentState
             onChanged: (v) => _chatOptions.minP = v ?? 0.0,
           ),
           const SizedBox(height: 16),
-          _BottomSheetTextField(
+          _BottomSheetTextField<int>(
             initialValue: _chatOptions.mirostat,
             labelText: 'Mirostat',
             infoText:
@@ -222,7 +232,7 @@ class __ChatConfigureBottomSheetContentState
             onChanged: (v) => _chatOptions.mirostat = v ?? 0,
           ),
           const SizedBox(height: 16),
-          _BottomSheetTextField(
+          _BottomSheetTextField<double>(
             initialValue: _chatOptions.mirostatEta,
             labelText: 'Mirostat Eta',
             infoText:
@@ -231,7 +241,7 @@ class __ChatConfigureBottomSheetContentState
             onChanged: (v) => _chatOptions.mirostatEta = v ?? 0.1,
           ),
           const SizedBox(height: 16),
-          _BottomSheetTextField(
+          _BottomSheetTextField<double>(
             initialValue: _chatOptions.mirostatTau,
             labelText: 'Mirostat Tau',
             infoText:
@@ -273,7 +283,7 @@ class __ChatConfigureBottomSheetContentState
 }
 
 class _RenameButton extends StatelessWidget {
-  const _RenameButton({super.key});
+  const _RenameButton();
 
   @override
   Widget build(BuildContext context) {
@@ -340,7 +350,7 @@ class _RenameButton extends StatelessWidget {
 }
 
 class _SaveAsNewModelButton extends StatelessWidget {
-  const _SaveAsNewModelButton({super.key});
+  const _SaveAsNewModelButton();
 
   @override
   Widget build(BuildContext context) {
@@ -364,6 +374,7 @@ class _SaveAsNewModelButton extends StatelessWidget {
             errorMessage = '\n${error.message}';
           } catch (error) {
             success = false;
+            errorMessage = '\n${error.toString()}';
           }
 
           final snackBarText = success
@@ -388,37 +399,56 @@ class _SaveAsNewModelButton extends StatelessWidget {
 
   Future<String?> _showSaveAsNewModelDialog(BuildContext context) async {
     String? newModel;
+    String? errorText;
 
     return await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return AlertDialog(
-          title: const Text('Save As New Model'),
-          content: TextField(
-            decoration: const InputDecoration(
-              labelText: 'New Model Name',
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (value) => newModel = value,
-            onTapOutside: (PointerDownEvent event) {
-              FocusManager.instance.primaryFocus?.unfocus();
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (newModel != null && newModel!.trim().isNotEmpty) {
-                  Navigator.of(context).pop(newModel!.trim());
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
+        return StatefulBuilder(
+          builder: (context, setState) {
+            return AlertDialog(
+              title: const Text('Save As New Model'),
+              content: TextField(
+                decoration: InputDecoration(
+                  labelText: 'New Model Name',
+                  hintText: 'e.g., my-custom-model',
+                  border: OutlineInputBorder(),
+                  errorText: errorText,
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    newModel = value;
+                    if (value.isEmpty) {
+                      errorText = null;
+                    } else if (!RegExp(r'^[a-z0-9._-]+$').hasMatch(value)) {
+                      errorText =
+                          'Only lowercase letters, numbers, dots, hyphens, and underscores allowed';
+                    } else {
+                      errorText = null;
+                    }
+                  });
+                },
+                onTapOutside: (PointerDownEvent event) {
+                  FocusManager.instance.primaryFocus?.unfocus();
+                },
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: errorText == null &&
+                          newModel != null &&
+                          newModel!.trim().isNotEmpty
+                      ? () => Navigator.of(context).pop(newModel!.trim())
+                      : null,
+                  child: const Text('Save'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -426,7 +456,7 @@ class _SaveAsNewModelButton extends StatelessWidget {
 }
 
 class _DeleteButton extends StatelessWidget {
-  const _DeleteButton({super.key});
+  const _DeleteButton();
 
   @override
   Widget build(BuildContext context) {
@@ -532,7 +562,6 @@ class _BottomSheetTextField<T> extends StatefulWidget {
   final Function(T?)? onChanged;
 
   const _BottomSheetTextField({
-    super.key,
     this.initialValue,
     required this.labelText,
     required this.infoText,
@@ -541,16 +570,41 @@ class _BottomSheetTextField<T> extends StatefulWidget {
   });
 
   @override
-  State<_BottomSheetTextField<T>> createState() => _BottomSheetTextFieldState();
+  State<_BottomSheetTextField<T>> createState() =>
+      _BottomSheetTextFieldState();
 }
 
 class _BottomSheetTextFieldState<T> extends State<_BottomSheetTextField<T>> {
+  late TextEditingController _controller;
   String? _errorText;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(
+      text: widget.initialValue?.toString() ?? '',
+    );
+  }
+
+  @override
+  void didUpdateWidget(_BottomSheetTextField<T> oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialValue != widget.initialValue) {
+      _controller.text = widget.initialValue?.toString() ?? '';
+      _errorText = null;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return TextFormField(
-      initialValue: widget.initialValue?.toString(),
+      controller: _controller,
       decoration: InputDecoration(
         labelText: widget.labelText,
         hintText: _hintText,
@@ -578,7 +632,9 @@ class _BottomSheetTextFieldState<T> extends State<_BottomSheetTextField<T>> {
         ),
       ),
       onChanged: (value) {
-        final (validValue, errorText) = _validator(value);
+        final result = _validator(value);
+        final validValue = result['value'] as T?;
+        final errorText = result['error'] as String?;
         setState(() => _errorText = errorText);
 
         widget.onChanged?.call(validValue);
@@ -604,28 +660,37 @@ class _BottomSheetTextFieldState<T> extends State<_BottomSheetTextField<T>> {
     }
   }
 
-  (T?, String?) Function(String?) get _validator {
+  Map<String, dynamic> Function(String?) get _validator {
     switch (widget.type) {
       case _BottomSheetTextFieldType.text:
         return (v) {
           if (v == null) {
-            return (null, '${widget.labelText} must not be empty');
+            return {
+              'value': null,
+              'error': '${widget.labelText} must not be empty'
+            };
           } else if (v.isEmpty) {
-            return (null, null);
+            return {'value': null, 'error': null};
           } else {
-            return (v as T?, null);
+            return {'value': v as T?, 'error': null};
           }
         };
       case _BottomSheetTextFieldType.number:
         return (v) {
           if (v == null) {
-            return (null, '${widget.labelText} must not be empty');
+            return {
+              'value': null,
+              'error': '${widget.labelText} must not be empty'
+            };
           } else if (v.isEmpty) {
-            return (null, null);
+            return {'value': null, 'error': null};
           } else if (int.tryParse(v) == null) {
-            return (null, '${widget.labelText} must be a number');
+            return {
+              'value': null,
+              'error': '${widget.labelText} must be a number'
+            };
           } else {
-            return (int.tryParse(v) as T?, null);
+            return {'value': int.tryParse(v) as T?, 'error': null};
           }
         };
       case _BottomSheetTextFieldType.decimal:
@@ -633,13 +698,19 @@ class _BottomSheetTextFieldState<T> extends State<_BottomSheetTextField<T>> {
           final v = value?.replaceAll(',', '.');
 
           if (v == null) {
-            return (null, '${widget.labelText} must not be empty');
+            return {
+              'value': null,
+              'error': '${widget.labelText} must not be empty'
+            };
           } else if (v.isEmpty) {
-            return (null, null);
+            return {'value': null, 'error': null};
           } else if (double.tryParse(v) == null) {
-            return (null, '${widget.labelText} must be a decimal number');
+            return {
+              'value': null,
+              'error': '${widget.labelText} must be a decimal number'
+            };
           } else {
-            return (double.tryParse(v) as T?, null);
+            return {'value': double.tryParse(v) as T?, 'error': null};
           }
         };
       case _BottomSheetTextFieldType.decimalBetween0And1:
@@ -647,17 +718,26 @@ class _BottomSheetTextFieldState<T> extends State<_BottomSheetTextField<T>> {
           final v = value?.replaceAll(',', '.');
 
           if (v == null) {
-            return (null, '${widget.labelText} must not be empty');
+            return {
+              'value': null,
+              'error': '${widget.labelText} must not be empty'
+            };
           } else if (v.isEmpty) {
-            return (null, null);
+            return {'value': null, 'error': null};
           } else if (double.tryParse(v) == null) {
-            return (null, '${widget.labelText} must be a decimal number');
+            return {
+              'value': null,
+              'error': '${widget.labelText} must be a decimal number'
+            };
           } else {
-            final value = double.parse(v);
-            if (value < 0 || value > 1) {
-              return (null, '${widget.labelText} must be between 0 and 1');
+            final parsedValue = double.parse(v);
+            if (parsedValue < 0 || parsedValue > 1) {
+              return {
+                'value': null,
+                'error': '${widget.labelText} must be between 0 and 1'
+              };
             } else {
-              return (double.tryParse(v) as T?, null);
+              return {'value': double.tryParse(v) as T?, 'error': null};
             }
           }
         };
@@ -676,15 +756,4 @@ class _BottomSheetTextFieldState<T> extends State<_BottomSheetTextField<T>> {
         return TextInputType.numberWithOptions(decimal: true);
     }
   }
-}
-
-enum _BottomSheetTextFieldType {
-  text,
-  number,
-  decimal,
-  decimalBetween0And1,
-}
-
-enum ChatConfigureBottomSheetAction {
-  delete,
 }

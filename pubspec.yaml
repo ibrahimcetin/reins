@@ -51,7 +51,7 @@ dependencies:
   hive_flutter: ^1.1.0
 
   # Google Fonts package for custom fonts
-  google_fonts: ^6.2.1
+  google_fonts: ^6.3.0
 
   # SVG rendering and widget library
   flutter_svg: ^2.0.14
