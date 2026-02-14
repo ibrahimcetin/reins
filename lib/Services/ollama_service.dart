@@ -249,40 +249,57 @@ class OllamaService {
   Future<void> createModel(
     String model, {
     required OllamaChat chat,
-    List<OllamaMessage>? messages,
+    List? messages,
   }) async {
     final url = constructUrl("/api/create");
-  
-    final modelfile = await _modelfileGenerator.generate(chat, messages ?? []);
-  
+
+    // Build the request body using the new API format
+    final body = {
+      "model": model,
+      "from": chat.model,
+      "stream": true,
+    };
+
+    final systemPrompt = chat.systemPrompt;
+    if (systemPrompt != null && systemPrompt.isNotEmpty) {
+      body["system"] = systemPrompt;
+    }
+
+    // Add parameters/options if present
+    final options = chat.options.toMap();
+    if (options.isNotEmpty) {
+      body["parameters"] = options;
+    }
+
+    // Add messages if provided
+    if (messages != null && messages.isNotEmpty) {
+      body["messages"] = await Future.wait(
+        messages.map((m) async => await m.toChatJson()),
+      );
+    }
+
     final request = http.Request("POST", url);
     request.headers.addAll(headers);
-    request.body = json.encode({
-      "model": model,
-      "modelfile": modelfile,
-    });
-  
+    request.body = json.encode(body);
+
     final response = await request.send();
-  
+
     if (response.statusCode == 200) {
-      // Must consume the entire stream to complete the model creation
       String buffer = '';
-      
+
       await for (var chunk in response.stream.transform(utf8.decoder)) {
         chunk = buffer + chunk;
         buffer = '';
-  
+
         final lines = LineSplitter.split(chunk);
-  
+
         for (var line in lines) {
           try {
             final jsonBody = json.decode(line);
-            
-            // Check for errors in the response
+
             if (jsonBody['error'] != null) {
               throw OllamaException(jsonBody['error']);
             }
-            
           } catch (e) {
             if (e is OllamaException) rethrow;
             buffer = line;
@@ -298,7 +315,8 @@ class OllamaService {
       try {
         final errorJson = json.decode(errorBody);
         throw OllamaException(errorJson['error'] ?? "Something went wrong.");
-      } catch (_) {
+      } catch (e) {
+        if (e is OllamaException) rethrow;
         throw OllamaException("Something went wrong. Status: ${response.statusCode}");
       }
     }
