@@ -355,7 +355,7 @@ class _SaveAsNewModelButton extends StatelessWidget {
         if (newModelName != null) {
           bool success = false;
           String errorMessage = '';
-
+        
           try {
             await chatProvider.saveAsNewModel(newModelName);
             success = true;
@@ -364,6 +364,8 @@ class _SaveAsNewModelButton extends StatelessWidget {
             errorMessage = '\n${error.message}';
           } catch (error) {
             success = false;
+            errorMessage = '\n${error.toString()}';  // ← Add this to see the actual error
+            print('Error saving model: $error');      // ← Also log to console
           }
 
           final snackBarText = success
@@ -386,43 +388,61 @@ class _SaveAsNewModelButton extends StatelessWidget {
     );
   }
 
-  Future<String?> _showSaveAsNewModelDialog(BuildContext context) async {
-    String? newModel;
+Future<String?> _showSaveAsNewModelDialog(BuildContext context) async {
+  String? newModel;
+  String? errorText;
 
-    return await showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Save As New Model'),
-          content: TextField(
-            decoration: const InputDecoration(
-              labelText: 'New Model Name',
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (value) => newModel = value,
-            onTapOutside: (PointerDownEvent event) {
-              FocusManager.instance.primaryFocus?.unfocus();
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (newModel != null && newModel!.trim().isNotEmpty) {
-                  Navigator.of(context).pop(newModel!.trim());
-                }
+  return await showDialog(
+    context: context,
+    barrierDismissible: false,
+    builder: (context) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Save As New Model'),
+            content: TextField(
+              decoration: InputDecoration(
+                labelText: 'New Model Name',
+                hintText: 'e.g., my-custom-model',
+                border: OutlineInputBorder(),
+                errorText: errorText,
+              ),
+              onChanged: (value) {
+                setState(() {
+                  newModel = value;
+                  // Validate model name
+                  if (value.isEmpty) {
+                    errorText = null;
+                  } else if (!RegExp(r'^[a-z0-9._-]+$').hasMatch(value)) {
+                    errorText = 'Only lowercase letters, numbers, dots, hyphens, and underscores allowed';
+                  } else {
+                    errorText = null;
+                  }
+                });
               },
-              child: const Text('Save'),
+              onTapOutside: (PointerDownEvent event) {
+                FocusManager.instance.primaryFocus?.unfocus();
+              },
             ),
-          ],
-        );
-      },
-    );
-  }
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: errorText == null && 
+                           newModel != null && 
+                           newModel!.trim().isNotEmpty
+                  ? () => Navigator.of(context).pop(newModel!.trim())
+                  : null,
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
 }
 
 class _DeleteButton extends StatelessWidget {
