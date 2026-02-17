@@ -8,7 +8,7 @@ import 'package:reins/Models/ollama_chat.dart';
 import 'package:reins/Models/ollama_exception.dart';
 import 'package:reins/Models/ollama_message.dart';
 import 'package:reins/Models/ollama_model.dart';
-import 'package:reins/Services/ollama_modelfile_generator.dart';
+import 'package:reins/Models/api/create_request.dart';
 
 class OllamaService {
   /// The base URL for the Ollama service API.
@@ -24,9 +24,6 @@ class OllamaService {
 
   /// The headers to include in all network requests.
   final headers = {'Content-Type': 'application/json'};
-
-  /// The modelfile generator used to generate modelfiles for the Ollama service.
-  static final _modelfileGenerator = OllamaModelfileGenerator();
 
   /// Creates a new instance of the Ollama service.
   OllamaService({String? baseUrl}) : _baseUrl = baseUrl ?? "http://localhost:11434";
@@ -295,15 +292,16 @@ class OllamaService {
   }) async {
     final url = constructUrl("/api/create");
 
-    final modelfile = await _modelfileGenerator.generate(chat, messages ?? []);
+    final request = ApiCreateRequest.fromChat(
+      model,
+      chat: chat,
+      messages: messages,
+    );
 
     final response = await http.post(
       url,
       headers: headers,
-      body: json.encode({
-        "model": model,
-        "modelfile": modelfile,
-      }),
+      body: json.encode(await request.toJson()),
     );
 
     if (response.statusCode == 200) {
