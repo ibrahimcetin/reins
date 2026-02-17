@@ -46,12 +46,10 @@ class _ChatConfigureBottomSheetContent extends StatefulWidget {
   });
 
   @override
-  State<_ChatConfigureBottomSheetContent> createState() =>
-      __ChatConfigureBottomSheetContentState();
+  State<_ChatConfigureBottomSheetContent> createState() => __ChatConfigureBottomSheetContentState();
 }
 
-class __ChatConfigureBottomSheetContentState
-    extends State<_ChatConfigureBottomSheetContent> {
+class __ChatConfigureBottomSheetContentState extends State<_ChatConfigureBottomSheetContent> {
   late OllamaChatOptions _chatOptions;
 
   final _scrollController = ScrollController();
@@ -135,17 +133,14 @@ class __ChatConfigureBottomSheetContentState
             });
           },
           child: Text(
-            _showAdvancedConfigurations
-                ? 'Hide Advanced Configurations'
-                : 'Show Advanced Configurations',
+            _showAdvancedConfigurations ? 'Hide Advanced Configurations' : 'Show Advanced Configurations',
           ),
         ),
         if (_showAdvancedConfigurations) ...[
           _BottomSheetTextField(
             initialValue: _chatOptions.maxTokens,
             labelText: 'Max Tokens',
-            infoText:
-                'Maximum number of tokens to predict when generating text. -1 = infinite generation.',
+            infoText: 'Maximum number of tokens to predict when generating text. -1 = infinite generation.',
             type: _BottomSheetTextFieldType.number,
             onChanged: (v) => _chatOptions.maxTokens = v ?? -1,
           ),
@@ -153,8 +148,7 @@ class __ChatConfigureBottomSheetContentState
           _BottomSheetTextField(
             initialValue: _chatOptions.repeatLastN,
             labelText: 'Repeat Last N',
-            infoText:
-                'How far back the model looks to prevent repetition. 0 = disabled, -1 = full context size.',
+            infoText: 'How far back the model looks to prevent repetition. 0 = disabled, -1 = full context size.',
             type: _BottomSheetTextFieldType.number,
             onChanged: (v) => _chatOptions.repeatLastN = v ?? 64,
           ),
@@ -171,8 +165,7 @@ class __ChatConfigureBottomSheetContentState
           _BottomSheetTextField(
             initialValue: _chatOptions.repeatPenalty,
             labelText: 'Repeat Penalty',
-            infoText:
-                'The penalty for repeating tokens in the output text. 0 = disabled.',
+            infoText: 'The penalty for repeating tokens in the output text. 0 = disabled.',
             type: _BottomSheetTextFieldType.decimal,
             onChanged: (v) => _chatOptions.repeatPenalty = v ?? 1.1,
           ),
@@ -292,8 +285,7 @@ class _RenameButton extends StatelessWidget {
           await chatProvider.updateCurrentChat(newTitle: newTitle);
         }
       },
-      isDisabled:
-          Provider.of<ChatProvider>(context, listen: false).currentChat == null,
+      isDisabled: Provider.of<ChatProvider>(context, listen: false).currentChat == null,
     );
   }
 
@@ -386,42 +378,88 @@ class _SaveAsNewModelButton extends StatelessWidget {
     );
   }
 
-  Future<String?> _showSaveAsNewModelDialog(BuildContext context) async {
-    String? newModel;
-
-    return await showDialog(
+  Future<String?> _showSaveAsNewModelDialog(BuildContext context) {
+    return showDialog<String>(
       context: context,
       barrierDismissible: false,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Save As New Model'),
-          content: TextField(
-            decoration: const InputDecoration(
-              labelText: 'New Model Name',
-              border: OutlineInputBorder(),
-            ),
-            onChanged: (value) => newModel = value,
-            onTapOutside: (PointerDownEvent event) {
-              FocusManager.instance.primaryFocus?.unfocus();
-            },
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () {
-                if (newModel != null && newModel!.trim().isNotEmpty) {
-                  Navigator.of(context).pop(newModel!.trim());
-                }
-              },
-              child: const Text('Save'),
-            ),
-          ],
-        );
-      },
+      builder: (context) => const _SaveAsNewModelDialog(),
     );
+  }
+}
+
+class _SaveAsNewModelDialog extends StatefulWidget {
+  const _SaveAsNewModelDialog();
+
+  @override
+  State<_SaveAsNewModelDialog> createState() => _SaveAsNewModelDialogState();
+}
+
+class _SaveAsNewModelDialogState extends State<_SaveAsNewModelDialog> {
+  String _modelName = '';
+  String? _errorText;
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: const Text('Save As New Model', maxLines: 2, overflow: TextOverflow.ellipsis),
+      content: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(),
+        child: TextField(
+          decoration: InputDecoration(
+            labelText: 'New Model Name',
+            errorText: _errorText,
+            errorMaxLines: 5,
+            helperText: 'Format: model, namespace/model, or model:tag',
+            helperMaxLines: 5,
+            border: const OutlineInputBorder(),
+          ),
+          onChanged: (value) {
+            setState(() {
+              _modelName = value;
+              _errorText = _validateModelName(value);
+            });
+          },
+          onTapOutside: (PointerDownEvent event) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+        ),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: const Text('Cancel'),
+        ),
+        TextButton(
+          onPressed: _isValid ? () => Navigator.of(context).pop(_modelName.trim()) : null,
+          child: const Text('Save'),
+        ),
+      ],
+    );
+  }
+
+  /// Model names follow the `[namespace/]model[:tag]` format.
+  /// Each segment must start with an alphanumeric character and
+  /// can contain alphanumeric characters, hyphens, underscores, and dots.
+  static final _modelNamePattern = RegExp(
+    r'^[a-zA-Z0-9][a-zA-Z0-9._-]*(/[a-zA-Z0-9][a-zA-Z0-9._-]*)?(:[a-zA-Z0-9][a-zA-Z0-9._-]*)?$',
+  );
+
+  bool get _isValid => _modelName.trim().isNotEmpty && _errorText == null;
+
+  String? _validateModelName(String value) {
+    if (value.trim().isEmpty) {
+      return null;
+    }
+
+    if (value.contains(' ')) {
+      return 'Model name must not contain spaces';
+    }
+
+    if (!_modelNamePattern.hasMatch(value.trim())) {
+      return 'Invalid model name format. Use [namespace/]model[:tag]';
+    }
+
+    return null;
   }
 }
 
@@ -437,8 +475,7 @@ class _DeleteButton extends StatelessWidget {
         _showDeleteDialog(context);
       },
       isDestructive: true,
-      isDisabled:
-          Provider.of<ChatProvider>(context, listen: false).currentChat == null,
+      isDisabled: Provider.of<ChatProvider>(context, listen: false).currentChat == null,
     );
   }
 
@@ -458,8 +495,7 @@ class _DeleteButton extends StatelessWidget {
             ),
             TextButton(
               onPressed: () {
-                Provider.of<ChatProvider>(context, listen: false)
-                    .deleteCurrentChat();
+                Provider.of<ChatProvider>(context, listen: false).deleteCurrentChat();
 
                 Navigator.of(context)
                   ..pop()
