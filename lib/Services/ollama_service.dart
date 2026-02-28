@@ -22,8 +22,20 @@ class OllamaService {
   String get baseUrl => _baseUrl;
   set baseUrl(String? value) => _baseUrl = value ?? "http://localhost:11434";
 
+  /// Optional API key for authentication with ollama.com cloud API.
+  /// When set, requests will include an Authorization: Bearer header.
+  String? _apiKey;
+  String? get apiKey => _apiKey;
+  set apiKey(String? value) => _apiKey = value?.isNotEmpty == true ? value : null;
+
   /// The headers to include in all network requests.
-  final headers = {'Content-Type': 'application/json'};
+  Map<String, String> get headers {
+    final h = {'Content-Type': 'application/json'};
+    if (_apiKey != null) {
+      h['Authorization'] = 'Bearer $_apiKey';
+    }
+    return h;
+  }
 
   /// Creates a new instance of the Ollama service.
   OllamaService({String? baseUrl}) : _baseUrl = baseUrl ?? "http://localhost:11434";

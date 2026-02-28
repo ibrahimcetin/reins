@@ -24,7 +24,9 @@ class _ServerSettingsState extends State<ServerSettings> {
   final _settingsBox = Hive.box('settings');
 
   final _serverAddressController = TextEditingController();
+  final _apiKeyController = TextEditingController();
 
+  bool _apiKeyObscured = true;
   OllamaRequestState _requestState = OllamaRequestState.uninitialized;
   get _isLoading => _requestState == OllamaRequestState.loading;
 
@@ -33,23 +35,27 @@ class _ServerSettingsState extends State<ServerSettings> {
   @override
   void initState() {
     super.initState();
-
     _initialize();
   }
 
   _initialize() {
     final serverAddress = _settingsBox.get('serverAddress');
+    final apiKey = _settingsBox.get('apiKey');
 
     if (serverAddress != null) {
       _serverAddressController.text = serverAddress;
       _handleConnectButton();
+    }
+
+    if (apiKey != null) {
+      _apiKeyController.text = apiKey;
     }
   }
 
   @override
   void dispose() {
     _serverAddressController.dispose();
-
+    _apiKeyController.dispose();
     super.dispose();
   }
 
@@ -82,6 +88,32 @@ class _ServerSettingsState extends State<ServerSettings> {
             suffixIcon: IconButton(
               icon: Icon(Icons.info_outline),
               onPressed: () => _showOllamaInfoBottomSheet(context),
+            ),
+          ),
+          onTapOutside: (PointerDownEvent event) {
+            FocusManager.instance.primaryFocus?.unfocus();
+          },
+        ),
+        const SizedBox(height: 16),
+        TextField(
+          controller: _apiKeyController,
+          keyboardType: TextInputType.text,
+          obscureText: _apiKeyObscured,
+          onChanged: (value) {
+            _settingsBox.put('apiKey', value);
+          },
+          decoration: InputDecoration(
+            labelText: 'API key (optional)',
+            border: OutlineInputBorder(),
+            suffixIcon: IconButton(
+              icon: Icon(
+                _apiKeyObscured ? Icons.visibility : Icons.visibility_off,
+              ),
+              onPressed: () {
+                setState(() {
+                  _apiKeyObscured = !_apiKeyObscured;
+                });
+              },
             ),
           ),
           onTapOutside: (PointerDownEvent event) {
@@ -244,6 +276,9 @@ class _ServerSettingsState extends State<ServerSettings> {
       final foundAddress = result.$2.toString();
 
       if (!mounted) return;
+
+      _apiKeyController.clear();
+      _settingsBox.delete('apiKey');
 
       // Update the server address text field with the found address.
       _serverAddressController.text = foundAddress;

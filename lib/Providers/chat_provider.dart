@@ -390,9 +390,11 @@ class ChatProvider extends ChangeNotifier {
   void _updateOllamaServiceAddress() {
     final settingsBox = Hive.box('settings');
     _ollamaService.baseUrl = settingsBox.get('serverAddress');
+    _ollamaService.apiKey = settingsBox.get('apiKey');
 
-    settingsBox.listenable(keys: ["serverAddress"]).addListener(() {
+    settingsBox.listenable(keys: ["serverAddress", "apiKey"]).addListener(() {
       _ollamaService.baseUrl = settingsBox.get('serverAddress');
+      _ollamaService.apiKey = settingsBox.get('apiKey');
 
       // This will update empty chat state to dismiss "Tap to configure server address" message
       notifyListeners();
