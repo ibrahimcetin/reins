@@ -240,7 +240,8 @@ class _CapabilityChip extends StatelessWidget {
 
 /// Shows a model selection bottom sheet and returns the selected model.
 ///
-/// Returns the selected [OllamaModel], or the current model if cancelled.
+/// Returns the selected [OllamaModel], or `null` if cancelled or dismissed
+/// by tapping outside the sheet.
 Future<OllamaModel?> showModelSelectionBottomSheet({
   required BuildContext context,
   required String title,
@@ -251,7 +252,7 @@ Future<OllamaModel?> showModelSelectionBottomSheet({
     builder: (context) {
       return ModelSelectionBottomSheet(title: title, currentModelName: currentModelName);
     },
-    isDismissible: false,
+    isDismissible: true,
     enableDrag: false,
   );
 }
